@@ -17,18 +17,26 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function update() 
+    public function update(Request $request, Project $project)
     {
+        $validatedData = $request->validate([
+            'name' => 'required|string',
+            'desc' => 'nullable|string',
+            'active' => 'boolean',
+        ]);
 
+        $project->update($validatedData);
     }
 
-    public function show() 
+    public function show(Project $project) 
     {
-
+        # Get the project details and return to a view.
     }
 
     public function delete() 
     {
-
+        #$project->shifts()->delete(); do we need to delete shifts associated with the project?
+        $project->delete();
+        # add redirect with success message
     }
 }
