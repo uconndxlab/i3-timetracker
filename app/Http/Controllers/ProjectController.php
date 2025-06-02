@@ -39,4 +39,10 @@ class ProjectController extends Controller
         $project->delete();
         # add redirect with success message
     }
+
+    public function index()
+    {
+        $projects = Project::all();
+        return view('index', compact('projects'));
+    }
 }
