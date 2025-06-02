@@ -45,4 +45,10 @@ class ProjectController extends Controller
         $projects = Project::all();
         return view('index', compact('projects'));
     }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'project_user')
+            ->withPivot('active');
+    }
 }

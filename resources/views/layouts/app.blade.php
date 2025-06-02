@@ -11,20 +11,22 @@
 
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-info mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="{{ route('projects.index') }}">i3 Time Tracker</a>
+            <a class="navbar-brand fw-bold" href="{{ route('projects.index') }}"">i3 Time Tracker</a>
     
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
     
             <div class="collapse navbar-collapse" id="mainNavbar">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a href="{{ route('projects.show', ['project' => 1]) }}">Projects</a>
-                    </li>
-                </ul>
+                <li class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <a href="{{ route('projects.show', ['project' => 1]) }}">View Projects</a>
+                </li>
+                <li class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <a href="{{ route('projects.create') }}">Create Project</a>
+                </li>
+
 
                 {{-- You can add a logout button or user info here if auth is added --}}
             </div>

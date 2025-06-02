@@ -44,4 +44,10 @@ class UserController extends Controller
     {
         # Get the user details and return to a view.
     }
+
+    public function projects(User $user)
+    {
+        return $this->belongsToMany(Project::class, 'project_user')
+            ->withPivot('active');
+    }
 }
