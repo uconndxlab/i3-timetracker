@@ -13,26 +13,31 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-info mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="{{ route('projects.index') }}"">i3 Time Tracker</a>
+            <a class="navbar-brand fw-bold" href="{{ route('landing') }}">i3 Time Tracker</a>
     
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
     
             <div class="collapse navbar-collapse" id="mainNavbar">
-                <li class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <a href="{{ route('projects.show', ['project' => 1]) }}">View Projects</a>
-                </li>
-                <li class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <a href="{{ route('projects.create') }}">Create Project</a>
-                </li>
-
-
-                {{-- You can add a logout button or user info here if auth is added --}}
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('projects.index') }}">Projects</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('shifts.index') }}">Shifts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('projects.create') }}">Add Project</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('shifts.create') }}">Add Shift</a>
+                    </li>
+                </ul>
+                {{-- auth (?) --}}
             </div>
         </div>
     </nav>
-    
 
     @if ($errors->any())
         <div class="alert alert-danger">

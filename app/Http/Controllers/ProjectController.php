@@ -8,47 +8,67 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    public function create(Request $request)
+    public function create()
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string',
-            'desc' => 'nullable|string',
-            'active' => 'boolean',
-        ]);
+        return view('projects.create');
     }
 
     public function update(Request $request, Project $project)
     {
         $validatedData = $request->validate([
-            'name' => 'required|string',
+            'name' => 'sometimes|required|string|max:255',
             'desc' => 'nullable|string',
-            'active' => 'boolean',
+            'active' => 'sometimes|required|boolean',
         ]);
 
         $project->update($validatedData);
+        return redirect()->route('projects.show', $project)->with('message', 'Project updated successfully!');
     }
 
     public function show(Project $project) 
     {
-        # Get the project details and return to a view.
+        $project->load('shifts.user');
+        return view('projects.show', compact('project'));
     }
 
-    public function delete() 
+    public function delete(Project $project) 
     {
         #$project->shifts()->delete(); do we need to delete shifts associated with the project?
         $project->delete();
-        # add redirect with success message
+        return redirect()->route('projects.index')->with('message', 'Project deleted successfully!');
     }
 
     public function index()
     {
-        $projects = Project::all();
-        return view('index', compact('projects'));
+        $projects = Project::latest()->get();
+        return view('projects.index', compact('projects'));
     }
 
     public function users()
     {
         return $this->belongsToMany(User::class, 'project_user')
             ->withPivot('active');
+    }
+
+    public function store(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'desc' => 'nullable|string',
+            'active' => 'required|boolean',
+        ]);
+        Project::create($validatedData);
+        return redirect()->route('projects.index')->with('message', 'Project created successfully!');
+    }
+
+    public function landing()
+    {
+        $activeProjects = Project::where('active', true)->latest()->get();
+        return view('landing', compact('activeProjects'));
+    }
+
+    public function edit(Project $project)
+    {
+        return view('projects.edit', compact('project'));
     }
 }

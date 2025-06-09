@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Shift;
+use App\Models\Project;
 
 class User extends Authenticatable
 {
@@ -45,6 +47,17 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'active' => 'boolean',
         ];
+    }
+
+    public function shifts()
+    {
+        return $this->hasMany(Shift::class, 'netid'); // NetID column in shifts table is the foreign key to users.id
+    }
+
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_user', 'user_id', 'project_id')->withPivot('active')->withTimestamps();
     }
 }
