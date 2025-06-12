@@ -16,7 +16,7 @@ class UserController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'netid' => 'sometimes|required|string|max:255|unique:users,netid,' . $user->id,
+            'netid' => 'sometimes|required|string|max:255|unique:users,netid,' . $user->netid,
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
             'active' => 'sometimes|boolean',

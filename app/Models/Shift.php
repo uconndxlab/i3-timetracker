@@ -32,7 +32,7 @@ class Shift extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'netid', 'id');
+        return $this->belongsTo(User::class, 'netid', 'netid');
     }
 
     public function project()

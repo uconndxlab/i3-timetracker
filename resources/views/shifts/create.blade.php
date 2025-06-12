@@ -22,7 +22,7 @@
                         <input type="hidden" name="netid" id="netid" value="{{ old('netid') }}" required>
                         <div class="dropdown-menu w-100" id="user-results">
                             @foreach($users as $user)
-                                <a class="dropdown-item" href="#" data-id="{{ $user->id }}" data-name="{{ $user->name }}">{{ $user->name }} (NetID: {{ $user->netid ?? $user->id }})</a>
+                                <a class="dropdown-item" href="#" data-id="{{ $user->netid }}" data-name="{{ $user->name }}">{{ $user->name }} (NetID: {{ $user->netid }})</a>
                             @endforeach
                         </div>
                     </div>

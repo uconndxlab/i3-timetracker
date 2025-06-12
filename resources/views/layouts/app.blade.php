@@ -10,7 +10,6 @@
 </head>
 
 <body>
-
     <nav class="navbar navbar-expand-lg navbar-dark bg-info mb-4">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold" href="{{ route('landing') }}">i3 Time Tracker</a>
@@ -33,8 +32,33 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('shifts.create') }}">Add Shift</a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
+                    </li>
+
                 </ul>
-                {{-- auth (?) --}}
+
+                <div class="d-flex align-items-center ms-auto">
+                    @if ( Auth::check() )
+                        <span class="navbar-text text-white text-mono login-hud me-3">
+                            Logged in as: {{ Auth::user()->netid ?? Auth::user()->name }}
+                            <span class="badge bg-success">{{ Str::headline(Auth::user()->role ?? 'User')}}</span>
+                        </span>
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('logout') }}">Logout</a>
+                            </li>
+                        </ul>
+                    @else
+                        <span class="navbar-text text-white text-mono login-hud me-3">(Not currently logged in.)</span>
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a href="{{ route('login') }}" class="nav-link text-white">Login</a>
+                            </li>
+                        </ul>
+                    @endif
+                </div>
             </div>
         </div>
     </nav>

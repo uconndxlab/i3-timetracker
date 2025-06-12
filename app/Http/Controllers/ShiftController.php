@@ -18,7 +18,7 @@ class ShiftController extends Controller
     public function update(Request $request, Shift $shift)
     {
         $validatedData = $request->validate([
-            'netid' => 'sometimes|required|exists:users,id',
+            'netid' => 'sometimes|required|exists:users,netid',
             'proj_id' => 'sometimes|required|exists:projects,id',
             'start_time' => 'sometimes|required|date',
             'end_time' => 'sometimes|required|date|after:start_time',
@@ -53,20 +53,22 @@ class ShiftController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'netid' => 'required|exists:users,id',
+            'netid' => 'required|exists:users,netid',
             'proj_id' => 'required|exists:projects,id',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
-            'billed' => 'required|boolean',
             'entered' => 'required|boolean',
         ], [], [
             'netid' => 'Name',
             'proj_id' => 'Project',
             'start_time' => 'Start Time',
             'end_time' => 'End Time',
-            'billed' => 'Billed in Cider',
             'entered' => 'Entered in University System',
         ]);
+
+        if (!isset($validatedData['billed'])) {
+            $validatedData['billed'] = false;
+        }
 
         Shift::create($validatedData);
         return redirect()->route('shifts.index')->with('message', 'Shift created successfully!');

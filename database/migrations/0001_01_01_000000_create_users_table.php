@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->string('name');
-            $table->string('netid');
+            $table->string('netid')->unique();
             $table->string('email')->unique();
-            $table->string('password');
+            $table->string('password')->nullable();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

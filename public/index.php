@@ -1,5 +1,7 @@
 <?php
 
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED); // suppress deprecated warnings for now
+
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 

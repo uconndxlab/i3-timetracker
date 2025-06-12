@@ -13,6 +13,9 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
+    protected $primaryKey = 'netid';
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     /**
      * The attributes that are mass assignable.
@@ -53,7 +56,7 @@ class User extends Authenticatable
 
     public function shifts()
     {
-        return $this->hasMany(Shift::class, 'netid'); // NetID column in shifts table is the foreign key to users.id
+        return $this->hasMany(Shift::class, 'netid'); // NetID column in shifts table is the foreign key to users.netid
     }
 
     public function projects()
