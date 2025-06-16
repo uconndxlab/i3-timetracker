@@ -14,21 +14,31 @@
     @else
         @foreach ($usersWithUnbilledShifts as $user)
             <div class="card mb-3">
-                <div class="card-header">
-                    <strong>User: {{ $user->name }}</strong> ({{ $user->netid ?? $user->email }})
+                <div class="card-header bg-light">
+                    <strong>{{ $user->name }}</strong>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     @if($user->shifts->isEmpty())
-                        <p>No unbilled shifts found for this user on this project.</p>
+                        <p class="m-3">No unbilled shifts found for this user on this project.</p>
                     @else
-                        <h5 class="card-title">Unbilled Shifts:</h5>
                         <ul class="list-group list-group-flush">
                             @foreach ($user->shifts as $shift)
-                                <li class="list-group-item">
-                                    Shift ID: {{ $shift->id }} |
-                                    From: {{ \Carbon\Carbon::parse($shift->start_time)->format('Y-m-d H:i') }} |
-                                    To: {{ \Carbon\Carbon::parse($shift->end_time)->format('Y-m-d H:i') }}
-                                    <a href="{{ route('shifts.show', $shift) }}" class="btn btn-sm btn-outline-info float-end ms-2">View Shift</a>
+                                @php
+                                    $from = \Carbon\Carbon::parse($shift->start_time);
+                                    $to = \Carbon\Carbon::parse($shift->end_time);
+                                    $duration = $from && $to ? $from->diff($to)->format('%h hr %i min') : 'N/A';
+                                @endphp
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="fw-semibold">{{ $from->format('M d, Y') }}</span>
+                                        &nbsp;|&nbsp;
+                                        <span>From: {{ $from->format('g:i A') }}</span>
+                                        &ndash;
+                                        <span>To: {{ $to->format('g:i A') }}</span>
+                                        &nbsp;|&nbsp;
+                                        <span>Duration: {{ $duration }}</span>
+                                    </div>
+                                    <a href="{{ route('shifts.show', $shift) }}" class="btn btn-sm btn-outline-info ms-2">View Shift</a>
                                 </li>
                             @endforeach
                         </ul>
