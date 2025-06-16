@@ -11,7 +11,7 @@
             <form action="{{ route('shifts.store') }}" method="POST">
                 @csrf
 
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     <label for="user-search" class="form-label">Name</label>
                     <div class="dropdown">
                         <input type="text" class="form-control" id="user-search" name="user_search_term"
@@ -35,6 +35,18 @@
                             @endphp
                         @endif
                     </div>
+                </div> --}}
+
+                <div class="form-group">
+                    <label for="netid">Name</label>
+                    <select class="form-control" id="netid" name="netid" required>
+                        <option value="">Select a user...</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->netid }}" {{ old('netid') == $user->netid ? 'selected' : '' }}>
+                                {{ $user->name }} ({{ $user->netid }})
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="mb-3">

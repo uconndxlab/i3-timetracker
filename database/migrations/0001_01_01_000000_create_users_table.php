@@ -15,7 +15,11 @@ return new class extends Migration
             $table->string('name');
             $table->string('netid')->unique();
             $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+            $table->boolean('active')->default(true);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
