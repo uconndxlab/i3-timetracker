@@ -27,8 +27,9 @@ class LoginController extends Controller
             "cas", 
             "https://");
 
-        phpCAS::setCasServerCACert('storage/app/certifications/login_uconn_edu_cert.pem', false);
-
+        $cas_cert = config('cas.ca_cert_path');
+        phpCAS::setCasServerCACert($cas_cert);
+        // phpCAS::setNoCasServerValidation();
 
         phpCAS::forceAuthentication();
 
