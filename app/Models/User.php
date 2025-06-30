@@ -27,7 +27,8 @@ class User extends Authenticatable
         'netid',
         'email',
         'password',
-        'active'
+        'active',
+        'is_admin'
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'active' => 'boolean',
+            'is_admin' => 'boolean',
         ];
     }
 

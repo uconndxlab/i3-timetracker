@@ -44,6 +44,6 @@ return [
     | Set to false for production.
     |
     */
-    'debug'           => env('CAS_DEBUG', false),
+    'debug'           => env('CAS_DEBUG', true),
     'debug_log_path'  => storage_path('logs/phpcas.log'),
 ];

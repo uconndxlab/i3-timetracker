@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Auth\AuthenticationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'auth.cas' => \App\Http\Middleware\CasAuthenticate::class,
+            'admin' => \App\Http\Middleware\IsAdmin::class, // Add this line
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
@@ -20,6 +22,6 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->expectsJson()) {
                 return response()->json(['message' => $e->getMessage()], 401);
             }
-            return redirect()->guest(route('cas.login.trigger'));
+            return redirect()->guest(route('login'));
         });
     })->create();
