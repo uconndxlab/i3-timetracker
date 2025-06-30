@@ -23,7 +23,7 @@ return [
     | Set to null or an empty string to disable CA validation (NOT RECOMMENDED FOR PRODUCTION).
     |
     */
-    'ca_cert_path'    => env('CAS_CA_CERT_PATH', null), // certification seems to be available until 11/5/2025 (6 AM EST)
+    'ca_cert_path'    => env('CAS_CA_CERT_PATH'), // certification seems to be available until 11/5/2025 (6 AM EST)
 
     /*
     |--------------------------------------------------------------------------

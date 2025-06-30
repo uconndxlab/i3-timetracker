@@ -41,20 +41,15 @@
 
                 <div class="d-flex align-items-center ms-auto">
                     @if ( Auth::check() )
-                        <span class="navbar-text text-white text-mono login-hud me-3">
-                            Logged in as: {{ Auth::user()->netid ?? Auth::user()->name }}
-                            <span class="badge bg-success">{{ Str::headline(Auth::user()->role ?? 'User')}}</span>
-                        </span>
                         <ul class="navbar-nav">
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('logout') }}">Logout</a>
+                                <a class="nav-link" href="{{ route('logout') }}">Logout</a>
                             </li>
                         </ul>
                     @else
-                        <span class="navbar-text text-white text-mono login-hud me-3">(Not currently logged in.)</span>
                         <ul class="navbar-nav">
                             <li class="nav-item">
-                                <a href="{{ route('login') }}" class="nav-link text-white">Login</a>
+                                <a class="nav-link" href="{{ route('login') }}"">Login</a>
                             </li>
                         </ul>
                     @endif

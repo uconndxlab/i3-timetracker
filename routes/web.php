@@ -50,5 +50,4 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 Route::get('/login', [LoginController::class, 'login'])->name('login');
-Route::post('/login', [LoginController::class, 'submitLogin'])->name('login.submit');
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
