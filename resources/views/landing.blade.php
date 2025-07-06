@@ -2,37 +2,76 @@
 
 @section('content')
 
-<div class="container mt-4">
-    <div class="p-5 mb-4 bg-light rounded-3">
-        <div class="container-fluid py">
-            <h1 class="display-5 fw-bold">Welcome to i3 Time Tracker</h1>
-            <p class="col-md-8 fs-4">Track time spent working on various projects.</p>
-            <a href="{{ route('shifts.create') }}" class="btn btn-primary btn-md" type="button">Log Shift</a>
-            <a href="{{ route('projects.create') }}" class="btn btn-secondary btn-md" type="button">Record New Project</a>
+<div class="mt-4">
+    <div class="welcome-section text-center py-5">
+        <div class="container">
+            <h1 class="display-4 fw-bold text-primary mb-3">
+                <i class="bi bi-stopwatch me-3"></i>
+                Welcome to i3 Time Tracker
+            </h1>
+            <p class="lead mb-4">Track time spent working on projects</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="{{ route('shifts.create') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-plus-circle me-2"></i>Log New Shift
+                </a>
+                <a href="{{ route('projects.create') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="bi bi-folder-plus me-2"></i>Create Project
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="row align-items-md-stretch">
-        <div class="col-md-12">
-            <div class="h-100 p-5 border rounded-3">
-                <h2>Currently Active Projects</h2>
-                @if($activeProjects->isEmpty())
-                    <p>No active projects at the moment.</p>
-                @else
-                    <div class="list-group mt-3">
-                        @foreach ($activeProjects as $project)
-                            <a href="/projects/{{ $project->id }}" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">{{ $project->name }}</h5>
-                                    <small>Last updated: {{ $project->updated_at->diffForHumans() }}</small>
-                                </div>
-                                <p class="mb-1">{{ Str::limit($project->desc, 100) ?: 'No description available.' }}</p>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="d-flex align-items-center">
+                        <i class="bi bi-folder-open me-2"></i>
+                        Active Projects
+                    </h2>
+                </div>
+                <div class="card-body">
+                    @if($activeProjects->isEmpty())
+                        <div class="text-center py-4">
+                            <i class="bi bi-folder-x text-muted" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3 mb-0">No active projects at the moment.</p>
+                            <a href="{{ route('projects.create') }}" class="btn btn-outline-primary mt-3">
+                                <i class="bi bi-plus-circle me-1"></i>Create Project
                             </a>
-                        @endforeach
+                        </div>
+                    @else
+                        <div class="row">
+                            @foreach ($activeProjects as $project)
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="project-item h-100">
+                                        <a href="/projects/{{ $project->id }}" class="text-decoration-none">
+                                            <div class="p-3">
+                                                <div class="d-flex align-items-start justify-content-between mb-2">
+                                                    <h5 class="mb-1 text-dark fw-semibold">{{ $project->name }}</h5>
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-check-circle me-1"></i>Active
+                                                    </span>
+                                                </div>
+                                                <p class="text-muted mb-2 small">
+                                                    {{ Str::limit($project->desc, 100) ?: 'No description available.' }}
+                                                </p>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar me-1"></i>
+                                                    Last updated: {{ $project->updated_at->diffForHumans() }}
+                                                </small>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                    
+                    <div class="mt-4 text-center">
+                        <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-collection me-1"></i>View All Projects
+                        </a>
                     </div>
-                @endif
-                 <div class="mt-4">
-                    <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary">View All Projects</a>
                 </div>
             </div>
         </div>

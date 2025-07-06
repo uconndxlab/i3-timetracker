@@ -1,0 +1,346 @@
+:root {
+    --uconn-navy: #000E2F;
+    --uconn-blue: #00B5E2;
+    --uconn-red: #E4002B;
+    --uconn-white: #FFFFFF;
+    --uconn-gray: #A2AAAD;
+    --uconn-light-gray: #F7F8FA;
+    --uconn-dark-gray: #666666;
+    --uconn-border: #E3E6EA;
+    --uconn-text: #333333;
+    --uconn-text-light: #6C757D;
+}
+
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background-color: #FAFBFC;
+    color: var(--uconn-text);
+    line-height: 1.6;
+}
+
+.navbar-uconn {
+    background-color: var(--uconn-navy);
+    box-shadow: 0 2px 4px rgba(0, 14, 47, 0.1);
+    border-bottom: 3px solid var(--uconn-blue);
+    padding: 0.5rem 0;
+}
+
+.navbar-uconn .navbar-brand {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--uconn-white) !important;
+    letter-spacing: -0.3px;
+}
+
+.navbar-uconn .nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500;
+    padding: 0.5rem 0.9rem !important;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    margin: 0 2px;
+    font-size: 0.9rem;
+}
+
+.navbar-uconn .nav-link:hover {
+    color: var(--uconn-white) !important;
+    background-color: rgba(0, 181, 226, 0.2);
+}
+
+.navbar-uconn .nav-link.active {
+    background-color: var(--uconn-blue);
+    color: var(--uconn-white) !important;
+}
+
+.navbar-uconn .navbar-text {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500;
+}
+
+/* Simple welcome section for landing page */
+.welcome-section {
+    background-color: var(--uconn-white);
+    border-bottom: 1px solid var(--uconn-border);
+    margin-bottom: 2rem;
+}
+
+.page-header {
+    background-color: var(--uconn-navy);
+    color: var(--uconn-white);
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 14, 47, 0.1);
+}
+
+.page-header h1, .page-header h2 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.page-header .lead {
+    opacity: 0.9;
+}
+
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    background-color: var(--uconn-white);
+    border: 1px solid var(--uconn-border);
+}
+
+.card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: var(--uconn-blue);
+    color: var(--uconn-white);
+    border-radius: 8px 8px 0 0 !important;
+    border: none;
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+    border-bottom: none;
+}
+
+.card-header h2, .card-header h3, .card-header h4 {
+    margin: 0;
+    color: var(--uconn-white);
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    background-color: #F8F9FA;
+    border-top: 1px solid var(--uconn-border);
+    border-radius: 0 0 8px 8px;
+    padding: 1rem 1.5rem;
+}
+
+.btn-primary {
+    background-color: var(--uconn-blue);
+    border: none;
+    color: var(--uconn-white);
+    font-weight: 500;
+    padding: 0.65rem 1.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0088cc;
+    color: var(--uconn-white);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--uconn-blue);
+    color: var(--uconn-blue);
+    background-color: transparent;
+    font-weight: 500;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--uconn-blue);
+    border-color: var(--uconn-blue);
+    color: var(--uconn-white);
+}
+
+.btn-secondary {
+    background-color: var(--uconn-gray);
+    border: none;
+    color: var(--uconn-white);
+    font-weight: 500;
+    padding: 0.65rem 1.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: var(--uconn-dark-gray);
+    color: var(--uconn-white);
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border: none;
+    color: var(--uconn-navy);
+    font-weight: 500;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    color: var(--uconn-navy);
+}
+
+.btn-outline-secondary {
+    border: 2px solid var(--uconn-border);
+    color: var(--uconn-text-light);
+    background-color: transparent;
+    font-weight: 500;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--uconn-gray);
+    border-color: var(--uconn-gray);
+    color: var(--uconn-white);
+}
+
+/* Remove the hero section - now using simple welcome section */
+
+.list-group-item {
+    border: 1px solid #e9ecef;
+    border-radius: 8px !important;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+    background-color: var(--uconn-white);
+}
+
+.list-group-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--uconn-blue);
+}
+
+.list-group-item-action:hover {
+    background-color: rgba(0, 181, 226, 0.05);
+}
+
+.alert {
+    border: none;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid var(--uconn-red);
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-left: 4px solid var(--uconn-blue);
+}
+
+.form-control, .form-select {
+    border: 1px solid var(--uconn-border);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    background-color: var(--uconn-white);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--uconn-blue);
+    box-shadow: 0 0 0 0.2rem rgba(0, 181, 226, 0.15);
+    background-color: var(--uconn-white);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--uconn-navy);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+}
+
+.badge.bg-light {
+    background-color: var(--uconn-light-gray) !important;
+    color: var(--uconn-dark-gray) !important;
+    border: 1px solid #dee2e6;
+}
+
+.text-success {
+    color: #28a745 !important;
+    font-weight: 600;
+}
+
+.text-danger {
+    color: var(--uconn-red) !important;
+    font-weight: 600;
+}
+
+.shift-item, .project-item {
+    background: var(--uconn-white);
+    border: 1px solid var(--uconn-border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.shift-item:hover, .project-item:hover {
+    border-color: var(--uconn-blue);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* Add some UConn-style accents - simplified */
+.badge.bg-success {
+    background-color: #28a745 !important;
+}
+
+.badge.bg-secondary {
+    background-color: var(--uconn-gray) !important;
+}
+
+.text-primary {
+    color: var(--uconn-blue) !important;
+}
+
+.text-muted {
+    color: var(--uconn-text-light) !important;
+}
+
+@media (max-width: 768px) {
+    .welcome-section {
+        padding: 2rem 1rem !important;
+    }
+    
+    .welcome-section h1 {
+        font-size: 2rem;
+    }
+    
+    .card-body, .card-header, .card-footer {
+        padding: 1rem;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-content {
+    animation: fadeInUp 0.6s ease-out;
+}
