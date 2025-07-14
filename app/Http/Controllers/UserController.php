@@ -18,7 +18,6 @@ class UserController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'netid' => 'sometimes|required|string|max:255|unique:users,netid,' . $user->netid,
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed',
             'active' => 'sometimes|boolean',
         ]);
 
@@ -57,7 +56,6 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'netid' => 'required|string|unique:users,netid|max:255', 
             'email' => 'required|string|email|unique:users,email|max:255',
-            'password' => 'required|string|min:8|confirmed', 
             'active' => 'sometimes|boolean',
         ]);
 
@@ -65,7 +63,6 @@ class UserController extends Controller
             'name' => $validatedData['name'],
             'netid' => $validatedData['netid'],
             'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']), 
             'active' => $validatedData['active'] ?? true, 
         ]);
 

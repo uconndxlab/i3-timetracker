@@ -6,7 +6,7 @@ use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 
-Route::middleware('auth')->group(function () {
+Route::middleware('cas.auth')->group(function () {
     Route::get('/', [AdminController::class, 'landing'])->name('landing')->middleware('cas');
     Route::get('/logout', [AdminController::class, 'logout'])->name('logout');
 
@@ -35,5 +35,3 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
 Route::post('/users', [UserController::class, 'store'])->name('users.store');
-// Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-// Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
