@@ -17,7 +17,7 @@ class IsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::check() || !Auth::user()->is_admin) {
-            return redirect()->route('landing')->with('error', 'You are not authorized to access this page.');
+            return redirect()->route('landing')->with('error', 'You are not authorized to access the admin dashboard.');
         }
         return $next($request);
     }

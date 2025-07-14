@@ -7,8 +7,9 @@
         <div class="container">
             <h1 class="display-5">
                 <i class="bi bi-collection me-3"></i>
-                Project Management
+                All Projects
             </h1>
+            <p class="lead mb-0">Manage and track all i3 projects</p>
         </div>
     </div>
 

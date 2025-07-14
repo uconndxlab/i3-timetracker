@@ -40,7 +40,7 @@
                             <i class="bi bi-clock me-1"></i>Shifts
                         </a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link" href="{{ route('projects.create') }}">
                             <i class="bi bi-plus-circle me-1"></i>Add Project
                         </a>
@@ -49,7 +49,7 @@
                         <a class="nav-link" href="{{ route('shifts.create') }}">
                             <i class="bi bi-plus-square me-1"></i>Log Shift
                         </a>
-                    </li>
+                    </li> --}}
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
                             <i class="bi bi-gear me-1"></i>Admin
@@ -66,14 +66,6 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('logout') }}">
                                     <i class="bi bi-box-arrow-right me-1"></i>Logout
-                                </a>
-                            </li>
-                        </ul>
-                    @else
-                        <ul class="navbar-nav">
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login') }}">
-                                    <i class="bi bi-box-arrow-in-right me-1"></i>Login
                                 </a>
                             </li>
                         </ul>

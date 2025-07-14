@@ -38,4 +38,24 @@ class AdminController extends Controller
 
         return view('admin.project_unbilled_users', compact('project', 'usersWithUnbilledShifts'));
     }
+
+    public function landing()
+    {
+        $activeProjects = Project::where('active', true)->latest('updated_at')->get();
+        return view('landing', compact('activeProjects'));
+    }
+
+    public function login()
+    {
+        return redirect()->route('landing');
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+        return cas()->logout(url('/'));
+        
+    }
 }

@@ -41,7 +41,7 @@ return [
     |
     */
 
-    'debug' => (bool) env('APP_DEBUG', false),
+    'debug' => env('APP_DEBUG', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -137,7 +137,6 @@ return [
     */
 
     'providers' => ServiceProvider::defaultProviders()->merge([
-        App\Providers\CasServiceProvider::class,
     ])->toArray(),
 
 ];

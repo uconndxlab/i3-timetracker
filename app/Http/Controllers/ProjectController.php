@@ -61,12 +61,6 @@ class ProjectController extends Controller
         return redirect()->route('projects.index')->with('message', 'Project created successfully!');
     }
 
-    public function landing()
-    {
-        $activeProjects = Project::where('active', true)->latest()->get();
-        return view('landing', compact('activeProjects'));
-    }
-
     public function edit(Project $project)
     {
         return view('projects.edit', compact('project'));
