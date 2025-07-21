@@ -55,7 +55,8 @@ class AdminController extends Controller
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
-        return cas()->logout(url('/'));
+        $logoutUrl = cas()->logout(url('/'));
+        return redirect()->away($logoutUrl);
         
     }
 }

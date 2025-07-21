@@ -28,12 +28,8 @@ class CasAuthenticate
         }
 
         $user = User::where('netid', $netid)->first();
-        if ( !$user ) {
-            Auth::logout();
-            return redirect('/')->with('error', 'You are not authorized to access this page.');
-        }
-
         Auth::login($user);
+        
         return $next($request);
     }
 }

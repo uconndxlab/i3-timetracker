@@ -7,7 +7,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\UserController;
 
 Route::middleware('cas.auth')->group(function () {
-    Route::get('/', [AdminController::class, 'landing'])->name('landing')->middleware('cas');
+    Route::get('/', [AdminController::class, 'landing'])->name('landing');
     Route::get('/logout', [AdminController::class, 'logout'])->name('logout');
 
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {

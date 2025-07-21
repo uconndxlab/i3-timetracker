@@ -9,7 +9,17 @@ class UserController extends Controller
 {
     public function create()
     {
-        return view('users.create');
+        if (cas()->isAuthenticated()) {
+            $netid = cas()->user();
+
+            if (User::where('netid', $netid)->exists()) {
+                return redirect()->route('landing')->with('message', 'Your account already exists.');
+            }
+
+            return view('users.create', ['netid' => $netid]);
+        }
+        
+        return cas()->authenticate();
     }
 
     public function update(Request $request, User $user)
@@ -66,6 +76,6 @@ class UserController extends Controller
             'active' => $validatedData['active'] ?? true, 
         ]);
 
-        // "return redirect()->route('users.index')->with('message', 'User created successfully!');" // make view
+        return redirect()->route('landing')->with('message', 'User registered successfully!');
     }
 }

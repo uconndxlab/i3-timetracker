@@ -39,8 +39,15 @@
         </div>
 
         <div class="card-footer">
-            <a href="{{ route('projects.edit', $project) }}" class="btn btn-warning me-2">Edit Project</a>
-            <a href="{{ route('projects.index') }}" class="btn btn-secondary">Back to Projects</a>
+            {{-- appropriate and appealing edit and back to project buttons --}}
+            <div class="d-flex justify-content-between">
+                <a href="{{ route('projects.edit', $project) }}" class="btn btn-secondary">
+                    <i class="bi bi-pencil-square me-1"></i>Edit Project
+                </a>
+                <a href="{{ route('projects.index') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left-short me-1"></i>Back to Projects
+                </a>
+            </div>
         </div>
     </div>
 </div>
