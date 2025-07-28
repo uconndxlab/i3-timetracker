@@ -27,6 +27,18 @@ class ProjectController extends Controller
 
     public function show(Project $project) 
     {
+        $user = auth()->user();
+        if (!$user->isAdmin()) {
+            $isAssigned = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+                ->where('project_user.user_netid', $user->netid)
+                ->where('projects.id', $project->id)
+                ->exists();
+                
+            if (!$isAssigned) {
+                abort(403, 'You do not have access to this project.');
+            }
+        }
+        
         $project->load('shifts.user');
         return view('projects.show', compact('project'));
     }
@@ -45,7 +57,14 @@ class ProjectController extends Controller
         if ($user->isAdmin()) {
             $projects = Project::where('active', true)->get();
         } else {
-            $projects = $user->projects()->where('active', true)->get();
+            $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+                ->where('project_user.user_netid', $user->netid)
+                ->pluck('projects.id');
+            
+            // Then get the actual project models
+            $projects = Project::whereIn('id', $projectIds)
+                ->where('active', true)
+                ->get();
         }
         
         return view('projects.index', compact('projects'));

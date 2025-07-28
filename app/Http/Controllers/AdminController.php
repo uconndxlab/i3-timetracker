@@ -10,32 +10,6 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
-    /**
-     * Display a dashboard for admins, listing all projects.
-     */
-    public function dashboard()
-    {
-        $projects = Project::orderBy('name')->get();
-        return view('admin.dashboard', compact('projects'));
-    }
-
-    /**
-     * Show users with unbilled shifts for a specific project.
-     */
-    public function showProjectUnbilledUsers(Project $project)
-    {
-        $usersWithUnbilledShifts = User::whereHas('shifts', function($query) use ($project) {
-            $query->where('proj_id', $project->id)
-                ->where('entered', false);
-        })->with(['shifts' => function($query) use ($project) {
-            $query->where('proj_id', $project->id)
-                ->where('entered', false)
-                ->with('project');
-        }])->get();
-
-        return view('admin.project_unbilled_users', compact('project', 'usersWithUnbilledShifts'));
-    }
-
     public function landing()
     {
         $activeProjects = Project::where('active', true)->latest('updated_at')->get();
@@ -57,12 +31,44 @@ class AdminController extends Controller
         
     }
 
-    public function markShiftEntered(Shift $shift)
+
+    /**
+     * Display a dashboard for admins, listing all projects.
+     */
+    public function dashboard()
     {
-        $shift->update(['entered' => true]);
-        
-        return redirect()->back()->with('success', 'Shift marked as entered successfully');
+        $projects = Project::orderBy('name')->get();
+        return view('admin.dashboard', compact('projects'));
     }
+
+
+
+    /**
+     * Show users with unbilled shifts for a specific project.
+     */
+    public function showProjectUnbilledUsers(Project $project)
+    {
+        $usersWithUnbilledShifts = User::whereHas('shifts', function($query) use ($project) {
+            $query->where('proj_id', $project->id)
+                ->where('billed', false);
+        })->with(['shifts' => function($query) use ($project) {
+            $query->where('proj_id', $project->id)
+                ->where('billed', false)
+                ->with('project');
+        }])->get();
+
+        return view('admin.project_unbilled_users', compact('project', 'usersWithUnbilledShifts'));
+    }
+
+
+    
+    public function markShiftBilled(Shift $shift)
+    {
+        $shift->update(['billed' => true]);
+        return redirect()->back()->with('success', 'Shift marked as billed successfully');
+    }
+
+
 
     public function showProjectUsers(Project $project)
     {
@@ -84,6 +90,8 @@ class AdminController extends Controller
         
         return view('admin.project_users', compact('project', 'assignedUsers', 'unassignedUsers'));
     }
+
+
     /**
      * Assign users to a project.
      */
@@ -110,6 +118,7 @@ class AdminController extends Controller
         return redirect()->route('admin.projects.users', $project->id)
             ->with('info', 'All selected users were already assigned to this project.');
     }
+
 
     /**
      * Remove a user from a project.

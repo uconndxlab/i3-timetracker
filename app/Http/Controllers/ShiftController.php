@@ -15,7 +15,12 @@ class ShiftController extends Controller
         if ($user->isAdmin()) {
             $projects = Project::where('active', true)->get();
         } else {
-            $projects = $user->projects()->where('active', true)->get();
+            $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+                ->where('project_user.user_netid', $user->netid)
+                ->pluck('projects.id');
+            $projects = Project::whereIn('id', $projectIds)
+                ->where('active', true)
+                ->get();
         }
         
         return view('shifts.create', compact('projects'));
@@ -74,11 +79,17 @@ class ShiftController extends Controller
         ]);
 
         if (!$user->isAdmin()) {
-        $userProjects = $user->projects()->where('active', true)->pluck('projects.id')->toArray();
-        if (!in_array($validatedData['proj_id'], $userProjects)) {
-            return back()->withErrors(['proj_id' => 'You are not authorized to log shifts for this project.']);
+            // Use the same approach that works in the create method
+            $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+                ->where('project_user.user_netid', $user->netid)
+                ->where('projects.active', true)
+                ->pluck('projects.id')
+                ->toArray();
+                
+            if (!in_array($validatedData['proj_id'], $projectIds)) {
+                return back()->withErrors(['proj_id' => 'You are not authorized to log shifts for this project.']);
+            }
         }
-    }
 
         if (!isset($validatedData['billed'])) {
             $validatedData['billed'] = false;

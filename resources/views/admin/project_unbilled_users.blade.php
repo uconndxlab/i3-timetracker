@@ -39,11 +39,11 @@
                                         <td>{{ $shift->end_time->format('H:i') }}</td>
                                         <td>{{ $shift->start_time->diffInHours($shift->end_time) }} hrs</td>
                                         <td>
-                                            <form action="{{ route('admin.shifts.mark-entered', $shift) }}" method="POST">
+                                            <form action="{{ route('admin.shifts.mark-billed', $shift) }}" method="POST">
                                                 @csrf
                                                 @method('PUT')
                                                 <button type="submit" class="btn btn-sm btn-success">
-                                                    <i class="bi bi-check-circle"></i> Mark as Entered
+                                                    <i class="bi bi-check-circle"></i> Mark as Billed
                                                 </button>
                                             </form>
                                         </td>
