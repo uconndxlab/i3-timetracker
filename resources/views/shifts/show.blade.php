@@ -11,10 +11,11 @@
         </div>
 
         <div class="card-body">
-            <p><strong>Name:</strong> {{ $shift->user->name ?? 'N/A' }} (NetID: {{ $shift->netid }})</p>
-            <p><strong>Project:</strong> {{ $shift->project->name ?? 'N/A' }} (ID: {{ $shift->proj_id }})</p>
-            <p><strong>Start Time:</strong> {{ $shift->start_time ? $shift->start_time->format('M d, Y H:i A') : 'N/A' }}</p>
-            <p><strong>End Time:</strong> {{ $shift->end_time ? $shift->end_time->format('M d, Y H:i A') : 'N/A' }}</p>
+            <p><strong>Name:</strong> {{ $shift->user->name ?? 'N/A' }} </p>
+            <p><strong>Project:</strong> {{ $shift->project->name ?? 'N/A' }} </p>
+            <p><strong>Start Time:</strong> {{ $shift->start_time->format('M d, Y h:i A') }}</p>
+            <p><strong>End Time:</strong> {{ $shift->end_time->format('M d, Y h:i A') }}</p>
+
             @php
                 $durationDisplay = 'N/A';
                 if ($shift->start_time && $shift->end_time) {
@@ -26,8 +27,6 @@
             @endphp
             <p><strong>Duration:</strong> {{ $durationDisplay }}</p>
             <p><strong>Billed:</strong> {{ $shift->billed ? 'Yes' : 'No' }}</p>
-            {{-- <p><strong>Created At:</strong> {{ $shift->created_at ? $shift->created_at->format('M d, Y H:i A') : 'N/A' }}</p> --}}
-            <p><strong>Last Updated:</strong> {{ $shift->updated_at ? $shift->updated_at->format('M d, Y H:i A') : 'N/A' }}</p>
         </div>
 
         <div class="card-footer">

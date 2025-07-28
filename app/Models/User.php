@@ -35,9 +35,12 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
         'remember_token',
     ];
+    
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     /**
      * Get the attributes that should be cast.
@@ -54,13 +57,20 @@ class User extends Authenticatable
         ];
     }
 
-    public function shifts()
+    public function isAdmin()
     {
-        return $this->hasMany(Shift::class, 'netid'); // NetID column in shifts table is the foreign key to users.netid
+        return $this->is_admin;
     }
 
     public function projects()
     {
-        return $this->belongsToMany(Project::class, 'project_user', 'user_id', 'project_id')->withPivot('active')->withTimestamps();
+        return $this->belongsToMany(Project::class, 'project_user', 'user_netid', 'project_id')
+                    ->withPivot('active')
+                    ->withTimestamps();
+    }
+
+    public function shifts()
+    {
+        return $this->hasMany(Shift::class, 'netid', 'netid');
     }
 }

@@ -22,15 +22,14 @@
             @if($project->shifts && $project->shifts->count() > 0)
                 <ul class="list-group">
 
-                    @foreach($project->shifts as $shift)
-                        <li class="list-group-item">
-                            User: {{ $shift->user->name ?? 'N/A (User ID: '.$shift->netid.')' }} | 
-                            From: {{ \Carbon\Carbon::parse($shift->start_time)->format('Y-m-d H:i') }} | 
-                            To: {{ \Carbon\Carbon::parse($shift->end_time)->format('Y-m-d H:i') }} |
-                            Billed: {{ $shift->billed ? 'Yes' : 'No' }}
-                            <a href="{{ route('shifts.show', $shift) }}" class="btn btn-sm btn-outline-info float-end">View Shift</a>
-                        </li>
-                    @endforeach
+                @foreach($project->shifts->take(5) as $shift)
+                    <li class="list-group-item">
+                        <strong>{{ $shift->user->name }}</strong> - 
+                        <span class="text-muted">{{ $shift->start_time->format('M d, Y h:i A') }} to {{ $shift->end_time->format('h:i A') }}</span>
+                        <span class="badge bg-secondary float-end">{{ $shift->status }}</span>
+                        <a href="{{ route('shifts.show', $shift) }}" class="btn btn-sm btn-outline-info float-end">View Shift</a>
+                    </li>
+                @endforeach
 
                 </ul>
             @else

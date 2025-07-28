@@ -10,9 +10,15 @@ class ShiftController extends Controller
 {
     public function create()
     {
-        $users = User::where('active', true)->orderBy('name')->get();
-        $projects = Project::orderBy('name')->get();
-        return view('shifts.create', compact('users', 'projects'));
+        $user = auth()->user();
+        
+        if ($user->isAdmin()) {
+            $projects = Project::where('active', true)->get();
+        } else {
+            $projects = $user->projects()->where('active', true)->get();
+        }
+        
+        return view('shifts.create', compact('projects'));
     }
 
     public function update(Request $request, Shift $shift)
@@ -52,6 +58,7 @@ class ShiftController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
         $validatedData = $request->validate([
             'netid' => 'required|exists:users,netid',
             'proj_id' => 'required|exists:projects,id',
@@ -66,9 +73,21 @@ class ShiftController extends Controller
             'entered' => 'Entered in University System',
         ]);
 
+        if (!$user->isAdmin()) {
+        $userProjects = $user->projects()->where('active', true)->pluck('projects.id')->toArray();
+        if (!in_array($validatedData['proj_id'], $userProjects)) {
+            return back()->withErrors(['proj_id' => 'You are not authorized to log shifts for this project.']);
+        }
+    }
+
         if (!isset($validatedData['billed'])) {
             $validatedData['billed'] = false;
         }
+
+        $user = User::where('netid', $validatedData['netid'])->first();
+        $project = Project::find($validatedData['proj_id']);
+
+        $project->users()->syncWithoutDetaching([$user->netid]);
 
         Shift::create($validatedData);
         return redirect()->route('shifts.index')->with('message', 'Shift created successfully!');

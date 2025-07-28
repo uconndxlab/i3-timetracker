@@ -40,14 +40,15 @@ class ProjectController extends Controller
 
     public function index()
     {
-        $projects = Project::latest()->get();
+        $user = auth()->user();
+        
+        if ($user->isAdmin()) {
+            $projects = Project::where('active', true)->get();
+        } else {
+            $projects = $user->projects()->where('active', true)->get();
+        }
+        
         return view('projects.index', compact('projects'));
-    }
-
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'project_user')
-            ->withPivot('active');
     }
 
     public function store(Request $request)
@@ -65,4 +66,5 @@ class ProjectController extends Controller
     {
         return view('projects.edit', compact('project'));
     }
+
 }

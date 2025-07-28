@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Models\Shift;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\AdminController;
@@ -13,6 +14,11 @@ Route::middleware('cas.auth')->group(function () {
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/projects/{project}/unbilled-users', [AdminController::class, 'showProjectUnbilledUsers'])->name('projects.unbilled_users');
+        Route::put('/shifts/{shift}/mark-entered', [AdminController::class, 'markShiftEntered'])->name('shifts.mark-entered');
+
+        Route::get('/projects/{project}/users', [AdminController::class, 'showProjectUsers'])->name('projects.users');
+        Route::post('/projects/{project}/users', [AdminController::class, 'assignUsers'])->name('projects.assign-users');
+        Route::delete('/projects/{project}/users/{netid}', [AdminController::class, 'removeUser'])->name('projects.remove-user');
     });
 
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
@@ -35,3 +41,4 @@ Route::middleware('cas.auth')->group(function () {
 
 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
 Route::post('/users', [UserController::class, 'store'])->name('users.store');
+Route::get('/users/show', [UserController::class, 'show'])->name('users.show');

@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('password');
+        Schema::table('project_user', function (Blueprint $table) {
+            if (!Schema::hasColumn('project_user', 'active')) {
+                $table->boolean('active')->default(true);
+            }
         });
     }
 
@@ -21,8 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('password')->nullable();
+        Schema::table('project_user', function (Blueprint $table) {
+            $table->dropColumn('active');
         });
     }
 };

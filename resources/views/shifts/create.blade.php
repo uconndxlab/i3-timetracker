@@ -24,8 +24,9 @@
                 <div class="card-body">
                     <form action="{{ route('shifts.store') }}" method="POST">
                         @csrf
+                        <input type="hidden" name="netid" value="{{ cas()->user() }}">
 
-                        <div class="mb-4">
+                        {{-- <div class="mb-4">
                             <label for="netid" class="form-label">
                                 <i class="bi bi-person me-1"></i>Employee Name *
                             </label>
@@ -40,7 +41,7 @@
                             @error('netid')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                        </div>
+                        </div> --}}
 
                         <div class="mb-4">
                             <label for="proj_id" class="form-label">

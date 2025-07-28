@@ -137,6 +137,7 @@ return [
     */
 
     'providers' => ServiceProvider::defaultProviders()->merge([
+        App\Providers\MakeUserAdminProvider::class,
     ])->toArray(),
 
 ];

@@ -54,11 +54,11 @@
                                                 </div>
                                                 <p class="text-muted mb-2 small">
                                                     {{ Str::limit($project->desc, 100) ?: 'No description available.' }}
-                                                </p>
+                                                {{-- </p>
                                                 <small class="text-muted">
                                                     <i class="bi bi-calendar me-1"></i>
                                                     Last updated: {{ $project->updated_at->diffForHumans() }}
-                                                </small>
+                                                </small> --}}
                                             </div>
                                         </a>
                                     </div>

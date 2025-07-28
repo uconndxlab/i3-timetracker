@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Command;
+namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\User;
@@ -13,27 +13,23 @@ class MakeUserAdmin extends Command
     public function handle()
     {
         $netid = $this->argument('netid');
-
-        // Find the user by netid
         $user = User::where('netid', $netid)->first();
 
         if (!$user) {
-            $this->warn("User with netid '{$netid}' not found. Creating a new user...");
-            $user = new User();
-            $user->netid = $netid;
-            $user->is_admin = true;
-            $user->name = $netid; // You might want to set a proper name here
-            $user->email = $netid . '@uconn.edu'; // Assuming a standard email format
-            $user->save();
-
-            $this->info("User '{$user->netid}' created and granted admin privileges.");
-            return;
+            $this->error("User with NetID '{$netid}' not found.");
+            return 1;
         }
 
-        // Update the is_admin field
-        $user->is_admin = true;
-        $user->save();
-
-        $this->info("User '{$user->netid}' is now an admin.");
+        $user->forceFill(['is_admin' => true]);
+        $result = $user->save();
+        
+        if ($result) {
+            $this->info("User '{$user->netid}' is now an admin.");
+            $this->info("Database updated successfully.");
+            return 0;
+        } else {
+            $this->error("Failed to update database.");
+            return 1;
+        }
     }
 }

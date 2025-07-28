@@ -33,6 +33,8 @@ class Project extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'project_user', 'proj_id', 'user_id')->withPivot('active')->withTimestamps();
+        return $this->belongsToMany(User::class, 'project_user', 'project_id', 'user_netid')
+                    ->withPivot('active')
+                    ->withTimestamps();
     }
 }

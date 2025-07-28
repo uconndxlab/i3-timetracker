@@ -12,10 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('project_user', function (Blueprint $table) {
-            #defines user to project relationship
+            $table->id();
+            $table->string('user_netid');
             $table->foreignId('project_id')->constrained();
-            $table->foreignId('user_id')->constrained();
             $table->boolean('active')->default(true);
+            $table->timestamps();
+            
+            $table->foreign('user_netid')->references('netid')->on('users')->onDelete('cascade');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
+            
+            $table->unique(['user_netid', 'project_id']);
         });
     }
 
