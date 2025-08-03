@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ShiftController;
 use App\Models\Project_User;
+use App\Models\Project;
 
 class UserController extends Controller
 {
@@ -42,11 +43,22 @@ class UserController extends Controller
     
     public function show(User $user)
     {
-    //     $projects = Project_User::where('user_id', $user->id)->with('project')->get();
-    //     $shifts = $user->shifts()->with('project')->get();
-    //     return view('users.show', compact('user', 'projects', 'shifts'));
-        $user->load(['projects', 'shifts.project']);
-        return view('users.show', compact('user'));
+        $user = auth()->user();
+        $netid = $user->netid;
+        $projects = Project::whereHas('users', function($query) use ($netid) {
+            $query->where('user_netid', $netid);
+        })->with(['users' => function($query) use ($netid) {
+            $query->where('user_netid', $netid);
+        }])->get();
+        
+        $user->load([
+            'shifts' => function($query) {
+                $query->latest('start_time')->limit(10);
+            },
+            'shifts.project'
+        ]);
+        
+        return view('users.show', compact('user', 'projects'));
     }
 
     public function index()

@@ -11,39 +11,73 @@
             <p><strong>Email:</strong> {{ $user->email }}</p>
             <p><strong>NetID:</strong> {{ $user->netid }}</p>
 
-            <hr>
-            <h4>Activity</h4>
+            <h2>Activity</h2>
+            <div class="activity-summary">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Projects Summary</h5>
+                    </div>
 
-            @if($user->projects && $user->projects->count() > 0)
-                <ul class="list-group">
-                    @foreach($user->projects as $project)
-                        <li class="list-group-item">
-                            <strong>{{ $project->name }}</strong> - 
-                            <span class="text-muted">{{ $project->desc ?: 'No description available.' }}</span>
-                            <span class="badge bg-secondary float-end">{{ $project->active ? 'Active' : 'Inactive' }}</span>
-                            <a href="{{ route('projects.show', $project) }}" class="btn btn-sm btn-outline-info float-end">View Project</a>
-                        </li>
-                    @endforeach
-                </ul>
-            @else
-                <p>No projects associated with this user yet.</p>
-            @endif
-            <hr>
-            <h4>Recent Shifts</h4>
-            @if($user->shifts && $user->shifts->count() > 0)
-                <ul class="list-group">
+                    <div class="card-body">
+                        @if($projects->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Project Name</th>
+                                            <th>Description</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($projects as $project)
+                                            <tr>
+                                                <td>
+                                                    <a href="{{ route('projects.show', $project->id) }}">{{ $project->name }}</a>
+                                                </td>
+                                                <td>{{ $project->desc }}</td>
+                                                <td>
+                                                    @if($project->active)
+                                                        <span class="badge bg-success">Active</span>
+                                                    @else
+                                                        <span class="badge bg-secondary">Inactive</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p>No projects yet.</p>
+                        @endif
+                    </div>
+
+                </div>
+                
+                <h2>Recent Shifts</h2>
+                @if($user->shifts->count() > 0)
                     @foreach($user->shifts as $shift)
-                        <li class="list-group-item">
-                            <strong>{{ $shift->name }}</strong> - 
-                            <span class="text-muted">{{ $shift->desc ?: 'No description available.' }}</span>
-                            <span class="badge bg-secondary float-end">{{ $shift->active ? 'Active' : 'Inactive' }}</span>
-                            <a href="{{ route('shifts.show', $shift) }}" class="btn btn-sm btn-outline-info float-end">View Shift</a>
-                        </li>
+                        <div class="shift-item">
+                            <p>
+                                <strong>
+                                    {{ $shift->project ? $shift->project->name : 'If assignment works you should see this' }}
+                                </strong>
+                                
+                                @if($shift->start_time)
+                                    {{ $shift->start_time->format('M d, Y') }} 
+                                    {{ $shift->start_time->format('g:i A') }} - 
+                                    {{ $shift->end_time ? $shift->end_time->format('g:i A') : 'In progress' }}
+                                @else
+                                    No date
+                                @endif
+                            </p>
+                            <a href="{{ route('shifts.show', $shift) }}" class="btn btn-primary">View Shift</a>
+                        </div>
                     @endforeach
-                </ul>
-            @else
-                <p>No shifts logged by this user yet.</p>
-            @endif
+                @else
+                    <p>No shifts logged yet.</p>
+                @endif
         </div>
     </div>
 </div>

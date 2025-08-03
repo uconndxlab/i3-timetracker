@@ -60,8 +60,6 @@ class ProjectController extends Controller
             $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
                 ->where('project_user.user_netid', $user->netid)
                 ->pluck('projects.id');
-            
-            // Then get the actual project models
             $projects = Project::whereIn('id', $projectIds)
                 ->where('active', true)
                 ->get();

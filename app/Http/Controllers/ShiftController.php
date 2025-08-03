@@ -79,7 +79,6 @@ class ShiftController extends Controller
         ]);
 
         if (!$user->isAdmin()) {
-            // Use the same approach that works in the create method
             $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
                 ->where('project_user.user_netid', $user->netid)
                 ->where('projects.active', true)
