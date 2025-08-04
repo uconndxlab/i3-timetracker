@@ -12,8 +12,11 @@ class AdminController extends Controller
 {
     public function landing()
     {
-        $activeProjects = Project::where('active', true)->latest('updated_at')->get();
-        return view('landing', compact('activeProjects'));
+        $activeProjects = Project::where('active', true)->latest('updated_at')->get()->filter(function($project) {
+            return $project->users->contains('netid', auth()->user()->netid);
+        });
+        $activeShifts = Shift::latest('updated_at')->get()->where('netid', auth()->user()->netid);
+        return view('landing', compact('activeProjects', 'activeShifts'));
     }
 
     public function login()

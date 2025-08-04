@@ -3,7 +3,6 @@
 @section('content')
 <div class="container">
     <h1 class="my-4">Admin Dashboard</h1>
-    <p>No projects available.</p>
 
     <div class="row">
         @foreach($projects as $project)

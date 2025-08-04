@@ -3,7 +3,7 @@
 @section('content')
 <div class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Unbilled Shifts: {{ $project->name }}</h1>
+        <h1>Unbilled Shifts ({{ $project->name }})</h1>
         <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
     </div>
 
@@ -24,16 +24,18 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
+                                    <th>Name</th>
                                     <th>Date</th>
                                     <th>Start Time</th>
                                     <th>End Time</th>
                                     <th>Duration</th>
-                                    <th>Actions</th>
+                                    <th>Billing</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($user->shifts as $shift)
                                     <tr>
+                                        <td>{{ $user->name }}</td>
                                         <td>{{ $shift->start_time->format('Y-m-d') }}</td>
                                         <td>{{ $shift->start_time->format('H:i') }}</td>
                                         <td>{{ $shift->end_time->format('H:i') }}</td>

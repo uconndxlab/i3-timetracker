@@ -6,12 +6,12 @@ i3 Time Tracker is a web app designed to help teams track time spent on various 
 
 - Log and manage work shifts for users and projects
 - Mark shifts as billed or entered in external systems
-- Admin dashboard for project and shift overviews
+- Admin dashboard to assign users to projects, and mark shifts as billed and/or entered in external systems
 - User and project management
+- CAS authentication upon landing
 
 ## Features in Progress
 
-- CAS authentication support
 - Analytics for users and projects
 
 ## Requirements

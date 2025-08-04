@@ -57,7 +57,8 @@ class ShiftController extends Controller
 
     public function index()
     {
-        $shifts = Shift::with(['user', 'project'])->latest()->get();
+        // return only that user's shifts
+        $shifts = Shift::with(['user', 'project'])->where('netid', auth()->user()->netid)->latest()->get();
         return view('shifts.index', compact('shifts'));
     }
 

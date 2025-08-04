@@ -24,8 +24,8 @@
 
                 @foreach($project->shifts->take(5) as $shift)
                     <li class="list-group-item">
-                        <strong>{{ $shift->user->name }}</strong> - 
-                        <span class="text-muted">{{ $shift->start_time->format('M d, Y h:i A') }} to {{ $shift->end_time->format('h:i A') }}</span>
+                        {{-- <strong>{{ $shift->user->name }}</strong> -  --}}
+                        <span class="text-muted">{{ $shift->start_time->format('M d, Y h:i A') }} - {{ $shift->end_time->format('h:i A') }}</span>
                         <span class="badge bg-secondary float-end">{{ $shift->status }}</span>
                         <a href="{{ route('shifts.show', $shift) }}" class="btn btn-sm btn-outline-info float-end">View Shift</a>
                     </li>
@@ -38,7 +38,6 @@
         </div>
 
         <div class="card-footer">
-            {{-- appropriate and appealing edit and back to project buttons --}}
             <div class="d-flex justify-content-between">
                 <a href="{{ route('projects.edit', $project) }}" class="btn btn-secondary">
                     <i class="bi bi-pencil-square me-1"></i>Edit Project
