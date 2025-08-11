@@ -50,16 +50,11 @@
                             <i class="bi bi-plus-square me-1"></i>Log Shift
                         </a>
                     </li> --}}
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
-                            <i class="bi bi-gear me-1"></i>Admin
-                        </a>
-                    </li>
                 </ul>
 
                 <div class="d-flex align-items-center ms-auto">
                     @if ( Auth::check() )
-                        <a href="{{ route('users.show', Auth::user()) }}" class="navbar-text me-3 text-decoration-none text-dark">
+                        <a class="navbar-text me-3 text-decoration-none text-dark">
                             <span class="navbar-text me-3">
                                 <i class="bi bi-person-circle me-1"></i>{{ Auth::user()->name ?? 'User' }}
                             </span>

@@ -14,23 +14,28 @@ class Project extends Model
     use HasFactory;
 
     protected $fillable = [
-        'netid',
-        'proj_id',
-        'start_time',
-        'end_time',
-        'billed',
-        'entered',
+        'name',
+        'desc',
+        'active',
     ];
 
-    protected function casts(): array 
-    {
-        return [
-            'start_time' => 'datetime',
-            'end_time' => 'datetime',
-            'billed' => 'boolean',
-            'entered' => 'boolean',
-        ];
-    }
+    // protected function casts(): array 
+    // {
+    //     return [
+    //         'start_time' => 'datetime',
+    //         'end_time' => 'datetime',
+    //         'billed' => 'boolean',
+    //         'entered' => 'boolean',
+    //     ];
+    // }
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+        'billed' => 'boolean',
+        'entered' => 'boolean',
+        'active' => 'boolean', 
+    ];
+
 
     public function users()
     {

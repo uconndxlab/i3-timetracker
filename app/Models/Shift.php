@@ -20,15 +20,21 @@ class Shift extends Model
         'entered',
     ];
 
-    protected function casts(): array 
-    {
-        return [
-            'start_time' => 'datetime',
-            'end_time' => 'datetime',
-            'billed' => 'boolean',
-            'entered' => 'boolean',
-        ];
-    }
+    // protected function casts(): array 
+    // {
+    //     return [
+    //         'start_time' => 'datetime',
+    //         'end_time' => 'datetime',
+    //         'billed' => 'boolean',
+    //         'entered' => 'boolean',
+    //     ];
+    // }
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+        'billed' => 'boolean',
+        'entered' => 'boolean',
+    ];
 
     public function user()
     {

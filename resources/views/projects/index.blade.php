@@ -31,9 +31,9 @@
             ['key' => 'active', 'label' => 'Status', 'sortable' => true, 'type' => 'boolean'],
         ]);
         
-        $actions = [
-            ['key' => 'view', 'label' => 'View Project', 'icon' => 'eye', 'route' => 'projects.show'],
-        ];
+        // $actions = [
+        //     ['key' => 'view', 'label' => 'View Project', 'icon' => 'eye', 'route' => 'projects.show'],
+        // ];
 
         $actions[] = [
             'key' => 'add_shift', 

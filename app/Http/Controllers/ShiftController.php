@@ -61,15 +61,15 @@ class ShiftController extends Controller
         ]);
 
         $shift->update($validatedData);
-        return redirect()->route('shifts.show', $shift)->with('message', 'Shift updated successfully!');
+        return redirect()->route('shifts.index')->with('message', 'Shift updated successfully!');
     }
 
 
-    public function show(Shift $shift)
-    {
-        $shift->load(['user', 'project']);
-        return view('shifts.show', compact('shift'));
-    }
+    // public function show(Shift $shift)
+    // {
+    //     $shift->load(['user', 'project']);
+    //     return view('shifts.show', compact('shift'));
+    // }
 
     public function index(Request $request)
     {
@@ -168,7 +168,7 @@ class ShiftController extends Controller
         $project->users()->syncWithoutDetaching([$user->netid]);
 
         Shift::create($validatedData);
-        return redirect()->route('shifts.index')->with('message', 'Shift created successfully!');
+        return redirect()->route('shifts.index')->with('message', 'Shift logged successfully!');
     }
 
     public function edit(Shift $shift)

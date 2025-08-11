@@ -2,13 +2,6 @@
 
 @section('content')
 <div class="container mt-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('projects.show', $project) }}">{{ $project->name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Manage</li>
-        </ol>
-    </nav>
 
     <div class="row">
         <div class="col-12">
@@ -25,14 +18,6 @@
                             <label for="name" class="form-label">Project Name</label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $project->name) }}" required>
                             @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="desc" class="form-label">Description</label>
-                            <textarea class="form-control @error('desc') is-invalid @enderror" id="desc" name="desc" rows="3">{{ old('desc', $project->desc) }}</textarea>
-                            @error('desc')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

@@ -17,31 +17,30 @@ class ProjectController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'desc' => 'nullable|string',
             'active' => 'sometimes|required|boolean',
         ]);
 
         $project->update($validatedData);
-        return redirect()->route('projects.show', $project)->with('message', 'Project updated successfully!');
+        return redirect()->route('projects.index')->with('message', 'Project updated successfully!');
     }
 
-    public function show(Project $project) 
-    {
-        $user = auth()->user();
-        if (!$user->isAdmin()) {
-            $isAssigned = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
-                ->where('project_user.user_netid', $user->netid)
-                ->where('projects.id', $project->id)
-                ->exists();
+    // public function show(Project $project) 
+    // {
+    //     $user = auth()->user();
+    //     if (!$user->isAdmin()) {
+    //         $isAssigned = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+    //             ->where('project_user.user_netid', $user->netid)
+    //             ->where('projects.id', $project->id)
+    //             ->exists();
                 
-            if (!$isAssigned) {
-                abort(403, 'You do not have access to this project.');
-            }
-        }
+    //         if (!$isAssigned) {
+    //             abort(403, 'You do not have access to this project.');
+    //         }
+    //     }
         
-        $project->load('shifts.user');
-        return view('projects.show', compact('project'));
-    }
+    //     $project->load('shifts.user');
+    //     return view('projects.show', compact('project'));
+    // }
 
     public function delete(Project $project) 
     {
@@ -94,16 +93,15 @@ class ProjectController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'desc' => 'nullable|string',
             'active' => 'required|boolean',
         ]);
         Project::create($validatedData);
         return redirect()->route('projects.index')->with('message', 'Project created successfully!');
     }
 
-    public function edit(Project $project)
-    {
-        return view('projects.edit', compact('project'));
-    }
+    // public function edit(Project $project)
+    // {
+    //     return view('projects.edit', compact('project'));
+    // }
 
 }
