@@ -71,11 +71,62 @@ class ShiftController extends Controller
         return view('shifts.show', compact('shift'));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        // return only that user's shifts
-        $shifts = Shift::with(['user', 'project'])->where('netid', auth()->user()->netid)->latest()->get();
-        return view('shifts.index', compact('shifts'));
+        $user = auth()->user();
+        $weekStart = now()->startOfWeek();
+        $weekEnd = now()->endOfWeek();
+        
+        if ($request->has('week')) {
+            $weekOffset = (int)$request->input('week');
+            $weekStart = now()->startOfWeek()->addWeeks($weekOffset);
+            $weekEnd = now()->endOfWeek()->addWeeks($weekOffset);
+        }
+        
+        $query = Shift::query()
+            ->with(['project', 'user'])
+            ->whereBetween('start_time', [$weekStart, $weekEnd]);
+        
+        if (!$user->isAdmin()) {
+            $query->where('netid', $user->netid);
+        }
+        
+        if ($request->has('sort')) {
+            $direction = $request->input('direction', 'asc');
+            if ($request->input('sort') === 'project') {
+                $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
+                    ->orderBy('projects.name', $direction)
+                    ->select('shifts.*');
+            } else {
+                $query->orderBy($request->input('sort'), $direction);
+            }
+        } else {
+            $query->orderBy('start_time', 'desc');
+        }
+        
+        $shifts = $query->paginate(15);
+        foreach ($shifts as $shift) {
+            $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
+            $durationMinutes = $shift->start_time->diffInMinutes($shift->end_time);
+            $shift->duration = round($durationMinutes / 60, 1);
+            $shift->can_edit = $user->isAdmin() || 
+                ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
+        }
+
+        $currOffset = (int)$request->input('week', 0);
+        $prev = $currOffset - 1;
+        $next = $currOffset + 1;
+        $start = $weekStart->format('M j, Y');
+        $end = $weekEnd->format('M j, Y');
+        
+        return view('shifts.index', compact(
+            'shifts', 
+            'start', 
+            'end', 
+            'prev', 
+            'next', 
+            'currOffset'
+        ));
     }
 
     public function store(Request $request)
@@ -118,5 +169,41 @@ class ShiftController extends Controller
 
         Shift::create($validatedData);
         return redirect()->route('shifts.index')->with('message', 'Shift created successfully!');
+    }
+
+    public function edit(Shift $shift)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && 
+            ($shift->netid !== $user->netid || $shift->entered || $shift->billed)) {
+            return redirect()->route('shifts.index')->with('message', 'You cannot edit this shift.');
+        }
+        
+        if ($user->isAdmin()) {
+            $projects = Project::where('active', true)->get();
+        } else {
+            $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+                ->where('project_user.user_netid', $user->netid)
+                ->pluck('projects.id');
+            $projects = Project::whereIn('id', $projectIds)
+                ->where('active', true)
+                ->get();
+        }
+        
+        return view('shifts.edit', compact('shift', 'projects'));
+    }
+        
+    public function destroy(Shift $shift)
+    {
+        $user = auth()->user();
+        
+        if (!$user->isAdmin() && 
+            ($shift->netid !== $user->netid || $shift->entered || $shift->billed)) {
+            abort(403, 'You cannot delete this shift.');
+        }
+        
+        $shift->delete();
+        
+        return redirect()->route('shifts.index')->with('message', 'Shift deleted successfully.');
     }
 }

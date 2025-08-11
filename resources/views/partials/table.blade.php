@@ -19,6 +19,15 @@ Usage example:
     'create_label' => 'Add New Project'
 ])
 --}}
+@php
+function buildParams($paramConfig, $item) {
+    $result = [];
+    foreach ($paramConfig as $paramName => $itemProperty) {
+        $result[$paramName] = $item->{$itemProperty};
+    }
+    return $result;
+}
+@endphp
 
 <div class="card shadow-sm">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -65,7 +74,20 @@ Usage example:
                                 @foreach($columns as $col)
                                     <td>
                                         @php
-                                            $value = $item->{$col['key']} ?? null;
+                                            $keys = explode('.', $col['key']);
+                                            if (count($keys) > 1) {
+                                                $value = $item;
+                                                foreach ($keys as $nestedKey) {
+                                                    if (is_object($value) && isset($value->{$nestedKey})) {
+                                                        $value = $value->{$nestedKey};
+                                                    } else {
+                                                        $value = null;
+                                                        break;
+                                                    }
+                                                }
+                                            } else {
+                                                $value = $item->{$col['key']} ?? null;
+                                            }
                                             $type = $col['type'] ?? 'text';
                                         @endphp
 
@@ -136,41 +158,55 @@ Usage example:
                                     <td>
                                         <div class="d-flex gap-1">
                                             @foreach($actions as $action)
-                                                @switch($action['key'])
-                                                    @case('view')
-                                                        <a href="{{ route($action['route'], $item) }}" 
-                                                           class="btn btn-sm btn-outline-primary" 
-                                                           title="{{ $action['label'] ?? 'View' }}">
-                                                            <i class="bi bi-{{ $action['icon'] ?? 'eye' }}"></i>
-                                                        </a>
-                                                        @break
-                                                        
-                                                    @case('edit')
-                                                        <a href="{{ route($action['route'], $item) }}" 
-                                                           class="btn btn-sm btn-outline-secondary" 
-                                                           title="{{ $action['label'] ?? 'Edit' }}">
-                                                            <i class="bi bi-{{ $action['icon'] ?? 'pencil-square' }}"></i>
-                                                        </a>
-                                                        @break
-                                                        
-                                                    @case('delete')
-                                                        <button type="button"
-                                                            class="btn btn-sm btn-outline-danger"
-                                                            title="{{ $action['label'] ?? 'Delete' }}"
-                                                            onclick="confirmDelete('{{ $item->name ?? 'this item' }}', '{{ route($action['route'], $item) }}')">
-                                                            <i class="bi bi-{{ $action['icon'] ?? 'trash' }}"></i>
-                                                        </button>
-                                                        @break
-                                                        
-                                                    @default
-                                                        @if(isset($action['route']))
+                                                @php
+                                                    $showAction = true;
+                                                    if (isset($action['show_if'])) {
+                                                        $propertyName = $action['show_if'];
+                                                        $showAction = isset($item->$propertyName) && $item->$propertyName;
+                                                    }
+                                                @endphp
+                                                @if($showAction)
+                                                    @switch($action['key'])
+                                                        @case('view')
                                                             <a href="{{ route($action['route'], $item) }}" 
-                                                               class="btn btn-sm btn-outline-{{ $action['color'] ?? 'secondary' }}" 
-                                                               title="{{ $action['label'] ?? 'Action' }}">
-                                                                <i class="bi bi-{{ $action['icon'] ?? 'gear' }}"></i>
+                                                            class="btn btn-sm btn-outline-primary" 
+                                                            title="{{ $action['label'] ?? 'View' }}">
+                                                                <i class="bi bi-{{ $action['icon'] ?? 'eye' }}"></i>
                                                             </a>
-                                                        @endif
-                                                @endswitch
+                                                            @break
+                                                            
+                                                        @case('edit')
+                                                            <a href="{{ route($action['route'], $item) }}" 
+                                                            class="btn btn-sm btn-outline-secondary" 
+                                                            title="{{ $action['label'] ?? 'Edit' }}">
+                                                                <i class="bi bi-{{ $action['icon'] ?? 'pencil-square' }}"></i>
+                                                            </a>
+                                                            @break
+                                                            
+                                                        @case('delete')
+                                                            <button type="button"
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                title="{{ $action['label'] ?? 'Delete' }}"
+                                                                onclick="confirmDelete('{{ $item->name ?? 'this item' }}', '{{ route($action['route'], $item) }}')">
+                                                                <i class="bi bi-{{ $action['icon'] ?? 'trash' }}"></i>
+                                                            </button>
+                                                            @break
+                                                            
+                                                        @default
+                                                            @if(isset($action['route']))
+                                                                @php
+                                                                    $params = isset($action['params']) 
+                                                                        ? buildParams($action['params'], $item) 
+                                                                        : $item;
+                                                                @endphp
+                                                                <a href="{{ route($action['route'], $params) }}" 
+                                                                class="btn btn-sm btn-outline-{{ $action['color'] ?? 'secondary' }}" 
+                                                                title="{{ $action['label'] ?? 'Action' }}">
+                                                                    <i class="bi bi-{{ $action['icon'] ?? 'gear' }}"></i>
+                                                                </a>
+                                                            @endif
+                                                    @endswitch
+                                                @endif
                                             @endforeach
                                         </div>
                                     </td>

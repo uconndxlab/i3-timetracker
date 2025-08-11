@@ -36,6 +36,9 @@ Route::middleware('cas.auth')->group(function () {
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store'); 
         Route::get('/{shift}', 'show')->name('show');
+        Route::get('/{shift}/edit', 'edit')->name('edit');
+        Route::put('/{shift}', 'update')->name('update');
+        Route::delete('/{shift}', 'destroy')->name('destroy');
     });
 });
 

@@ -71,7 +71,7 @@ class ProjectController extends Controller
         $projects = $query->paginate(10);
         foreach ($projects as $project) {
             $project->assigned_users_count = $project->users()->count();
-            
+
             $billedShifts = $project->shifts()->where('billed', true)->get();
             $billedHours = 0;
             foreach ($billedShifts as $shift) {
