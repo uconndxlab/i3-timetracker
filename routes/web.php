@@ -19,6 +19,8 @@ Route::middleware('cas.auth')->group(function () {
         Route::get('/projects/{project}/users', [AdminController::class, 'showProjectUsers'])->name('projects.users');
         Route::post('/projects/{project}/users', [AdminController::class, 'assignUsers'])->name('projects.assign-users');
         Route::delete('/projects/{project}/users/{netid}', [AdminController::class, 'removeUser'])->name('projects.remove-user');
+
+        Route::get('/projects/{project}/manage', [AdminController::class, 'manageProject'])->name('projects.manage');
     });
 
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');

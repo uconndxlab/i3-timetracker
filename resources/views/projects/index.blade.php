@@ -46,7 +46,7 @@
         
         if (auth()->user()->isAdmin()) {
             $actions = array_merge($actions, [
-                ['key' => 'edit', 'label' => 'Edit Project', 'icon' => 'pencil-square', 'route' => 'projects.edit'],
+                ['key' => 'edit', 'label' => 'Manage Project', 'icon' => 'gear', 'route' => 'admin.projects.manage'],
                 ['key' => 'delete', 'label' => 'Delete Project', 'icon' => 'trash', 'route' => 'projects.destroy'],
             ]);
         }

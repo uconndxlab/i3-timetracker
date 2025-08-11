@@ -15,9 +15,11 @@
                             <a href="{{ route('shifts.create') }}" class="btn btn-outline-light">
                                 <i class="bi bi-plus-circle me-2"></i>Log New Shift
                             </a>
+                            @if(auth()->user()->isAdmin())
                             <a href="{{ route('projects.create') }}" class="btn btn-outline-light">
                                 <i class="bi bi-folder-plus me-2"></i>Create Project
                             </a>
+                            @endif
                         </div>
                     </div>
                 </div>

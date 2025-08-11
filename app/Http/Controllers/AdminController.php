@@ -133,4 +133,12 @@ class AdminController extends Controller
         return redirect()->route('admin.projects.users', $project->id)
             ->with('success', 'User successfully removed from project.');
     }
+
+    public function manageProject(Project $project)
+    {
+        $users = User::orderBy('name')->get();
+        $assignedUsers = $project->users;
+        
+        return view('admin.manage', compact('project', 'users', 'assignedUsers'));
+    }
 }
