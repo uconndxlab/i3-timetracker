@@ -38,19 +38,6 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="desc" class="form-label">
-                                <i class="bi bi-text-paragraph me-1"></i>Description
-                            </label>
-                            <textarea class="form-control @error('desc') is-invalid @enderror" 
-                                      id="desc" name="desc" rows="4" 
-                                      placeholder="Describe the project purpose and goals...">{{ old('desc') }}</textarea>
-                            @error('desc')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="form-text text-muted">Optional</small>
-                        </div>
-
-                        <div class="mb-4">
                             <div class="form-check form-switch">
                                 <input type="hidden" name="active" value="0">
                                 <input type="checkbox" class="form-check-input @error('active') is-invalid @enderror" 

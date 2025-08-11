@@ -17,31 +17,30 @@ class ProjectController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'desc' => 'nullable|string',
             'active' => 'sometimes|required|boolean',
         ]);
 
         $project->update($validatedData);
-        return redirect()->route('projects.show', $project)->with('message', 'Project updated successfully!');
+        return redirect()->route('projects.index')->with('message', 'Project updated successfully!');
     }
 
-    public function show(Project $project) 
-    {
-        $user = auth()->user();
-        if (!$user->isAdmin()) {
-            $isAssigned = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
-                ->where('project_user.user_netid', $user->netid)
-                ->where('projects.id', $project->id)
-                ->exists();
+    // public function show(Project $project) 
+    // {
+    //     $user = auth()->user();
+    //     if (!$user->isAdmin()) {
+    //         $isAssigned = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+    //             ->where('project_user.user_netid', $user->netid)
+    //             ->where('projects.id', $project->id)
+    //             ->exists();
                 
-            if (!$isAssigned) {
-                abort(403, 'You do not have access to this project.');
-            }
-        }
+    //         if (!$isAssigned) {
+    //             abort(403, 'You do not have access to this project.');
+    //         }
+    //     }
         
-        $project->load('shifts.user');
-        return view('projects.show', compact('project'));
-    }
+    //     $project->load('shifts.user');
+    //     return view('projects.show', compact('project'));
+    // }
 
     public function delete(Project $project) 
     {
@@ -50,19 +49,41 @@ class ProjectController extends Controller
         return redirect()->route('projects.index')->with('message', 'Project deleted successfully!');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
+        $query = Project::query();
         
-        if ($user->isAdmin()) {
-            $projects = Project::where('active', true)->get();
-        } else {
-            $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+        if (!$user->isAdmin()) {
+            $query->join('project_user', 'projects.id', '=', 'project_user.project_id')
                 ->where('project_user.user_netid', $user->netid)
-                ->pluck('projects.id');
-            $projects = Project::whereIn('id', $projectIds)
-                ->where('active', true)
-                ->get();
+                ->select('projects.*');
+        }
+        
+        if ($request->has('sort')) {
+            $direction = $request->input('direction', 'asc');
+            $query->orderBy($request->input('sort'), $direction);
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+        
+        $projects = $query->paginate(10);
+        foreach ($projects as $project) {
+            $project->assigned_users_count = $project->users()->count();
+
+            $billedShifts = $project->shifts()->where('billed', true)->get();
+            $billedHours = 0;
+            foreach ($billedShifts as $shift) {
+                $billedHours += $shift->start_time->diffInHours($shift->end_time);
+            }
+            $project->billed_hours = $billedHours;
+            
+            $unbilledShifts = $project->shifts()->where('billed', false)->get();
+            $unbilledHours = 0;
+            foreach ($unbilledShifts as $shift) {
+                $unbilledHours += $shift->start_time->diffInHours($shift->end_time);
+            }
+            $project->unbilled_hours = $unbilledHours;
         }
         
         return view('projects.index', compact('projects'));
@@ -72,16 +93,15 @@ class ProjectController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'desc' => 'nullable|string',
             'active' => 'required|boolean',
         ]);
         Project::create($validatedData);
         return redirect()->route('projects.index')->with('message', 'Project created successfully!');
     }
 
-    public function edit(Project $project)
-    {
-        return view('projects.edit', compact('project'));
-    }
+    // public function edit(Project $project)
+    // {
+    //     return view('projects.edit', compact('project'));
+    // }
 
 }

@@ -1,70 +1,66 @@
 @extends('layouts.app')
 
 @section('content')
-
 <div class="mt-4">
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5">
                 <i class="bi bi-collection me-3"></i>
-                All Projects
+                Projects
             </h1>
-            <p class="lead mb-0">Manage and track all i3 projects</p>
+            <p class="lead mb-0">
+                {{ auth()->user()->isAdmin() ? 'Manage i3 projects' : 'Your assigned projects' }}
+            </p>
         </div>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <span class="text-muted">
-                <i class="bi bi-info-circle me-1"></i>
-                Showing {{ $projects->count() }} project{{ $projects->count() !== 1 ? 's' : '' }}
-            </span>
-        </div>
-        <a href="{{ route('projects.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i>Add New Project
-        </a>
-    </div>
+    @php
+        $columns = [
+            ['key' => 'name', 'label' => 'Name', 'sortable' => true],
+        ];
+        
+        if (auth()->user()->isAdmin()) {
+            $columns = array_merge($columns, [
+                ['key' => 'assigned_users_count', 'label' => 'Assigned Staff', 'sortable' => true],
+            ]);
+        }
+        
+        $columns = array_merge($columns, [
+            ['key' => 'billed_hours', 'label' => 'Billed Hours', 'sortable' => true],
+            ['key' => 'unbilled_hours', 'label' => 'Unbilled Hours', 'sortable' => true],
+            ['key' => 'active', 'label' => 'Status', 'sortable' => true, 'type' => 'boolean'],
+        ]);
+        
+        // $actions = [
+        //     ['key' => 'view', 'label' => 'View Project', 'icon' => 'eye', 'route' => 'projects.show'],
+        // ];
 
-    @if($projects->isEmpty())
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-folder-x text-muted" style="font-size: 4rem;"></i>
-                <h4 class="text-muted mt-3">No Projects Found</h4>
-            </div>
-        </div>
-    @else
-        <div class="row">
-            @foreach ($projects as $project)
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="project-item h-100">
-                        <a href="{{ route('projects.show', $project) }}" class="text-decoration-none">
-                            <div class="p-4">
-                                <div class="d-flex align-items-start justify-content-between mb-3">
-                                    <h5 class="mb-1 text-dark fw-semibold">{{ $project->name }}</h5>
-                                    <span class="badge {{ $project->active ? 'bg-success' : 'bg-secondary' }}">
-                                        <i class="bi bi-{{ $project->active ? 'check-circle' : 'pause-circle' }} me-1"></i>
-                                        {{ $project->active ? 'Active' : 'Inactive' }}
-                                    </span>
-                                </div>
-                                
-                                <p class="text-muted mb-3">
-                                    {{ Str::limit($project->desc, 150) ?: 'No description available.' }}
-                                </p>
-                                
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar-plus me-1"></i>
-                                        Created: {{ $project->created_at ? $project->created_at->format('M d, Y') : 'N/A' }}
-                                    </small>
-                                    <i class="bi bi-arrow-right text-primary"></i>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    @endif
+        $actions[] = [
+            'key' => 'add_shift', 
+            'label' => 'Add Shift', 
+            'icon' => 'clock', 
+            'route' => 'shifts.create',
+            'color' => 'success',
+            'params' => ['proj_id' => 'id']
+        ];
+        
+        if (auth()->user()->isAdmin()) {
+            $actions = array_merge($actions, [
+                ['key' => 'edit', 'label' => 'Manage Project', 'icon' => 'gear', 'route' => 'admin.projects.manage'],
+                ['key' => 'delete', 'label' => 'Delete Project', 'icon' => 'trash', 'route' => 'projects.destroy'],
+            ]);
+        }
+    @endphp
+
+    @include('partials.table', [
+        'items' => $projects,
+        'columns' => $columns,
+        'actions' => $actions,
+        'title' => 'Project',
+        'empty_message' => 'No projects found.',
+        'empty_icon' => 'folder-x',
+        'create_route' => auth()->user()->isAdmin() ? 'projects.create' : null,
+        'create_label' => 'Add New Project'
+    ])
 </div>
-
 @endsection
