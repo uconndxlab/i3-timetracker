@@ -8,10 +8,26 @@ use Illuminate\Http\Request;
 
 class ShiftController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
         $user = auth()->user();
+        $selectedProjectId = $request->input('proj_id');
+        $selectedProject = null;
         
+        if ($selectedProjectId) {
+            $selectedProject = Project::find($selectedProjectId);
+
+            if ($selectedProject && !$user->isAdmin()) {
+                $hasAccess = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+                    ->where('project_user.user_netid', $user->netid)
+                    ->where('projects.id', $selectedProjectId)
+                    ->exists();
+                    
+                if (!$hasAccess) {
+                    $selectedProject = null; 
+                }
+            }
+        }
         if ($user->isAdmin()) {
             $projects = Project::where('active', true)->get();
         } else {
@@ -23,7 +39,7 @@ class ShiftController extends Controller
                 ->get();
         }
         
-        return view('shifts.create', compact('projects'));
+        return view('shifts.create', compact('projects', 'selectedProject'));
     }
 
     public function update(Request $request, Shift $shift)

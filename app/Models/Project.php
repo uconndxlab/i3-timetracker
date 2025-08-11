@@ -19,12 +19,10 @@ class Project extends Model
         'active',
     ];
 
-    protected $primaryKey = 'id';
 
-    protected function casts(): array
-    {
-        return ['active' => 'boolean',];
-    }
+    protected $casts = [
+        'active' => 'boolean',
+    ];
 
     public function shifts()
     {
@@ -33,8 +31,6 @@ class Project extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'project_user', 'project_id', 'user_netid', 'id', 'netid')
-                    ->withPivot('active')
-                    ->withTimestamps();
+        return $this->belongsToMany(User::class, 'project_user', 'project_id', 'user_netid', 'id', 'netid');
     }
 }
