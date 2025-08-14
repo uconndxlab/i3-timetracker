@@ -93,15 +93,18 @@ function buildParams($paramConfig, $item) {
 
                                         @switch($type)
                                             @case('boolean')
-                                                @if($value)
-                                                    <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle me-1"></i> Active
-                                                    </span>
-                                                @else
-                                                    <span class="badge bg-secondary">
-                                                        <i class="bi bi-pause-circle me-1"></i> Inactive
-                                                    </span>
-                                                @endif
+                                                <div class="d-flex justify-content-center align-items-center h-100">
+                                                    <div class="form-check mb-0">
+                                                        <input class="form-check-input" type="checkbox" disabled 
+                                                            {{ $value ? 'checked' : '' }}
+                                                            style="width: 1.3rem; height: 1.3rem; cursor: default; 
+                                                                border-color: #dee2e6;
+                                                                background-color: {{ $value ? '#0d6efd' : '#fff' }};
+                                                                box-shadow: none;
+                                                                border-color: {{ $value ? '#0d6efd' : '#dee2e6' }};
+                                                                border-radius: 0.5rem;">
+                                                    </div>
+                                                </div>
                                                 @break
 
                                             @case('date')

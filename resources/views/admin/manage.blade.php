@@ -23,9 +23,10 @@
                         </div>
                         
                         <div class="form-check form-switch mb-3">
+                            <input type="hidden" name="active" value="0">
                             <input class="form-check-input" type="checkbox" id="active" name="active" value="1" {{ old('active', $project->active) ? 'checked' : '' }}>
                             <label class="form-check-label" for="active">Active</label>
-                        </div>
+                        </div>  
                         
                         <button type="submit" class="btn btn-primary">Update Project</button>
                     </form>
