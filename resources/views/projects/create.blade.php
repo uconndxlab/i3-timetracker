@@ -40,8 +40,7 @@
                         <div class="mb-4">
                             <div class="form-check form-switch">
                                 <input type="hidden" name="active" value="0">
-                                <input type="checkbox" class="form-check-input @error('active') is-invalid @enderror" 
-                                       id="active" name="active" value="1" {{ old('active', true) ? 'checked' : '' }}>
+                                <input type="checkbox" class="form-check-input" id="active" name="active" value="1" {{ old('active', true) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="active">
                                     <i class="bi bi-toggle-on me-1"></i>
                                     <strong>Active Project</strong>

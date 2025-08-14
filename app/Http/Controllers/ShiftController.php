@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Models\Project;
 use App\Models\Shift;
 use Illuminate\Http\Request;
+use  Illuminate\Pagination\LengthAwarePaginator;
 
 class ShiftController extends Controller
 {
@@ -60,6 +61,14 @@ class ShiftController extends Controller
             'billed' => 'Billed in Cider',
         ]);
 
+        if (!$request->has('entered')) {
+            $validatedData['entered'] = false;
+        }
+        
+        if (!$request->has('billed')) {
+            $validatedData['billed'] = false;
+        }
+
         $shift->update($validatedData);
         return redirect()->route('shifts.index')->with('message', 'Shift updated successfully!');
     }
@@ -74,59 +83,82 @@ class ShiftController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $weekStart = now()->startOfWeek();
-        $weekEnd = now()->endOfWeek();
+        $sortField = $request->input('sort');
+        $direction = $request->input('direction', 'asc');
+        $week = (int) $request->input('week', 0);
+        $prev = $week - 1;
+        $next = $week + 1;
+        $currOffset = $week;
+        $startDate = now()->startOfWeek()->addWeeks($week);
+        $endDate = now()->startOfWeek()->addWeeks($week + 1)->subDay();
+        $start = $startDate->format('M j, Y');
+        $end = $endDate->format('M j, Y');
+        $query = Shift::query();
         
-        if ($request->has('week')) {
-            $weekOffset = (int)$request->input('week');
-            $weekStart = now()->startOfWeek()->addWeeks($weekOffset);
-            $weekEnd = now()->endOfWeek()->addWeeks($weekOffset);
+        if ($week !== null) {
+            $queryStartDate = now()->startOfWeek()->addWeeks($week);
+            $queryEndDate = now()->startOfWeek()->addWeeks($week + 1);
+            $query->whereBetween('start_time', [$queryStartDate, $queryEndDate]);
         }
-        
-        $query = Shift::query()
-            ->with(['project', 'user'])
-            ->whereBetween('start_time', [$weekStart, $weekEnd]);
         
         if (!$user->isAdmin()) {
             $query->where('netid', $user->netid);
         }
-        
-        if ($request->has('sort')) {
-            $direction = $request->input('direction', 'asc');
-            if ($request->input('sort') === 'project') {
-                $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
-                    ->orderBy('projects.name', $direction)
-                    ->select('shifts.*');
-            } else {
-                $query->orderBy($request->input('sort'), $direction);
+
+        if ($sortField === 'project.name') {
+            $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
+                ->select('shifts.*')
+                ->orderBy('projects.name', $direction);
+        } 
+        else if ($sortField === 'user.name') {
+            $query->leftJoin('users', 'shifts.netid', '=', 'users.netid')
+                ->select('shifts.*')
+                ->orderByRaw('CASE WHEN users.name IS NULL THEN 1 ELSE 0 END, users.name ' . $direction);
+        }
+        else if (in_array($sortField, ['time_range', 'duration'])) {
+            $allShifts = $query->with(['user', 'project'])->get();
+            
+            foreach ($allShifts as $shift) {
+                $shift->time_range = $shift->start_time->format('H:i') . ' - ' . $shift->end_time->format('H:i');
+                $shift->duration = $shift->start_time->diffInHours($shift->end_time);
             }
-        } else {
+            
+            if ($sortField === 'time_range') {
+                $allShifts = $allShifts->sortBy('start_time', SORT_REGULAR, $direction === 'desc');
+            } else {
+                $allShifts = $allShifts->sortBy('duration', SORT_REGULAR, $direction === 'desc');
+            }
+
+            $page = $request->input('page', 1);
+            $perPage = 10;
+            $offset = ($page - 1) * $perPage;
+            
+            $shifts = new LengthAwarePaginator(
+                $allShifts->slice($offset, $perPage),
+                $allShifts->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+            
+            return view('shifts.index', compact('shifts', 'prev', 'next', 'week', 'start', 'end', 'currOffset'));
+        }
+        else if ($sortField) {
+            $query->orderBy($sortField, $direction);
+        } 
+        else {
             $query->orderBy('start_time', 'desc');
         }
         
-        $shifts = $query->paginate(15);
+        $shifts = $query->with(['user', 'project'])->paginate(10);
         foreach ($shifts as $shift) {
-            $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
-            $durationMinutes = $shift->start_time->diffInMinutes($shift->end_time);
-            $shift->duration = round($durationMinutes / 60, 1);
+            $shift->time_range = $shift->start_time->format('H:i') . ' - ' . $shift->end_time->format('H:i');
+            $shift->duration = $shift->start_time->diffInHours($shift->end_time);
             $shift->can_edit = $user->isAdmin() || 
                 ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
         }
-
-        $currOffset = (int)$request->input('week', 0);
-        $prev = $currOffset - 1;
-        $next = $currOffset + 1;
-        $start = $weekStart->format('M j, Y');
-        $end = $weekEnd->format('M j, Y');
         
-        return view('shifts.index', compact(
-            'shifts', 
-            'start', 
-            'end', 
-            'prev', 
-            'next', 
-            'currOffset'
-        ));
+        return view('shifts.index', compact('shifts', 'prev', 'next', 'week', 'start', 'end', 'currOffset'));
     }
 
     public function store(Request $request)
