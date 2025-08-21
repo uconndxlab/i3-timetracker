@@ -99,13 +99,44 @@ class ProjectController extends Controller
             
             return view('projects.index', compact('projects'));
         }
+        else if ($sortField === 'name') {
+            $allProjects = $query->get();
+            $allProjects = $allProjects->sortBy(function($project) {
+                return strtolower($project->name);
+            }, SORT_STRING, $direction === 'desc');
+            $page = $request->input('page', 1);
+            $perPage = 10;
+            $offset = ($page - 1) * $perPage;
+            
+            $projects = new LengthAwarePaginator(
+                $allProjects->slice($offset, $perPage),
+                $allProjects->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        }
+
         else if ($sortField) {
             $query->orderBy($sortField, $direction);
+            $projects = $query->paginate(10);
         } 
+
         else {
-            $query->orderBy('name', 'asc');
+            $allProjects = $query->get()->sortBy(function($project) {
+                return strtolower($project->name);
+            });
+
+            $page = $request->input('page', 1);
+            $perPage = 10;
+            $projects = new LengthAwarePaginator(
+                $allProjects->slice(($page - 1) * $perPage, $perPage),
+                $allProjects->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
         }
-        $projects = $query->paginate(10);
         foreach ($projects as $project) {
             $project->assigned_users_count = $project->users()->count();
             $billedShifts = $project->shifts()->where('billed', true)->get();

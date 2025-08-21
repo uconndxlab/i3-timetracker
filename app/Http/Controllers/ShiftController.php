@@ -119,8 +119,9 @@ class ShiftController extends Controller
             $allShifts = $query->with(['user', 'project'])->get();
             
             foreach ($allShifts as $shift) {
-                $shift->time_range = $shift->start_time->format('H:i') . ' - ' . $shift->end_time->format('H:i');
+                $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
                 $shift->duration = $shift->start_time->diffInHours($shift->end_time);
+                $shift->can_edit = $user->isAdmin() || ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
             }
             
             if ($sortField === 'time_range') {
@@ -152,7 +153,7 @@ class ShiftController extends Controller
         
         $shifts = $query->with(['user', 'project'])->paginate(10);
         foreach ($shifts as $shift) {
-            $shift->time_range = $shift->start_time->format('H:i') . ' - ' . $shift->end_time->format('H:i');
+            $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
             $shift->duration = $shift->start_time->diffInHours($shift->end_time);
             $shift->can_edit = $user->isAdmin() || 
                 ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);

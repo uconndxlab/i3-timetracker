@@ -29,7 +29,7 @@ function buildParams($paramConfig, $item) {
 }
 @endphp
 
-<div class="card shadow-sm">
+<div class="card shadow-sm" id="dynamic-table-container">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h6 class="mb-0">
             <i class="bi bi-table me-2"></i> 
@@ -50,7 +50,7 @@ function buildParams($paramConfig, $item) {
                             @foreach($columns as $col)
                                 <th>
                                     @if(!empty($col['sortable']))
-                                        <a href="#" onclick="sortBy('{{ $col['key'] }}', '{{ request('sort') == $col['key'] && request('direction') == 'asc' ? 'desc' : 'asc' }}')" class="text-decoration-none text-dark">
+                                        <a href="#" onclick="sortBy(event, '{{ $col['key'] }}', '{{ request('sort') == $col['key'] && request('direction') == 'asc' ? 'desc' : 'asc' }}')" class="text-decoration-none text-dark">
                                             {{ $col['label'] ?? ucfirst($col['key']) }}
                                             @if(request('sort') == $col['key'])
                                                 <i class="bi bi-chevron-{{ request('direction') == 'asc' ? 'up' : 'down' }}"></i>
@@ -275,10 +275,37 @@ function buildParams($paramConfig, $item) {
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
     }
 
-    function sortBy(column, direction) {
+    function sortBy(event, column, direction) {
+        event.preventDefault();
         const url = new URL(window.location);
         url.searchParams.set('sort', column);
         url.searchParams.set('direction', direction);
-        window.location = url;
+        
+        const tableContainer = document.getElementById('dynamic-table-container');
+        const originalOpacity = tableContainer.style.opacity;
+        tableContainer.style.opacity = '0.5';
+
+        fetch(url.toString())
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTable = doc.getElementById('dynamic-table-container');
+                if (newTable) {
+                    tableContainer.innerHTML = newTable.innerHTML;
+                    window.history.pushState({}, '', url.toString());
+                } else {
+                    // Fallback to full reload if the new table isn't found
+                    window.location.href = url.toString();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching sorted table data:', error);
+                // Fallback to full reload on error
+                window.location.href = url.toString();
+            })
+            .finally(() => {
+                tableContainer.style.opacity = originalOpacity;
+            });
     }
 </script>
