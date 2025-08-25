@@ -26,11 +26,11 @@
                 
                 <div class="col-md-5">
                     <div class="p-4 h-100 d-flex flex-column justify-content-center align-items-center bg-light border rounded shadow-sm">
-                        <div class="display-1 fw-bold text-primary mb-0">{{ $activeProjects->count() }}</div>
-                        <p class="mb-2 text-uppercase fw-semibold text-muted small">Assigned Project</p>
+                        <div class="display-1 fw-bold text-primary mb-0">{{ $hoursThisWeek }}</div>
+                        <p class="mb-2 text-uppercase fw-semibold text-muted small">Hours This Week</p>
                         <div class="mt-3">
-                            <a href="{{ route('projects.index') }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-grid me-1"></i>View All Projects
+                            <a href="{{ route('shifts.index') }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-clock-history me-1"></i>View All Shifts
                             </a>
                         </div>
                     </div>

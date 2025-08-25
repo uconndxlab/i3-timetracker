@@ -44,19 +44,17 @@
                         </div> --}}
 
                         <div class="mb-4">
-                            <label for="proj_id" class="form-label">
-                                <i class="bi bi-folder me-1"></i>Project *
-                            </label>
-                            <select name="proj_id" id="proj_id" class="form-select @error('proj_id') is-invalid @enderror" required>
-                                <option value="">Select a project...</option>
+                            <label for="proj_id" class="block text-gray-700 text-sm font-bold mb-2">Project:</label>
+                            <select name="proj_id" id="proj_id" class="form-select" required>
+                                <option value="">Select a project</option>
                                 @foreach($projects as $project)
-                                    <option value="{{ $project->id }}" {{ old('proj_id') == $project->id ? 'selected' : '' }}>
-                                        {{ $project->name }}{{ !$project->active ? ' (Inactive)' : '' }}
+                                    <option value="{{ $project->id }}" {{ (old('proj_id') == $project->id || (isset($selectedProject) && $selectedProject->id == $project->id)) ? 'selected' : '' }}>
+                                        {{ $project->name }}
                                     </option>
                                 @endforeach
                             </select>
                             @error('proj_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <p class="text-red-500 text-xs italic">{{ $message }}</p>
                             @enderror
                         </div>
 

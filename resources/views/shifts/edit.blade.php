@@ -104,7 +104,7 @@
                                        id="billed" name="billed" value="1" 
                                        {{ old('billed', $shift->billed) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="billed">
-                                    Billed in Cider
+                                    Billed in Honeycrisp
                                 </label>
                                 @error('billed')
                                     <div class="invalid-feedback">{{ $message }}</div>
