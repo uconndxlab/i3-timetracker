@@ -18,6 +18,7 @@ class ProjectController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'active' => 'required|boolean',
         ]);
 
@@ -43,12 +44,12 @@ class ProjectController extends Controller
     //     return view('projects.show', compact('project'));
     // }
 
-    public function delete(Project $project) 
-    {
-        #$project->shifts()->delete(); do we need to delete shifts associated with the project?
-        $project->delete();
-        return redirect()->route('projects.index')->with('message', 'Project deleted successfully!');
-    }
+    // public function delete(Project $project) 
+    // {
+    //     #$project->shifts()->delete(); do we need to delete shifts associated with the project?
+    //     $project->delete();
+    //     return redirect()->route('projects.index')->with('message', 'Project deleted successfully!');
+    // }
 
     public function index(Request $request)
     {
@@ -162,6 +163,7 @@ class ProjectController extends Controller
     {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'active' => 'required|boolean',
         ]);
         Project::create($validatedData);

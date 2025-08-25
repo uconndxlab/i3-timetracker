@@ -37,7 +37,7 @@
             ['key' => 'time_range', 'label' => 'Hours', 'sortable' => true],
             ['key' => 'duration', 'label' => 'Duration', 'sortable' => true],
             ['key' => 'entered', 'label' => 'Entered (Timecard)', 'sortable' => true, 'type' => 'boolean'],
-            ['key' => 'billed', 'label' => 'Billed (Cider)', 'sortable' => true, 'type' => 'boolean'],
+            ['key' => 'billed', 'label' => 'Billed (Honeycrisp)', 'sortable' => true, 'type' => 'boolean'],
         ];
         
         if (auth()->user()->isAdmin()) {

@@ -21,7 +21,15 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Project Description</label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description', $project->description) }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <div class="form-check form-switch mb-3">
                             <input type="hidden" name="active" value="0">
                             <input class="form-check-input" type="checkbox" id="active" name="active" value="1" {{ old('active', $project->active) ? 'checked' : '' }}>

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -16,7 +17,21 @@ class AdminController extends Controller
             return $project->users->contains('netid', auth()->user()->netid);
         });
         $activeShifts = Shift::latest('updated_at')->get()->where('netid', auth()->user()->netid);
-        return view('landing', compact('activeProjects', 'activeShifts'));
+        $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY);
+        $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY);
+
+        $shiftsThisWeek = Shift::where('netid', auth()->user()->netid)
+            ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
+            ->get();
+
+        $totalMinutesThisWeek = $shiftsThisWeek->reduce(function ($carry, $shift) {
+            return $carry + $shift->start_time->diffInMinutes($shift->end_time);
+        }, 0);
+
+        $hoursThisWeek = round($totalMinutesThisWeek / 60, 2);
+        // small issue of shifts that go from Saturday night -> Sunday morning are between weeks (just gonna count for previous week)
+
+        return view('landing', compact('activeProjects', 'activeShifts', 'hoursThisWeek'));
     }
 
     public function login()
@@ -35,33 +50,20 @@ class AdminController extends Controller
     }
 
 
-    /**
-     * Display a dashboard for admins, listing all projects.
-     */
-    public function dashboard()
-    {
-        $projects = Project::orderBy('name')->get();
-        return view('admin.dashboard', compact('projects'));
-    }
 
+    // public function showProjectUnbilledUsers(Project $project)
+    // {
+    //     $usersWithUnbilledShifts = User::whereHas('shifts', function($query) use ($project) {
+    //         $query->where('proj_id', $project->id)
+    //             ->where('billed', false);
+    //     })->with(['shifts' => function($query) use ($project) {
+    //         $query->where('proj_id', $project->id)
+    //             ->where('billed', false)
+    //             ->with('project');
+    //     }])->get();
 
-
-    /**
-     * Show users with unbilled shifts for a specific project.
-     */
-    public function showProjectUnbilledUsers(Project $project)
-    {
-        $usersWithUnbilledShifts = User::whereHas('shifts', function($query) use ($project) {
-            $query->where('proj_id', $project->id)
-                ->where('billed', false);
-        })->with(['shifts' => function($query) use ($project) {
-            $query->where('proj_id', $project->id)
-                ->where('billed', false)
-                ->with('project');
-        }])->get();
-
-        return view('admin.project_unbilled_users', compact('project', 'usersWithUnbilledShifts'));
-    }
+    //     return view('admin.project_unbilled_users', compact('project', 'usersWithUnbilledShifts'));
+    // }
 
 
     
@@ -73,26 +75,26 @@ class AdminController extends Controller
 
 
 
-    public function showProjectUsers(Project $project)
-    {
-        $project = Project::findOrFail($project->id);
+    // public function showProjectUsers(Project $project)
+    // {
+    //     $project = Project::findOrFail($project->id);
         
-        $assignedUsers = User::join('project_user', 'users.netid', '=', 'project_user.user_netid')
-            ->where('project_user.project_id', $project->id)
-            ->select('users.*', 'project_user.active as is_active')
-            ->get();
+    //     $assignedUsers = User::join('project_user', 'users.netid', '=', 'project_user.user_netid')
+    //         ->where('project_user.project_id', $project->id)
+    //         ->select('users.*', 'project_user.active as is_active')
+    //         ->get();
         
-            //using active column to help with UI state
-        $assignedUsers->transform(function ($user) {
-            $user->pivot = (object)['active' => $user->is_active];
-            return $user;
-        });
+    //         //using active column to help with UI state
+    //     $assignedUsers->transform(function ($user) {
+    //         $user->pivot = (object)['active' => $user->is_active];
+    //         return $user;
+    //     });
         
-        $assignedNetids = $assignedUsers->pluck('netid')->toArray();
-        $unassignedUsers = User::whereNotIn('netid', $assignedNetids)->get();
+    //     $assignedNetids = $assignedUsers->pluck('netid')->toArray();
+    //     $unassignedUsers = User::whereNotIn('netid', $assignedNetids)->get();
         
-        return view('admin.project_users', compact('project', 'assignedUsers', 'unassignedUsers'));
-    }
+    //     return view('admin.project_users', compact('project', 'assignedUsers', 'unassignedUsers'));
+    // }
 
 
     /**
@@ -114,11 +116,11 @@ class AdminController extends Controller
             }
             $project->users()->syncWithoutDetaching($syncData);
             
-            return redirect()->route('admin.projects.users', $project->id)
+            return redirect()->route('projects.index', $project->id)
                 ->with('success', count($newUserNetids) . ' user(s) successfully assigned to project.');
         }
-        
-        return redirect()->route('admin.projects.users', $project->id)
+
+        return redirect()->route('projects.index', $project->id)
             ->with('info', 'All selected users were already assigned to this project.');
     }
 
@@ -129,8 +131,8 @@ class AdminController extends Controller
     public function removeUser(Project $project, $netid)
     {
         $project->users()->detach($netid);
-        
-        return redirect()->route('admin.projects.users', $project->id)
+
+        return redirect()->route('projects.index', $project->id)
             ->with('success', 'User successfully removed from project.');
     }
 

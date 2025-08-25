@@ -72,17 +72,19 @@ class UserController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'netid' => 'required|string|unique:users,netid|max:255', 
-            'email' => 'required|string|email|unique:users,email|max:255',
-            'active' => 'sometimes|boolean',
-            'is_admin' => 'sometimes|boolean',
         ]);
+
+        $email = $validatedData['netid'] . '@uconn.edu';
+        if (User::where('email', $email)->exists()) {
+            return back()->withErrors(['netid' => 'A user with this NetID already has a registered email.'])->withInput();
+        }
 
         $user = User::create([
             'name' => $validatedData['name'],
             'netid' => $validatedData['netid'],
-            'email' => $validatedData['email'],
-            'active' => $validatedData['active'] ?? true,
-            'is_admin' => $validatedData['is_admin'] ?? false,
+            'email' => $email,
+            'active' => true,
+            'is_admin' => false,
         ]);
 
         return redirect()->route('landing')->with('message', 'User registered successfully!');

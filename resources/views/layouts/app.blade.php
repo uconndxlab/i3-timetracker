@@ -44,12 +44,12 @@
                         <a class="nav-link" href="{{ route('projects.create') }}">
                             <i class="bi bi-plus-circle me-1"></i>Add Project
                         </a>
-                    </li>
+                    </li> --}}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('shifts.create') }}">
                             <i class="bi bi-plus-square me-1"></i>Log Shift
                         </a>
-                    </li> --}}
+                    </li>
                 </ul>
 
                 <div class="d-flex align-items-center ms-auto">

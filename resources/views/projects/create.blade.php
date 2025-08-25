@@ -37,6 +37,17 @@
                             @enderror
                         </div>
 
+                        {{-- add desc field --}}
+                        <div class="mb-4">
+                            <label for="description" class="form-label">
+                                <i class="bi bi-card-text me-1"></i>Project Description
+                            </label>
+                            <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <div class="mb-4">
                             <div class="form-check form-switch">
                                 <input type="hidden" name="active" value="0">
