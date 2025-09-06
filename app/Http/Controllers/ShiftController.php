@@ -120,7 +120,7 @@ class ShiftController extends Controller
             
             foreach ($allShifts as $shift) {
                 $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
-                $shift->duration = $shift->start_time->diffInHours($shift->end_time);
+                $shift->duration = number_format($shift->start_time->diffInHours($shift->end_time), 2) . ' hrs';
                 $shift->can_edit = $user->isAdmin() || ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
             }
             
@@ -153,10 +153,10 @@ class ShiftController extends Controller
         
         $shifts = $query->with(['user', 'project'])->paginate(10);
         foreach ($shifts as $shift) {
-            $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
-            $shift->duration = $shift->start_time->diffInHours($shift->end_time);
-            $shift->can_edit = $user->isAdmin() || 
-                ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
+            $shift->shift_date = $shift->start_time->format('M d, Y');
+            // $shift->time_range = $shift->start_time->format('g:i A') . ' - ' . $shift->end_time->format('g:i A');
+            $shift->duration = number_format($shift->start_time->diffInHours($shift->end_time), 2) . ' hrs';
+            $shift->can_edit = $user->isAdmin() || ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
         }
         
         return view('shifts.index', compact('shifts', 'prev', 'next', 'week', 'start', 'end', 'currOffset'));

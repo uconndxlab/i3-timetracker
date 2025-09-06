@@ -21,18 +21,22 @@ Route::middleware('cas.auth')->group(function () {
         Route::delete('/projects/{project}/users/{netid}', [AdminController::class, 'removeUser'])->name('projects.remove-user');
 
         Route::get('/projects/{project}/manage', [AdminController::class, 'manageProject'])->name('projects.manage');
+        Route::get('/shifts', [AdminController::class, 'viewAllShifts'])->name('shifts.index');
     });
-    
-    Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create')->middleware('admin');
-    Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
-    // Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
-    // Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
-
-    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
-    Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
-    Route::delete('/projects/{project}', [ProjectController::class, 'delete'])->name('projects.destroy');
 
 
+    Route::controller(ProjectController::class)->prefix('projects')->name('projects.')->group(function () {
+        Route::get('/create', 'create')->name('create')->middleware('admin');
+        Route::get('/', 'index')->name('index');
+        Route::get('/{project}', 'show')->name('show');
+
+        Route::post('/', 'store')->name('store');
+        Route::put('/{project}', 'update')->name('update');
+        Route::delete('/{project}', 'destroy')->name('destroy');
+    });
+        // Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+
+        
     Route::controller(ShiftController::class)->prefix('shifts')->name('shifts.')->group(function () {
         Route::get('/', 'index')->name('index'); 
         Route::get('/create', 'create')->name('create');

@@ -9,42 +9,21 @@
                 Time Shifts
             </h1>
             <p class="lead mb-0">
-                {{ auth()->user()->isAdmin() ? 'All staff time entries' : 'Your time entries' }}
+                All staff time entries
             </p>
-        
-            <div class="mt-4 d-flex justify-content-center align-items-center gap-3">
-                <a href="{{ route('shifts.index', ['week' => $prev]) }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-chevron-left"></i> Previous Week
-                </a>
-                <h5 class="mb-0 fw-bold">{{ $start }} to {{ $end }}</h5>
-                @if($next <= 0)
-                <a href="{{ route('shifts.index', ['week' => $next]) }}" class="btn btn-outline-secondary">
-                    Next Week <i class="bi bi-chevron-right"></i>
-                </a>
-                @endif
-                @if($currOffset != 0)
-                    <a href="{{ route('shifts.index') }}" class="btn btn-secondary">
-                        Current Week
-                    </a>
-                @endif
-            </div>
         </div>
     </div>
 
     @php
         $columns = [
             ['key' => 'project.name', 'label' => 'Project', 'sortable' => true],
-            ['key' => 'shift_date', 'label' => 'Hours', 'sortable' => true],
+            ['key' => 'user.name', 'label' => 'Staff Member', 'sortable' => true],
+            ['key' => 'shift_date', 'label' => 'Date', 'sortable' => true],
+            ['key' => 'time_range', 'label' => 'Hours', 'sortable' => true],
             ['key' => 'duration', 'label' => 'Duration', 'sortable' => true],
             ['key' => 'entered', 'label' => 'Entered (Timecard)', 'sortable' => true, 'type' => 'boolean'],
             ['key' => 'billed', 'label' => 'Billed (Honeycrisp)', 'sortable' => true, 'type' => 'boolean'],
         ];
-        
-        if (auth()->user()->isAdmin()) {
-            array_splice($columns, 1, 0, [
-                ['key' => 'user.name', 'label' => 'Staff Member', 'sortable' => true],
-            ]);
-        }
         
         $actions = [
             ['key' => 'edit', 'label' => 'Edit Shift', 'icon' => 'pencil-square', 'route' => 'shifts.edit', 
@@ -59,10 +38,13 @@
         'columns' => $columns,
         'actions' => $actions,
         'title' => 'Shift',
-        'empty_message' => 'No shifts found for this week.',
+        'empty_message' => 'No shifts found.',
         'empty_icon' => 'calendar-x',
         'create_route' => 'shifts.create',
         'create_label' => 'Add New Shift'
     ])
+    <div class="d-flex justify-content-center mt-4">
+        {{ $shifts->links() }}
+    </div>
 </div>
 @endsection

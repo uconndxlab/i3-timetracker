@@ -55,7 +55,7 @@
                         @endphp
                         <div class="list-group list-group-flush">
                             @foreach($recentShifts as $shift)
-                                <a class="list-group-item list-group-item-action px-0 py-3 border-0 border-bottom">
+                                <a href="{{ route('projects.show', $shift->project) }}" class="list-group-item list-group-item-action px-0 py-3 border-0 border-bottom">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <h6 class="mb-1 text-primary">{{ $shift->project->name }}</h6>
@@ -101,9 +101,11 @@
                                 <div class="col-md-6">
                                     <div class="card h-100 border shadow-sm">
                                         <div class="card-body">
-                                            <div class="d-flex justify-content-between mb-3">
-                                                <h5 class="card-title text-primary mb-0">{{ $project->name }}</h5>
-                                            </div>
+                                            <h5 class="card-title text-primary mb-0">
+                                                <a href="{{ route('shifts.create', ['proj_id' => $project->id]) }}" class="text-primary text-decoration-none">
+                                                    {{ $project->name }}
+                                                </a>
+                                            </h5>
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div class="text-muted small">
                                                     @if($project->users_count ?? false)

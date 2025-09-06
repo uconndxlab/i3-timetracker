@@ -49,6 +49,87 @@ class AdminController extends Controller
         
     }
 
+    public function viewAllShifts(Request $request)
+    {
+        $user = auth()->user();
+        $sortField = $request->input('sort');
+        $direction = $request->input('direction', 'asc');
+        $query = Shift::query();
+        if ($sortField === 'project.name') {
+            $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
+                ->select('shifts.*')
+                ->orderBy('projects.name', $direction);
+        }
+        else if ($sortField === 'user.name') {
+            $query->leftJoin('users', 'shifts.netid', '=', 'users.netid')
+                ->select('shifts.*')
+                ->orderByRaw('CASE WHEN users.name IS NULL THEN 1 ELSE 0 END, users.name ' . $direction);
+        }
+        else if (in_array($sortField, ['time_range', 'duration'])) {
+            $allShifts = $query->with(['user', 'project'])->get();
+            foreach ($allShifts as $shift) {
+                if ($shift->start_time && $shift->end_time) {
+                    $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
+                    $shift->duration = number_format($shift->start_time->diffInHours($shift->end_time), 2) . ' hrs';
+                } else {
+                    $shift->time_range = '-';
+                    $shift->duration = '-';
+                    $shift->shift_date = '-';
+                }
+                $shift->can_edit = $user->isAdmin() || 
+                    ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
+            }
+            
+            if ($sortField === 'time_range') {
+                $allShifts = $allShifts->sortBy(function($shift) {
+                    return $shift->start_time ? $shift->start_time->format('H:i') : '00:00';
+                }, SORT_REGULAR, $direction === 'desc');
+            } else {
+                $allShifts = $allShifts->sortBy('duration', SORT_REGULAR, $direction === 'desc');
+            }
+            
+            $page = $request->input('page', 1);
+            $perPage = 25;
+            $shifts = new \Illuminate\Pagination\LengthAwarePaginator(
+                $allShifts->slice(($page - 1) * $perPage, $perPage),
+                $allShifts->count(),
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+            
+            return view('admin.shifts', compact('shifts'));
+        }
+        else if ($sortField === 'entered' || $sortField === 'billed') {
+            $query->orderBy($sortField, $direction);
+        }
+        else if ($sortField) {
+            $query->orderBy($sortField, $direction);
+        }
+        else {
+            $query->orderBy('date', 'desc')
+                ->orderBy('start_time', 'desc');
+        }
+        
+        $shifts = $query->with(['user', 'project'])->paginate(50);
+        
+        foreach ($shifts as $shift) {
+            if ($shift->start_time && $shift->end_time) {
+                $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
+                $shift->duration = $shift->start_time->diffInHours($shift->end_time);
+                $shift->shift_date = $shift->start_time->format('M d, Y');
+            } else {
+                $shift->time_range = '-';
+                $shift->duration = '-';
+                $shift->shift_date = '-';
+            }
+            $shift->can_edit = $user->isAdmin() || 
+                ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
+        }
+        
+        return view('admin.shifts', compact('shifts'));
+    }
+
 
 
     // public function showProjectUnbilledUsers(Project $project)

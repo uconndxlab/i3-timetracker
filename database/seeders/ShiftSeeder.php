@@ -19,7 +19,7 @@ class ShiftSeeder extends Seeder
         );
 
         if (Shift::count() <= 1) {
-            Shift::factory(5)->create();
+            Shift::factory(10)->create();
         }
     }
 }
