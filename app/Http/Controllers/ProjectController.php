@@ -26,23 +26,70 @@ class ProjectController extends Controller
         return redirect()->route('projects.index')->with('message', 'Project updated successfully!');
     }
 
-    // public function show(Project $project) 
-    // {
-    //     $user = auth()->user();
-    //     if (!$user->isAdmin()) {
-    //         $isAssigned = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
-    //             ->where('project_user.user_netid', $user->netid)
-    //             ->where('projects.id', $project->id)
-    //             ->exists();
-                
-    //         if (!$isAssigned) {
-    //             abort(403, 'You do not have access to this project.');
-    //         }
-    //     }
+    public function show(Project $project, Request $request) 
+    {
+        $user = auth()->user();
+        $sortField = $request->input('sort', 'start_time');
+        $direction = $request->input('direction', 'desc');
         
-    //     $project->load('shifts.user');
-    //     return view('projects.show', compact('project'));
-    // }
+        $shifts = $project->shifts()
+            ->with('user') 
+            ->orderBy($sortField, $direction)
+            ->paginate(10);
+        
+        foreach ($shifts as $shift) {
+            $shift->time_range = $shift->start_time->format('M d, Y H:i') . ' - ' . 
+                            $shift->end_time->format('M d, Y H:i');
+
+            $duration = $shift->start_time->diffInMinutes($shift->end_time) / 60;
+            $shift->duration = number_format($duration, 2) . ' hrs';
+        }
+        
+        $shiftColumns = [
+            ['key' => 'time_range', 'label' => 'Date', 'sortable' => false],
+            ['key' => 'shift_time', 'label' => 'Hours', 'sortable' => false],
+            ['key' => 'duration', 'label' => 'Duration', 'sortable' => true],
+            ['key' => 'entered', 'label' => 'Entered (Timecard)', 'sortable' => true, 'type' => 'boolean'],
+            ['key' => 'billed', 'label' => 'Billed (Honeycrisp)', 'sortable' => true, 'type' => 'boolean'],
+        ];
+        
+        $shiftActions = [
+            ['key' => 'edit', 'label' => 'Edit Shift', 'icon' => 'pencil-square', 'route' => 'shifts.edit'],
+        ];
+        if ($user->isAdmin()) {
+            $shiftActions[] = ['key' => 'delete', 'label' => 'Delete Shift', 'icon' => 'trash', 'route' => 'shifts.destroy', 'method' => 'DELETE', 'confirm' => 'Are you sure you want to delete this shift?'];
+        }
+        $totalHours = 0;
+        $billedHours = 0;
+        $unbilledHours = 0;
+        
+        foreach ($project->shifts as $shift) {
+            $shift->time_range = $shift->start_time->format('M d, Y');
+            $shift->shift_time = $shift->start_time->format('g:i A') . ' - ' . $shift->end_time->format('g:i A');
+            
+            $duration = $shift->start_time->diffInMinutes($shift->end_time) / 60;
+            $shift->duration = number_format($duration, 2) . ' hrs';
+
+            $hours = $shift->start_time->diffInMinutes($shift->end_time) / 60;
+            $totalHours += $hours;
+            
+            if ($shift->billed) {
+                $billedHours += $hours;
+            } else {
+                $unbilledHours += $hours;
+            }
+        }
+        
+        return view('projects.show', compact(
+            'project',
+            'shifts',
+            'shiftColumns',
+            'shiftActions',
+            'totalHours',
+            'billedHours',
+            'unbilledHours'
+        ));
+    }
 
     // public function delete(Project $project) 
     // {

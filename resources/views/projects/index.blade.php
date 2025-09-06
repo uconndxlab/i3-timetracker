@@ -16,24 +16,17 @@
 
     @php
         $columns = [
-            ['key' => 'name', 'label' => 'Name', 'sortable' => true],
-        ];
-        
-        if (auth()->user()->isAdmin()) {
-            $columns = array_merge($columns, [
-                ['key' => 'assigned_users_count', 'label' => 'Assigned Staff', 'sortable' => true],
-            ]);
-        }
-        
-        $columns = array_merge($columns, [
+            ['key' => 'name', 'label' => 'Project Name', 'sortable' => true],
             ['key' => 'billed_hours', 'label' => 'Billed Hours', 'sortable' => true],
             ['key' => 'unbilled_hours', 'label' => 'Unbilled Hours', 'sortable' => true],
             ['key' => 'active', 'label' => 'Status', 'sortable' => true, 'type' => 'boolean'],
-        ]);
-        
-        // $actions = [
-        //     ['key' => 'view', 'label' => 'View Project', 'icon' => 'eye', 'route' => 'projects.show'],
-        // ];
+        ];
+
+        if (auth()->user()->isAdmin()) {
+            array_splice($columns, 3, 0, [
+                ['key' => 'assigned_users_count', 'label' => 'Staff Count', 'sortable' => true],
+            ]);
+        }
 
         $actions[] = [
             'key' => 'add_shift', 

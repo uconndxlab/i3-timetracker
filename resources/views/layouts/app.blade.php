@@ -45,6 +45,15 @@
                             <i class="bi bi-plus-circle me-1"></i>Add Project
                         </a>
                     </li> --}}
+
+                    @if (Auth::user()->isAdmin())
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('admin.shifts.index') }}">
+                                <i class="bi bi-person-lines-fill me-1"></i>All Staff Shifts
+                            </a>
+                        </li>
+                    @endif
+
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('shifts.create') }}">
                             <i class="bi bi-plus-square me-1"></i>Log Shift
