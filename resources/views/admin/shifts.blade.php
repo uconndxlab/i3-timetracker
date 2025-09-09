@@ -14,6 +14,38 @@
         </div>
     </div>
 
+    <form method="GET" action="{{ route('admin.shifts.index') }}" class="mb-4">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control" placeholder="Enter staff name" value="{{ request('search') }}">
+            </div>
+            <div class="col-md-2">
+                <select name="entered_filter" class="form-select">
+                    <option value="">Timecard Status</option>
+                    <option value="1" {{ isset($enteredFilter) && $enteredFilter == '1' ? 'selected' : '' }}>Entered</option>
+                    <option value="0" {{ isset($enteredFilter) && $enteredFilter == '0' ? 'selected' : '' }}>Not Entered</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="billed_filter" class="form-select">
+                    <option value="">Honeycrisp Status</option>
+                    <option value="1" {{ isset($billedFilter) && $billedFilter == '1' ? 'selected' : '' }}>Billed</option>
+                    <option value="0" {{ isset($billedFilter) && $billedFilter == '0' ? 'selected' : '' }}>Not Billed</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel me-2"></i>Apply Filters
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ route('admin.shifts.index') }}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-x-circle me-2"></i>Clear Filters
+                </a>
+            </div>
+        </div>
+    </form>
+
     @php
         $columns = [
             ['key' => 'project.name', 'label' => 'Project', 'sortable' => true],
