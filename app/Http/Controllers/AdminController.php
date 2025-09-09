@@ -54,22 +54,17 @@ class AdminController extends Controller
         $user = auth()->user();
         $sortField = $request->input('sort');
         $direction = $request->input('direction', 'asc');
-        
-        // Get filter parameters
         $enteredFilter = $request->input('entered_filter');
         $billedFilter = $request->input('billed_filter');
         $search = $request->input('search'); // Get search parameter
         
         $query = Shift::query();
-        
-        // Apply name search if provided
         if ($search) {
             $query->whereHas('user', function($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%');
             });
         }
         
-        // Apply filters if provided
         if ($enteredFilter !== null && $enteredFilter !== '') {
             $query->where('entered', $enteredFilter == '1');
         }
@@ -78,7 +73,6 @@ class AdminController extends Controller
             $query->where('billed', $billedFilter == '1');
         }
         
-        // Continue with existing sorting logic
         if ($sortField === 'project.name') {
             $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
                 ->select('shifts.*')
