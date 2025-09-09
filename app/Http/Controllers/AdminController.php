@@ -54,7 +54,31 @@ class AdminController extends Controller
         $user = auth()->user();
         $sortField = $request->input('sort');
         $direction = $request->input('direction', 'asc');
+        
+        // Get filter parameters
+        $enteredFilter = $request->input('entered_filter');
+        $billedFilter = $request->input('billed_filter');
+        $search = $request->input('search'); // Get search parameter
+        
         $query = Shift::query();
+        
+        // Apply name search if provided
+        if ($search) {
+            $query->whereHas('user', function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%');
+            });
+        }
+        
+        // Apply filters if provided
+        if ($enteredFilter !== null && $enteredFilter !== '') {
+            $query->where('entered', $enteredFilter == '1');
+        }
+        
+        if ($billedFilter !== null && $billedFilter !== '') {
+            $query->where('billed', $billedFilter == '1');
+        }
+        
+        // Continue with existing sorting logic
         if ($sortField === 'project.name') {
             $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
                 ->select('shifts.*')
@@ -98,7 +122,7 @@ class AdminController extends Controller
                 ['path' => $request->url(), 'query' => $request->query()]
             );
             
-            return view('admin.shifts', compact('shifts'));
+            return view('admin.shifts', compact('shifts', 'enteredFilter', 'billedFilter', 'search'));
         }
         else if ($sortField === 'entered' || $sortField === 'billed') {
             $query->orderBy($sortField, $direction);
@@ -111,7 +135,7 @@ class AdminController extends Controller
                 ->orderBy('start_time', 'desc');
         }
         
-        $shifts = $query->with(['user', 'project'])->paginate(50);
+        $shifts = $query->with(['user', 'project'])->paginate(50)->appends($request->query());
         
         foreach ($shifts as $shift) {
             if ($shift->start_time && $shift->end_time) {
@@ -127,9 +151,8 @@ class AdminController extends Controller
                 ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
         }
         
-        return view('admin.shifts', compact('shifts'));
+        return view('admin.shifts', compact('shifts', 'enteredFilter', 'billedFilter', 'search'));
     }
-
 
 
     // public function showProjectUnbilledUsers(Project $project)
