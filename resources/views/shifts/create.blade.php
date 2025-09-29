@@ -64,10 +64,11 @@
                                     <i class="bi bi-play-circle me-1"></i>Start Time *
                                 </label>
                                 <input type="datetime-local" class="form-control @error('start_time') is-invalid @enderror" 
-                                       id="start_time" name="start_time" value="{{ old('start_time') }}" required>
+                                       id="start_time" name="start_time" value="{{ old('start_time', $defaultStartTime) }}" required>
                                 @error('start_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                </input>
                             </div>
 
                             <div class="col-md-6">
@@ -75,10 +76,11 @@
                                     <i class="bi bi-stop-circle me-1"></i>End Time *
                                 </label>
                                 <input type="datetime-local" class="form-control @error('end_time') is-invalid @enderror" 
-                                       id="end_time" name="end_time" value="{{ old('end_time') }}" required>
+                                       id="end_time" name="end_time" value="{{ old('end_time', $defaultEndTime) }}" required>
                                 @error('end_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                                </input>
                             </div>
                         </div>
 
