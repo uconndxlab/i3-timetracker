@@ -48,7 +48,7 @@
                         </a>
                     </li> --}}
 
-                    @if (Auth::user()->isAdmin())
+                    @if (Auth::check() && Auth::user()->isAdmin())
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('admin.shifts.*') ? 'active' : '' }}" href="{{ route('admin.shifts.index') }}">
                                 <i class="bi bi-person-lines-fill me-1"></i>All Staff Shifts
