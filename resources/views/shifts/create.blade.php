@@ -26,23 +26,6 @@
                         @csrf
                         <input type="hidden" name="netid" value="{{ cas()->user() }}">
 
-                        {{-- <div class="mb-4">
-                            <label for="netid" class="form-label">
-                                <i class="bi bi-person me-1"></i>Employee Name *
-                            </label>
-                            <select class="form-select @error('netid') is-invalid @enderror" id="netid" name="netid" required>
-                                <option value="">Select an employee...</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->netid }}" {{ old('netid') == $user->netid ? 'selected' : '' }}>
-                                        {{ $user->name }} ({{ $user->netid }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('netid')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div> --}}
-
                         <div class="mb-4">
                             <label for="proj_id" class="block text-gray-700 text-sm font-bold mb-2">Project:</label>
                             <select name="proj_id" id="proj_id" class="form-select" required>
@@ -68,7 +51,18 @@
                                 @error('start_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                </input>
+
+                                <div class="mt-2">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', -60)">-1hr</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', -30)">-30min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', -15)">-15min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="setCurrentTime('start_time')">Now</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', 15)">+15min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', 30)">+30min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', 60)">+1hr</button>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
@@ -80,14 +74,12 @@
                                 @error('end_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                                </input>
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <div class="card bg-light">
                                 <div class="card-body">
-
                                     <div class="form-check form-switch">
                                         <input type="hidden" name="entered" value="0">
                                         <input type="checkbox" class="form-check-input @error('entered') is-invalid @enderror" 
@@ -122,5 +114,36 @@
         </div>
     </div>
 </div>
+
+<script>
+function adjustTime(inputId, minutes) {
+    const input = document.getElementById(inputId);
+    if (!input.value) {
+        setCurrentTime(inputId);
+        return;
+    }
+    const currentTime = new Date(input.value);
+    currentTime.setMinutes(currentTime.getMinutes() + minutes);
+    const year = currentTime.getFullYear();
+    const month = String(currentTime.getMonth() + 1).padStart(2, '0');
+    const day = String(currentTime.getDate()).padStart(2, '0');
+    const hours = String(currentTime.getHours()).padStart(2, '0');
+    const mins = String(currentTime.getMinutes()).padStart(2, '0');
+    input.value = `${year}-${month}-${day}T${hours}:${mins}`;
+}
+
+function setCurrentTime(inputId) {
+    const input = document.getElementById(inputId);
+    const now = new Date();
+    const easternTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+    const year = easternTime.getFullYear();
+    const month = String(easternTime.getMonth() + 1).padStart(2, '0');
+    const day = String(easternTime.getDate()).padStart(2, '0');
+    const hours = String(easternTime.getHours()).padStart(2, '0');
+    const mins = String(easternTime.getMinutes()).padStart(2, '0');
+    
+    input.value = `${year}-${month}-${day}T${hours}:${mins}`;
+}
+</script>
 
 @endsection
