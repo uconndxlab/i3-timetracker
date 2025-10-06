@@ -30,7 +30,7 @@ class UserAddedToProject extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'User Added To Project',
+            subject: 'i3 Project Assignment Update',
         );
     }
 
