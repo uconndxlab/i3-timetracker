@@ -236,7 +236,7 @@ function buildParams($paramConfig, $item) {
     @if($items->hasPages())
         <div class="card-footer">
             <div class="d-flex justify-content-center">
-                {{ $items->links() }}
+                {{ $items->links('partials.pagination') }}
             </div>
         </div>
     @endif

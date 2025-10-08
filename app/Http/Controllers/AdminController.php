@@ -8,6 +8,8 @@ use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Mail\UserAddedToProject;
+use Illuminate\Support\Facades\Mail;
 
 class AdminController extends Controller
 {
@@ -213,6 +215,13 @@ class AdminController extends Controller
                 $syncData[$netid] = ['active' => true];
             }
             $project->users()->syncWithoutDetaching($syncData);
+
+            foreach ($newUserNetids as $netid) {
+                $user = User::where('netid', $netid)->first();
+                if ($user && $user->email) {
+                    Mail::to($user->email)->send(new UserAddedToProject($user, $project));
+                }
+            }
             
             return redirect()->route('projects.index', $project->id)
                 ->with('success', count($newUserNetids) . ' user(s) successfully assigned to project.');

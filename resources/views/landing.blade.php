@@ -115,7 +115,11 @@
                                             </div>
                                         </div>
                                         <div class="card-footer bg-white border-top-0 text-muted small">
-                                            <i class="bi bi-clock-history me-1"></i>Updated {{ $project->updated_at->diffForHumans() }}
+                                            @if ($project->created_at)
+                                                <i class="bi bi-clock-history me-1"></i>Updated {{ $project->updated_at->diffForHumans() }}
+                                            @else
+                                                <span>Date not available</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

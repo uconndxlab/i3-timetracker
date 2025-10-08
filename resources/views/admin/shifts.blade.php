@@ -14,9 +14,9 @@
         </div>
     </div>
 
-    <form method="GET" action="{{ route('admin.shifts.index') }}" class="mb-4">
+    <form method="GET" action="{{ route('admin.shifts.index') }}" class="mb-2">
         <div class="row g-2 align-items-center">
-            <div class="col-md-3">
+            <div class="col-md-2 ">
                 <input type="text" name="search" class="form-control" placeholder="Enter staff name" value="{{ request('search') }}">
             </div>
             <div class="col-md-2">
@@ -34,13 +34,22 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-funnel me-2"></i>Apply Filters
+                <select name="billed_filter" class="form-select">
+                    <option value="">Active Status</option>
+                    <option value="1" {{ isset($activeFilter) && $activeFilter == '1' ? 'selected' : '' }}>Active</option>
+                    <option value="0" {{ isset($activeFilter) && $activeFilter == '0' ? 'selected' : '' }}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-primary px-4 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-funnel-fill"></i>
+                    <span>Apply Filters</span>
                 </button>
             </div>
-            <div class="col-md-2">
-                <a href="{{ route('admin.shifts.index') }}" class="btn btn-outline-secondary w-100">
-                    <i class="bi bi-x-circle me-2"></i>Clear Filters
+            <div class="col-md-auto">
+                <a href="{{ route('admin.shifts.index') }}" class="btn btn-outline-secondary px-4 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-x-circle"></i>
+                    <span>Clear Filters</span>
                 </a>
             </div>
         </div>
@@ -76,7 +85,7 @@
         'create_label' => 'Add New Shift'
     ])
     <div class="d-flex justify-content-center mt-4">
-        {{ $shifts->links() }}
+        {{ $shifts->links('partials.pagination') }}
     </div>
 </div>
 @endsection

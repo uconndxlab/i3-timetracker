@@ -3,9 +3,11 @@
 
 <head>
     <meta charset="utf-8">
-    <title>i3 Time Tracker - University of Connecticut</title>
+    <title>i3 Time Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="University of Connecticut i3 Time Tracking System">
+
+    <link rel="icon" href="{{ asset('i3.svg') }}" type="image/svg+xml">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -48,7 +50,7 @@
 
                     @if (Auth::check() && Auth::user()->isAdmin())
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ route('admin.shifts.index') }}">
+                            <a class="nav-link {{ request()->routeIs('admin.shifts.*') ? 'active' : '' }}" href="{{ route('admin.shifts.index') }}">
                                 <i class="bi bi-person-lines-fill me-1"></i>All Staff Shifts
                             </a>
                         </li>

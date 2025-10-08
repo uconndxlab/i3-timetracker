@@ -15,6 +15,10 @@ class ShiftController extends Controller
         $selectedProjectId = $request->input('proj_id');
         $selectedProject = null;
         
+        $est = now()->setTimezone('America/New_York');
+        $defaultEndTime = $est->format('Y-m-d\TH:i');
+        $defaultStartTime = $est->copy()->subHour()->format('Y-m-d\TH:i');
+
         if ($selectedProjectId) {
             $selectedProject = Project::find($selectedProjectId);
 
@@ -39,8 +43,8 @@ class ShiftController extends Controller
                 ->where('active', true)
                 ->get();
         }
-        
-        return view('shifts.create', compact('projects', 'selectedProject'));
+
+        return view('shifts.create', compact('projects', 'selectedProject', 'defaultStartTime', 'defaultEndTime'));
     }
 
     public function update(Request $request, Shift $shift)
