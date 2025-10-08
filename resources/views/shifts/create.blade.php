@@ -52,17 +52,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
 
-                                <div class="mt-2">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', -60)">-1hr</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', -30)">-30min</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', -15)">-15min</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="setCurrentTime('start_time')">Now</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', 15)">+15min</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', 30)">+30min</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('start_time', 60)">+1hr</button>
-                                    </div>
-                                </div>
+                                
                             </div>
 
                             <div class="col-md-6">
@@ -74,6 +64,19 @@
                                 @error('end_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                            </div>
+                            <div class="col-12 d-flex justify-content-end">
+                                <div class="mt-2">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('end_time', -60)">-1hr</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('end_time', -30)">-30min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('end_time', -15)">-15min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="setCurrentTime('end_time')">Now</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('end_time', 15)">+15min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('end_time', 30)">+30min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustTime('end_time', 60)">+1hr</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
