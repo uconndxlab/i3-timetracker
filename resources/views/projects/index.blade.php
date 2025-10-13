@@ -19,7 +19,7 @@
 
     @php
         $columns = [
-            ['key' => 'name', 'label' => 'Project Name', 'sortable' => true],
+            ['key' => 'name', 'label' => 'Project Name', 'sortable' => true, 'route' => 'projects.show'],
             ['key' => 'billed_hours', 'label' => 'Billed Hours', 'sortable' => true],
             ['key' => 'unbilled_hours', 'label' => 'Unbilled Hours', 'sortable' => true],
             ['key' => 'active', 'label' => 'Status', 'sortable' => true, 'type' => 'boolean'],

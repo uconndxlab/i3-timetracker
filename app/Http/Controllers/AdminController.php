@@ -250,4 +250,61 @@ class AdminController extends Controller
         
         return view('admin.manage', compact('project', 'users', 'assignedUsers'));
     }
+
+    
+    public function viewAllUsers(Request $request)
+    {
+        $sortField = $request->input('sort');
+        $direction = $request->input('direction', 'asc');
+        $adminFilter = $request->input('admin_filter');
+        $activeFilter = $request->input('active_filter');
+        $search = $request->input('search');
+        
+        $query = User::query();
+        
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('netid', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
+        
+        if ($adminFilter !== null && $adminFilter !== '') {
+            $query->where('is_admin', $adminFilter == '1');
+        }
+        
+        if ($activeFilter !== null && $activeFilter !== '') {
+            $query->where('active', $activeFilter == '1');
+        }
+        
+        if ($sortField) {
+            $query->orderBy($sortField, $direction);
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+        
+        $users = $query->paginate(50)->appends($request->query());
+        foreach ($users as $user) {
+            $user->total_shifts = $user->shifts()->count();
+            $user->total_hours = round($user->shifts()->get()->reduce(function ($carry, $shift) {
+                return $carry + ($shift->start_time && $shift->end_time ? $shift->start_time->diffInHours($shift->end_time) : 0);
+            }, 0), 2);
+        }
+        
+        return view('admin.users', compact('users', 'adminFilter', 'activeFilter', 'search'));
+    }
+
+    public function toggleAdmin(User $user)
+    {
+        if ($user->netid === auth()->user()->netid) {
+            return redirect()->back()->with('error', 'You cannot change your own admin status.');
+        }
+        
+        $user->is_admin = !$user->is_admin;
+        $user->save();
+        
+        $status = $user->is_admin ? 'granted' : 'revoked';
+        return redirect()->back()->with('message', "Admin privileges {$status} for {$user->name}.");
+    }
 }

@@ -43,10 +43,12 @@ class ProjectController extends Controller
 
             $duration = $shift->start_time->diffInMinutes($shift->end_time) / 60;
             $shift->duration = number_format($duration, 2) . ' hrs';
+            $shift->user_name = $shift->user ? $shift->user->name : 'N/A';
         }
         
         $shiftColumns = [
             ['key' => 'time_range', 'label' => 'Date', 'sortable' => false],
+            ['key' => 'user_name', 'label' => 'Name', 'sortable' => false],
             ['key' => 'shift_time', 'label' => 'Hours', 'sortable' => false],
             ['key' => 'duration', 'label' => 'Duration', 'sortable' => true],
             ['key' => 'entered', 'label' => 'Entered (Timecard)', 'sortable' => true, 'type' => 'boolean'],

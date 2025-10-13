@@ -42,25 +42,32 @@
                             <i class="bi bi-clock me-1"></i>Shifts
                         </a>
                     </li>
-                    {{-- <li class="nav-item">
-                        <a class="nav-link" href="{{ route('projects.create') }}">
-                            <i class="bi bi-plus-circle me-1"></i>Add Project
-                        </a>
-                    </li> --}}
-
-                    @if (Auth::check() && Auth::user()->isAdmin())
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.shifts.*') ? 'active' : '' }}" href="{{ route('admin.shifts.index') }}">
-                                <i class="bi bi-person-lines-fill me-1"></i>All Staff Shifts
-                            </a>
-                        </li>
-                    @endif
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('shifts.create') }}">
                             <i class="bi bi-plus-square me-1"></i>Log Shift
                         </a>
                     </li>
+
+                    @if (Auth::check() && Auth::user()->isAdmin())
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-gear me-1"></i>Admin
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminDropdown">
+                                <li>
+                                    <a class="dropdown-item {{ request()->routeIs('admin.shifts.*') ? 'active' : '' }}" href="{{ route('admin.shifts.index') }}">
+                                        <i class="bi bi-person-lines-fill me-2"></i>All Staff Shifts
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                        <i class="bi bi-people-fill me-2"></i>Manage Users
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    @endif
                 </ul>
 
                 <div class="d-flex align-items-center ms-auto">

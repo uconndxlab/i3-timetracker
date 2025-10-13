@@ -57,6 +57,24 @@ body {
     font-weight: 500;
 }
 
+.navbar-uconn .dropdown-menu {
+    background-color: var(--uconn-navy);
+    border: 1px solid rgba(0, 181, 226, 0.3);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 14, 47, 0.3);
+    margin-top: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.navbar-uconn .dropdown-item.active {
+    background-color: var(--uconn-blue);
+    color: var(--uconn-white);
+}
+
+.navbar-uconn .dropdown-divider {
+    border-top-color: rgba(0, 181, 226, 0.2);
+}
+
 /* Simple welcome section for landing page */
 .welcome-section {
     background-color: var(--uconn-white);

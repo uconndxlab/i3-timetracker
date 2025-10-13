@@ -194,6 +194,18 @@ function buildParams($paramConfig, $item) {
                                                                 <i class="bi bi-{{ $action['icon'] ?? 'trash' }}"></i>
                                                             </button>
                                                             @break
+                                                        
+                                                        @case('toggle_admin')
+                                                            <form action="{{ route($action['route'], $item) }}" method="POST" style="display: inline;">
+                                                                @csrf
+                                                                <button type="submit" 
+                                                                    class="btn btn-sm btn-outline-{{ $action['color'] ?? 'secondary' }}"
+                                                                    title="{{ $action['label'] ?? 'Toggle Admin' }}"
+                                                                    onclick="return confirm('Are you sure you want to {{ $item->is_admin ? 'revoke' : 'grant' }} admin privileges for {{ $item->name }}?')">
+                                                                    <i class="bi bi-{{ $action['icon'] ?? 'gear' }}"></i>
+                                                                </button>
+                                                            </form>
+                                                            @break
                                                             
                                                         @default
                                                             @if(isset($action['route']))
