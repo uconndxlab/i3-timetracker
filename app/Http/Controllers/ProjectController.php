@@ -214,8 +214,26 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'active' => 'required|boolean',
+            'assign_all_users' => 'sometimes|boolean',
         ]);
-        Project::create($validatedData);
+
+        $project = Project::create([
+            'name' => $validatedData['name'],
+            'description' => $validatedData['description'],
+            'active' => $validatedData['active'],
+        ]);
+
+        if ($request->input('assign_all_users') == '1') {
+            $allUsers = User::all();
+            $syncData = [];
+            
+            foreach ($allUsers as $user) {
+                $syncData[$user->netid] = ['active' => true];
+            }
+        
+            $project->users()->sync($syncData);
+        }
+
         return redirect()->route('projects.index')->with('message', 'Project created successfully!');
     }
 

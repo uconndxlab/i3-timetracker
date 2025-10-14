@@ -63,6 +63,19 @@
                             </div>
                         </div>
 
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input type="hidden" name="assign_all_users" value="0">
+                                <input type="checkbox" class="form-check-input" id="assign_all_users" name="assign_all_users" value="1" {{ old('assign_all_users', false) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="assign_all_users">
+                                    <i class="bi bi-people-fill me-1"></i>
+                                    <strong>Assign to All Users</strong>
+                                @error('assign_all_users')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
                         <hr class="my-4">
 
                         <div class="d-flex justify-content-end gap-2">
