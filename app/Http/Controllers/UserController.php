@@ -87,6 +87,12 @@ class UserController extends Controller
             'is_admin' => false,
         ]);
 
+        // auto assign to general project for any user
+        $generalProject = Project::where('name', 'i3 (General)')->first();
+        if ($generalProject) {
+            $generalProject->users()->attach($user->netid, ['active' => true]);
+        }
+
         return redirect()->route('landing')->with('message', 'User registered successfully!');
     }
 }
