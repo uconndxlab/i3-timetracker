@@ -26,8 +26,8 @@ class ShiftFactory extends Factory
         return [
             'netid' => fake()->userName() . Str::random(5),
             'proj_id' => 1,
-            'start_time' => now()->subHours(rand(1, 10)),
-            'end_time' => now(),
+            'date' => now()->subHours(rand(1, 10)),
+            'duration' => rand(1, 8) * 60,
             'billed' => fake()->boolean(),
             'entered' => fake()->boolean(),
         ];

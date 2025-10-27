@@ -10,11 +10,11 @@ class ShiftSeeder extends Seeder
     public function run(): void
     {
         Shift::updateOrCreate(
-            ['netid' => 'test12345', 'proj_id' => 1, 'start_time' => now()->subHours(2)],
+            ['netid' => 'test12345', 'proj_id' => 1, 'date' => now()->subHours(2)],
             [
-                'end_time' => now(),
                 'billed' => false,
                 'entered' => true,
+                'duration' => 120,
             ]
         );
 

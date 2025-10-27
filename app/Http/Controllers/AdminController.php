@@ -23,11 +23,11 @@ class AdminController extends Controller
         $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY);
 
         $shiftsThisWeek = Shift::where('netid', auth()->user()->netid)
-            ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
+            ->whereBetween('date', [$startOfWeek->format('Y-m-d'), $endOfWeek->format('Y-m-d')])
             ->get();
 
         $totalMinutesThisWeek = $shiftsThisWeek->reduce(function ($carry, $shift) {
-            return $carry + $shift->start_time->diffInMinutes($shift->end_time);
+            return $carry + ($shift->duration ?? 0);
         }, 0);
 
         $hoursThisWeek = round($totalMinutesThisWeek / 60, 2);
@@ -85,40 +85,11 @@ class AdminController extends Controller
                 ->select('shifts.*')
                 ->orderByRaw('CASE WHEN users.name IS NULL THEN 1 ELSE 0 END, users.name ' . $direction);
         }
-        else if (in_array($sortField, ['time_range', 'duration'])) {
-            $allShifts = $query->with(['user', 'project'])->get();
-            foreach ($allShifts as $shift) {
-                if ($shift->start_time && $shift->end_time) {
-                    $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
-                    $shift->duration = number_format($shift->start_time->diffInHours($shift->end_time), 2) . ' hrs';
-                } else {
-                    $shift->time_range = '-';
-                    $shift->duration = '-';
-                    $shift->shift_date = '-';
-                }
-                $shift->can_edit = $user->isAdmin() || 
-                    ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
-            }
-            
-            if ($sortField === 'time_range') {
-                $allShifts = $allShifts->sortBy(function($shift) {
-                    return $shift->start_time ? $shift->start_time->format('H:i') : '00:00';
-                }, SORT_REGULAR, $direction === 'desc');
-            } else {
-                $allShifts = $allShifts->sortBy('duration', SORT_REGULAR, $direction === 'desc');
-            }
-            
-            $page = $request->input('page', 1);
-            $perPage = 25;
-            $shifts = new \Illuminate\Pagination\LengthAwarePaginator(
-                $allShifts->slice(($page - 1) * $perPage, $perPage),
-                $allShifts->count(),
-                $perPage,
-                $page,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-            
-            return view('admin.shifts', compact('shifts', 'enteredFilter', 'billedFilter', 'search'));
+        else if ($sortField === 'shift_date') {
+            $query->orderBy('date', $direction);
+        }
+        else if ($sortField === 'duration') {
+            $query->orderBy('duration', $direction);
         }
         else if ($sortField === 'entered' || $sortField === 'billed') {
             $query->orderBy($sortField, $direction);
@@ -127,22 +98,14 @@ class AdminController extends Controller
             $query->orderBy($sortField, $direction);
         }
         else {
-            $query->orderBy('date', 'desc')
-                ->orderBy('start_time', 'desc');
+            $query->orderBy('date', 'desc');
         }
         
         $shifts = $query->with(['user', 'project'])->paginate(50)->appends($request->query());
         
         foreach ($shifts as $shift) {
-            if ($shift->start_time && $shift->end_time) {
-                $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
-                $shift->duration = $shift->start_time->diffInHours($shift->end_time);
-                $shift->shift_date = $shift->start_time->format('M d, Y');
-            } else {
-                $shift->time_range = '-';
-                $shift->duration = '-';
-                $shift->shift_date = '-';
-            }
+            $shift->shift_date = $shift->date ? $shift->date->format('M d, Y') : '-';
+            $shift->duration = $shift->duration ? number_format($shift->duration / 60, 2) . ' hrs' : '-';
             $shift->can_edit = $user->isAdmin() || 
                 ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
         }
@@ -288,7 +251,7 @@ class AdminController extends Controller
         foreach ($users as $user) {
             $user->total_shifts = $user->shifts()->count();
             $user->total_hours = round($user->shifts()->get()->reduce(function ($carry, $shift) {
-                return $carry + ($shift->start_time && $shift->end_time ? $shift->start_time->diffInHours($shift->end_time) : 0);
+                return $carry + ($shift->duration ? $shift->duration / 60 : 0);
             }, 0), 2);
         }
         

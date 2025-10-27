@@ -14,8 +14,8 @@ class Shift extends Model
     protected $fillable = [
         'netid',
         'proj_id',
-        'start_time',
-        'end_time',
+        'date',
+        'duration',
         'billed',
         'entered',
     ];
@@ -30,10 +30,10 @@ class Shift extends Model
     //     ];
     // }
     protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
+        'date' => 'datetime',
         'billed' => 'boolean',
         'entered' => 'boolean',
+        'duration' => 'integer',
     ];
 
     public function user()

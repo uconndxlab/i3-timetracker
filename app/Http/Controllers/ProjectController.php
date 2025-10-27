@@ -38,18 +38,14 @@ class ProjectController extends Controller
             ->paginate(10);
         
         foreach ($shifts as $shift) {
-            $shift->time_range = $shift->start_time->format('M d, Y H:i') . ' - ' . 
-                            $shift->end_time->format('M d, Y H:i');
-
-            $duration = $shift->start_time->diffInMinutes($shift->end_time) / 60;
-            $shift->duration = number_format($duration, 2) . ' hrs';
+            $shift->time_range = $shift->date->format('M d, Y');
+            $shift->duration = $shift->duration ? number_format($shift->duration / 60, 2) . ' hrs' : '-';
             $shift->user_name = $shift->user ? $shift->user->name : 'N/A';
         }
         
         $shiftColumns = [
             ['key' => 'time_range', 'label' => 'Date', 'sortable' => false],
             ['key' => 'user_name', 'label' => 'Name', 'sortable' => false],
-            ['key' => 'shift_time', 'label' => 'Hours', 'sortable' => false],
             ['key' => 'duration', 'label' => 'Duration', 'sortable' => true],
             ['key' => 'entered', 'label' => 'Entered (Timecard)', 'sortable' => true, 'type' => 'boolean'],
             ['key' => 'billed', 'label' => 'Billed (Honeycrisp)', 'sortable' => true, 'type' => 'boolean'],
@@ -66,18 +62,13 @@ class ProjectController extends Controller
         $unbilledHours = 0;
         
         foreach ($project->shifts as $shift) {
-            $shift->time_range = $shift->start_time->format('M d, Y');
-            $shift->shift_time = $shift->start_time->format('g:i A') . ' - ' . $shift->end_time->format('g:i A');
-            
-            $duration = $shift->start_time->diffInMinutes($shift->end_time) / 60;
-            $shift->duration = number_format($duration, 2) . ' hrs';
-
-            $hours = $shift->start_time->diffInMinutes($shift->end_time) / 60;
+            $hours = $shift->duration ? $shift->duration / 60 : 0;
             $totalHours += $hours;
             
             if ($shift->billed) {
                 $billedHours += $hours;
-            } else {
+            }
+            else {
                 $unbilledHours += $hours;
             }
         }
@@ -116,21 +107,24 @@ class ProjectController extends Controller
         
         if ($sortField === 'assigned_users_count' || $sortField === 'billed_hours' || $sortField === 'unbilled_hours') {
             $allProjects = $query->get();
+
             foreach ($allProjects as $project) {
                 $project->assigned_users_count = $project->users()->count();
                 $billedShifts = $project->shifts()->where('billed', true)->get();
                 $billedHours = 0;
 
                 foreach ($billedShifts as $shift) {
-                    $billedHours += $shift->start_time->diffInHours($shift->end_time);
+                    $billedHours += $shift->duration ? $shift->duration / 60 : 0;
                 }
+
                 $project->billed_hours = $billedHours;
                 $unbilledShifts = $project->shifts()->where('billed', false)->get();
                 $unbilledHours = 0;
 
                 foreach ($unbilledShifts as $shift) {
-                    $unbilledHours += $shift->start_time->diffInHours($shift->end_time);
+                    $unbilledHours += $shift->duration ? $shift->duration / 60 : 0;
                 }
+
                 $project->unbilled_hours = $unbilledHours;
             }
             
@@ -138,7 +132,6 @@ class ProjectController extends Controller
             $page = $request->input('page', 1);
             $perPage = 10;
             $offset = ($page - 1) * $perPage;
-            
             $projects = new LengthAwarePaginator(
                 $allProjects->slice($offset, $perPage),
                 $allProjects->count(),
@@ -149,11 +142,14 @@ class ProjectController extends Controller
             
             return view('projects.index', compact('projects'));
         }
+
         else if ($sortField === 'name') {
             $allProjects = $query->get();
+
             $allProjects = $allProjects->sortBy(function($project) {
                 return strtolower($project->name);
             }, SORT_STRING, $direction === 'desc');
+
             $page = $request->input('page', 1);
             $perPage = 10;
             $offset = ($page - 1) * $perPage;
@@ -193,15 +189,17 @@ class ProjectController extends Controller
             $billedHours = 0;
             
             foreach ($billedShifts as $shift) {
-                $billedHours += $shift->start_time->diffInHours($shift->end_time);
+                $billedHours += $shift->duration ? $shift->duration / 60 : 0;
             }
+
             $project->billed_hours = $billedHours;
             $unbilledShifts = $project->shifts()->where('billed', false)->get();
             $unbilledHours = 0;
 
             foreach ($unbilledShifts as $shift) {
-                $unbilledHours += $shift->start_time->diffInHours($shift->end_time);
+                $unbilledHours += $shift->duration ? $shift->duration / 60 : 0;
             }
+            
             $project->unbilled_hours = $unbilledHours;
         }
         

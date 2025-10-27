@@ -60,7 +60,6 @@
             ['key' => 'project.name', 'label' => 'Project', 'sortable' => true],
             ['key' => 'user.name', 'label' => 'Staff Member', 'sortable' => true],
             ['key' => 'shift_date', 'label' => 'Date', 'sortable' => true],
-            ['key' => 'time_range', 'label' => 'Hours', 'sortable' => true],
             ['key' => 'duration', 'label' => 'Duration', 'sortable' => true],
             ['key' => 'entered', 'label' => 'Entered (Timecard)', 'sortable' => true, 'type' => 'boolean'],
             ['key' => 'billed', 'label' => 'Billed (Honeycrisp)', 'sortable' => true, 'type' => 'boolean'],

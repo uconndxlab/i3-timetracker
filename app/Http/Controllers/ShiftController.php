@@ -16,8 +16,7 @@ class ShiftController extends Controller
         $selectedProject = null;
         
         $est = now()->setTimezone('America/New_York');
-        $defaultEndTime = $est->format('Y-m-d\TH:i');
-        $defaultStartTime = $est->copy()->subHour()->format('Y-m-d\TH:i');
+        $date = $est->format('Y-m-d');
 
         if ($selectedProjectId) {
             $selectedProject = Project::find($selectedProjectId);
@@ -44,45 +43,8 @@ class ShiftController extends Controller
                 ->get();
         }
 
-        return view('shifts.create', compact('projects', 'selectedProject', 'defaultStartTime', 'defaultEndTime'));
+        return view('shifts.create', compact('projects', 'selectedProject', 'date'));
     }
-
-    public function update(Request $request, Shift $shift)
-    {
-        $validatedData = $request->validate([
-            'netid' => 'sometimes|required|exists:users,netid',
-            'proj_id' => 'sometimes|required|exists:projects,id',
-            'start_time' => 'sometimes|required|date',
-            'end_time' => 'sometimes|required|date|after:start_time',
-            'entered' => 'sometimes|required|boolean',
-            'billed' => 'sometimes|required|boolean',
-        ], [], [
-            'netid' => 'Name',
-            'proj_id' => 'Project',
-            'start_time' => 'Start Time',
-            'end_time' => 'End Time',
-            'entered' => 'Entered in University System',
-            'billed' => 'Billed in Cider',
-        ]);
-
-        if (!$request->has('entered')) {
-            $validatedData['entered'] = false;
-        }
-        
-        if (!$request->has('billed')) {
-            $validatedData['billed'] = false;
-        }
-
-        $shift->update($validatedData);
-        return redirect()->route('shifts.index')->with('message', 'Shift updated successfully!');
-    }
-
-
-    // public function show(Shift $shift)
-    // {
-    //     $shift->load(['user', 'project']);
-    //     return view('shifts.show', compact('shift'));
-    // }
 
     public function index(Request $request)
     {
@@ -100,9 +62,9 @@ class ShiftController extends Controller
         $query = Shift::query();
         
         if ($week !== null) {
-            $queryStartDate = now()->startOfWeek()->addWeeks($week);
-            $queryEndDate = now()->startOfWeek()->addWeeks($week + 1);
-            $query->whereBetween('start_time', [$queryStartDate, $queryEndDate]);
+            $queryStartDate = now()->startOfWeek()->addWeeks($week)->format('Y-m-d');
+            $queryEndDate = now()->startOfWeek()->addWeeks($week + 1)->format('Y-m-d');
+            $query->whereBetween('date', [$queryStartDate, $queryEndDate]);
         }
         
         if (!$user->isAdmin()) {
@@ -119,47 +81,23 @@ class ShiftController extends Controller
                 ->select('shifts.*')
                 ->orderByRaw('CASE WHEN users.name IS NULL THEN 1 ELSE 0 END, users.name ' . $direction);
         }
-        else if (in_array($sortField, ['time_range', 'duration'])) {
-            $allShifts = $query->with(['user', 'project'])->get();
-            
-            foreach ($allShifts as $shift) {
-                $shift->time_range = $shift->start_time->format('g A') . ' - ' . $shift->end_time->format('g A');
-                $shift->duration = number_format($shift->start_time->diffInHours($shift->end_time), 2) . ' hrs';
-                $shift->can_edit = $user->isAdmin() || ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
-            }
-            
-            if ($sortField === 'time_range') {
-                $allShifts = $allShifts->sortBy('start_time', SORT_REGULAR, $direction === 'desc');
-            } else {
-                $allShifts = $allShifts->sortBy('duration', SORT_REGULAR, $direction === 'desc');
-            }
-
-            $page = $request->input('page', 1);
-            $perPage = 10;
-            $offset = ($page - 1) * $perPage;
-            
-            $shifts = new LengthAwarePaginator(
-                $allShifts->slice($offset, $perPage),
-                $allShifts->count(),
-                $perPage,
-                $page,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-            
-            return view('shifts.index', compact('shifts', 'prev', 'next', 'week', 'start', 'end', 'currOffset'));
+        else if ($sortField === 'shift_date') {
+            $query->orderBy('date', $direction);
+        }
+        else if ($sortField === 'duration') {
+            $query->orderBy('duration', $direction);
         }
         else if ($sortField) {
             $query->orderBy($sortField, $direction);
         } 
         else {
-            $query->orderBy('start_time', 'desc');
+            $query->orderBy('date', 'desc');
         }
         
         $shifts = $query->with(['user', 'project'])->paginate(10);
         foreach ($shifts as $shift) {
-            $shift->shift_date = $shift->start_time->format('M d, Y');
-            // $shift->time_range = $shift->start_time->format('g:i A') . ' - ' . $shift->end_time->format('g:i A');
-            $shift->duration = number_format($shift->start_time->diffInHours($shift->end_time), 2) . ' hrs';
+            $shift->shift_date = $shift->date->format('M d, Y');
+            $shift->duration = $shift->duration ? number_format($shift->duration / 60, 2) . ' hrs' : '-';
             $shift->can_edit = $user->isAdmin() || ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
         }
         
@@ -172,14 +110,14 @@ class ShiftController extends Controller
         $validatedData = $request->validate([
             'netid' => 'required|exists:users,netid',
             'proj_id' => 'required|exists:projects,id',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date|after:start_time',
+            'date' => 'required|date',
+            'duration' => 'required|integer|min:1',
             'entered' => 'required|boolean',
         ], [], [
             'netid' => 'Name',
             'proj_id' => 'Project',
-            'start_time' => 'Start Time',
-            'end_time' => 'End Time',
+            'date' => 'Date',
+            'duration' => 'Duration',
             'entered' => 'Entered in University System',
         ]);
 
@@ -206,6 +144,36 @@ class ShiftController extends Controller
 
         Shift::create($validatedData);
         return redirect()->route('shifts.index')->with('message', 'Shift logged successfully!');
+    }
+
+    public function update(Request $request, Shift $shift)
+    {
+        $validatedData = $request->validate([
+            'netid' => 'sometimes|required|exists:users,netid',
+            'proj_id' => 'sometimes|required|exists:projects,id',
+            'date' => 'sometimes|required|date',
+            'duration' => 'sometimes|required|integer|min:1',
+            'entered' => 'sometimes|required|boolean',
+            'billed' => 'sometimes|required|boolean',
+        ], [], [
+            'netid' => 'Name',
+            'proj_id' => 'Project',
+            'date' => 'Date',
+            'duration' => 'Duration',
+            'entered' => 'Entered in University System',
+            'billed' => 'Billed in Cider',
+        ]);
+
+        if (!$request->has('entered')) {
+            $validatedData['entered'] = false;
+        }
+        
+        if (!$request->has('billed')) {
+            $validatedData['billed'] = false;
+        }
+
+        $shift->update($validatedData);
+        return redirect()->route('shifts.index')->with('message', 'Shift updated successfully!');
     }
 
     public function edit(Shift $shift)
