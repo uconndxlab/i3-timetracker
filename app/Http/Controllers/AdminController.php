@@ -105,7 +105,6 @@ class AdminController extends Controller
         
         foreach ($shifts as $shift) {
             $shift->shift_date = $shift->date ? $shift->date->format('M d, Y') : '-';
-            $shift->duration = $shift->duration ? number_format($shift->duration / 60, 2) . ' hrs' : '-';
             $shift->can_edit = $user->isAdmin() || 
                 ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
         }

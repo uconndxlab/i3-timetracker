@@ -107,6 +107,17 @@ function buildParams($paramConfig, $item) {
                                                 </div>
                                                 @break
 
+                                            @case('duration')
+                                                @if(is_numeric($value) && $value > 0)
+                                                    @php
+                                                        $hours = number_format($value / 60, 2);
+                                                    @endphp
+                                                    {{ $hours }} hr
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
+                                                @break
+
                                             @case('date')
                                                 @if($value)
                                                     {{ $value->format('M d, Y') }}
@@ -150,6 +161,7 @@ function buildParams($paramConfig, $item) {
                                                             {{ $value }}
                                                         </a>
                                                     </div>
+                                                    
                                                 @else
                                                     {{ $value ?: '-' }}
                                                 @endif
