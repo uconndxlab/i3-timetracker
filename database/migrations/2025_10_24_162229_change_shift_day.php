@@ -13,8 +13,8 @@ return new class extends Migration
     {
         // removes start and end times and then adds date (for existing records, populate as the start time's date)
         Schema::table('shifts', function (Blueprint $table) {
-            $table->dropColumn(['start_time', 'end_time']);
-            $table->date('date')->after('project_id');
+            // $table->dropColumn(['start_time', 'end_time']);
+            $table->date('date')->nullable()->after('project_id');
         });
     }
 
@@ -25,8 +25,8 @@ return new class extends Migration
     {
         Schema::table('shifts', function (Blueprint $table) {
             $table->dropColumn('date');
-            $table->dateTime('start_time')->after('project_id');
-            $table->dateTime('end_time')->after('start_time');
+            // $table->dateTime('start_time')->after('project_id');
+            // $table->dateTime('end_time')->after('start_time');
         });
     }
 };

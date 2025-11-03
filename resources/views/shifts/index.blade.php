@@ -34,8 +34,8 @@
     @php
         $columns = [
             ['key' => 'project.name', 'label' => 'Project', 'sortable' => true],
-            ['key' => 'shift_date', 'label' => 'Hours', 'sortable' => true],
-            ['key' => 'duration', 'label' => 'Duration', 'sortable' => true],
+            ['key' => 'shift_date', 'label' => 'Shift Date', 'sortable' => true],
+            ['key' => 'duration', 'label' => 'Duration', 'sortable' => true, 'type' => 'duration'],
             ['key' => 'entered', 'label' => 'Entered (Timecard)', 'sortable' => true, 'type' => 'boolean'],
             ['key' => 'billed', 'label' => 'Billed (Honeycrisp)', 'sortable' => true, 'type' => 'boolean'],
         ];

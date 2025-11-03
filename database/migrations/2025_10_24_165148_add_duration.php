@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('shifts', function (Blueprint $table) {
-            $table->integer('duration')->after('date');
+            $table->integer('duration')->default(0)->after('date');
         });
     }
 

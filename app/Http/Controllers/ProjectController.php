@@ -39,14 +39,13 @@ class ProjectController extends Controller
         
         foreach ($shifts as $shift) {
             $shift->time_range = $shift->date->format('M d, Y');
-            $shift->duration = $shift->duration ? number_format($shift->duration / 60, 2) . ' hrs' : '-';
             $shift->user_name = $shift->user ? $shift->user->name : 'N/A';
         }
         
         $shiftColumns = [
             ['key' => 'time_range', 'label' => 'Date', 'sortable' => false],
             ['key' => 'user_name', 'label' => 'Name', 'sortable' => false],
-            ['key' => 'duration', 'label' => 'Duration', 'sortable' => true],
+            ['key' => 'duration', 'label' => 'Duration', 'sortable' => true, 'type' => 'duration'],
             ['key' => 'entered', 'label' => 'Entered (Timecard)', 'sortable' => true, 'type' => 'boolean'],
             ['key' => 'billed', 'label' => 'Billed (Honeycrisp)', 'sortable' => true, 'type' => 'boolean'],
         ];
