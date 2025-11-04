@@ -113,6 +113,8 @@ class ShiftController extends Controller
             'date' => 'required|date',
             'duration' => 'required|integer|min:1',
             'entered' => 'required|boolean',
+            'start_time' => 'nullable|date_format:H:i', // while in transition
+            'end_time' => 'nullable|date_format:H:i', // while in transition
         ], [], [
             'netid' => 'Name',
             'proj_id' => 'Project',
@@ -155,6 +157,8 @@ class ShiftController extends Controller
             'duration' => 'sometimes|required|integer|min:1',
             'entered' => 'sometimes|required|boolean',
             'billed' => 'sometimes|required|boolean',
+            'start_time' => 'nullable|date_format:H:i', // while in transition
+            'end_time' => 'nullable|date_format:H:i', // while in transition
         ], [], [
             'netid' => 'Name',
             'proj_id' => 'Project',
