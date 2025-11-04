@@ -16,13 +16,16 @@ return new class extends Migration
                 $oldShifts = DB::table('shifts')->get();
                 
                 foreach ($oldShifts as $oldShift) {
-                    $startTime = new \Carbon\Carbon($oldShift->start_time);
-                    $endTime = new \Carbon\Carbon($oldShift->end_time);
-                    
-                    DB::table('shifts')->where('id', $oldShift->id)->update([
-                        'date' => $startTime->toDateString(),
-                        'duration' => $startTime->diffInMinutes($endTime)
-                    ]);
+                    if (isset($oldShift->start_time) && isset($oldShift->end_time) && 
+                    !is_null($oldShift->start_time) && !is_null($oldShift->end_time)) {
+                        $startTime = new \Carbon\Carbon($oldShift->start_time);
+                        $endTime = new \Carbon\Carbon($oldShift->end_time);
+                        
+                        DB::table('shifts')->where('id', $oldShift->id)->update([
+                            'date' => $startTime->toDateString(),
+                            'duration' => $startTime->diffInMinutes($endTime)
+                        ]);
+                    }
                 }
             });
         });
