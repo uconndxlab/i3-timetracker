@@ -30,10 +30,13 @@ Route::middleware('cas.auth')->group(function () {
 
     Route::controller(ProjectController::class)->prefix('projects')->name('projects.')->group(function () {
         Route::get('/create', 'create')->name('create')->middleware('admin');
+        Route::get('/manage', 'manage')->name('manage');
         Route::get('/', 'index')->name('index');
         Route::get('/{project}', 'show')->name('show');
 
         Route::post('/', 'store')->name('store');
+        Route::post('/{project}/join', 'join')->name('join');
+        Route::delete('/{project}/leave', 'leave')->name('leave');
         Route::put('/{project}', 'update')->name('update');
         Route::delete('/{project}', 'destroy')->name('destroy');
     });

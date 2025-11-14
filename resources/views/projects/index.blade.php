@@ -14,6 +14,9 @@
                     <a href="{{ route('projects.create') }}" class="btn btn-outline-secondary">Add New Project</a>
                 @endif
             </p>
+            <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
+                <a href="{{ route('projects.manage') }}" class="btn btn-outline-primary">Manage Projects</a>
+            </div>
         </div>
     </div>
 
