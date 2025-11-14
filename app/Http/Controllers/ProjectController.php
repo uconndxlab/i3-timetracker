@@ -239,4 +239,64 @@ class ProjectController extends Controller
     //     return view('projects.edit', compact('project'));
     // }
 
+    public function manage(Request $request)
+    {
+        $user = auth()->user();
+        $query = Project::query();
+        
+        if ($request->has('search') && $request->search) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('description', 'like', '%' . $searchTerm . '%');
+            });
+        }
+        
+        $projects = $query->orderBy('name')->paginate(20)->withQueryString();
+        
+        $userProjectIds = $user->projects->pluck('id')->toArray();
+        
+        return view('projects.manage', compact('projects', 'userProjectIds'));
+    }
+
+    public function join(Request $request, Project $project)
+    {
+        $user = auth()->user();
+        
+        if (!$user->projects->contains($project->id)) {
+            $project->users()->attach($user->netid, ['active' => true]);
+            $params = [];
+            if ($request->has('search') && $request->search) {
+                $params['search'] = $request->search;
+            }
+            return redirect()->route('projects.manage', $params)->with('message', 'Successfully joined ' . $project->name);
+        }
+        
+        $params = [];
+        if ($request->has('search') && $request->search) {
+            $params['search'] = $request->search;
+        }
+        return redirect()->route('projects.manage', $params)->with('message', 'You are already a member of ' . $project->name);
+    }
+
+    public function leave(Request $request, Project $project)
+    {
+        $user = auth()->user();
+        
+        if ($user->projects->contains($project->id)) {
+            $project->users()->detach($user->netid);
+            $params = [];
+            if ($request->has('search') && $request->search) {
+                $params['search'] = $request->search;
+            }
+            return redirect()->route('projects.manage', $params)->with('message', 'Successfully left ' . $project->name);
+        }
+        
+        $params = [];
+        if ($request->has('search') && $request->search) {
+            $params['search'] = $request->search;
+        }
+        return redirect()->route('projects.manage', $params)->with('message', 'You are not a member of ' . $project->name);
+    }
+
 }
