@@ -5,7 +5,7 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5">
-                <i class="bi bi-people-fill me-3"></i>
+                <i class="bi me-3"></i>
                 Staff Management
             </h1>
         </div>
@@ -32,14 +32,12 @@
             </div>
             <div class="col-md-auto">
                 <button type="submit" class="btn btn-primary px-4 d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-funnel-fill"></i>
-                    <span>Apply Filters</span>
+                    Apply Filters
                 </button>
             </div>
             <div class="col-md-auto">
                 <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary px-4 d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-x-circle"></i>
-                    <span>Clear Filters</span>
+                    Clear Filters
                 </a>
             </div>
         </div>
@@ -56,7 +54,7 @@
         ];
         
         $actions = [
-            ['key' => 'toggle_admin', 'label' => 'Toggle Admin', 'icon' => 'shield-lock', 'route' => 'admin.users.toggle-admin', 'color' => 'warning', 'method' => 'post'],
+            ['key' => 'toggle_admin', 'label' => 'Toggle Admin', 'icon' => 'custom-logo', 'icon_src' => asset('i3.svg'), 'route' => 'admin.users.toggle-admin', 'color' => 'warning', 'method' => 'post'],
         ];
     @endphp
 

@@ -1,5 +1,4 @@
 {{-- 
-Usage example:
 @include('partials.table', [
     'items' => $projects,
     'columns' => [
@@ -211,10 +210,14 @@ function buildParams($paramConfig, $item) {
                                                             <form action="{{ route($action['route'], $item) }}" method="POST" style="display: inline;">
                                                                 @csrf
                                                                 <button type="submit" 
-                                                                    class="btn btn-sm btn-outline-{{ $action['color'] ?? 'secondary' }}"
+                                                                class="btn btn-sm btn-outline-transparent"
                                                                     title="{{ $action['label'] ?? 'Toggle Admin' }}"
-                                                                    onclick="return confirm('Are you sure you want to {{ $item->is_admin ? 'revoke' : 'grant' }} admin privileges for {{ $item->name }}?')">
-                                                                    <i class="bi bi-{{ $action['icon'] ?? 'gear' }}"></i>
+                                                                    onclick="return confirm('Confirm that you want to {{ $item->is_admin ? 'revoke' : 'grant' }} administrative privileges to {{ $item->name }}?')">
+                                                                    @if(isset($action['icon_src']))
+                                                                        <img src="{{ $action['icon_src'] }}" alt="i3 logo" style="width: 28px; height: 28px;">
+                                                                    @else
+                                                                        <i class="bi bi-{{ $action['icon'] ?? 'gear' }}"></i>
+                                                                    @endif
                                                                 </button>
                                                             </form>
                                                             @break

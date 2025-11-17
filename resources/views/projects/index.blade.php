@@ -5,11 +5,9 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5 mb-3">
-                <i class="bi bi-collection me-3"></i>
                 Projects
             </h1>
             <p class="lead mb-1">
-                {{ auth()->user()->isAdmin() ? 'Manage i3 projects' : 'Your assigned projects' }}
                 @if (auth()->user()->isAdmin())
                     <a href="{{ route('projects.create') }}" class="btn btn-outline-secondary">Add New Project</a>
                 @endif

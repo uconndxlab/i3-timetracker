@@ -6,7 +6,6 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5">
-                <i class="bi bi-plus-square me-3"></i>
                 Log New Shift
             </h1>
         </div>
@@ -17,7 +16,6 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="mb-0">
-                        <i class="bi bi-clock me-2"></i>
                         Shift Information
                     </h3>
                 </div>
@@ -28,7 +26,7 @@
                         <input type="hidden" id="duration" name="duration" value="{{ old('duration', 60) }}">
 
                         <div class="mb-4">
-                            <label for="proj_id" class="block text-gray-700 text-sm font-bold mb-2">Project:</label>
+                            <label for="proj_id" class="block text-black-700 text-sm font-bold mb-2">Project</label>
                             <select name="proj_id" id="proj_id" class="form-select" required>
                                 <option value="">Select a project</option>
                                 @foreach($projects as $project)
@@ -45,18 +43,36 @@
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 <label for="date" class="form-label">
-                                    <i class="bi bi-calendar me-1"></i>Date *
+                                    <i class="bi me-1"></i>Date
                                 </label>
                                 <input type="date" class="form-control @error('date') is-invalid @enderror" 
                                        id="date" name="date" value="{{ old('date', $date) }}" required>
                                 @error('date')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+
+                                {{-- make card box size small --}}
+                                <div class="card bg-light mt-3" style="max-height: 100px;">
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input type="hidden" name="entered" value="0">
+                                            <input type="checkbox" class="form-check-input @error('entered') is-invalid @enderror" 
+                                                   id="entered" name="entered" value="1" {{ old('entered', false) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="entered" style="font-size: 0.90rem;">
+                                                <i class="bi me-1"></i>
+                                                <strong>Recorded in University Employee Portal (CoreCT)</strong>
+                                            </label>
+                                            @error('entered')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="duration-hours-input" class="form-label">
-                                    <i class="bi bi-clock-history me-1"></i>Duration (hours) *
+                                    <i class="bi me-1"></i>Duration (hours)
                                 </label>
                                 <input type="number" class="form-control @error('duration') is-invalid @enderror" 
                                        id="duration-hours-input" value="{{ old('duration') ? number_format(old('duration') / 60, 2) : '1.00' }}" 
@@ -65,7 +81,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
 
-                                <div class="mt-2">
+                                <div class="mt-3">
                                     <div class="btn-group btn-group-sm" role="group" style="flex-wrap: wrap;">
                                         <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-30)">-30min</button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-15)">-15min</button>
@@ -79,35 +95,14 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <div class="form-check form-switch">
-                                        <input type="hidden" name="entered" value="0">
-                                        <input type="checkbox" class="form-check-input @error('entered') is-invalid @enderror" 
-                                               id="entered" name="entered" value="1" {{ old('entered', false) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="entered">
-                                            <i class="bi bi-building me-1"></i>
-                                            <strong>Recorded in University Employee Portal</strong>
-                                            <br>
-                                            <small class="text-muted">Check if this shift has been recorded in the UConn Employee Portal</small>
-                                        </label>
-                                        @error('entered')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <hr class="my-4"> 
 
                         <div class="d-flex justify-content-end gap-2"> 
                             <a href="{{ route('shifts.index') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle me-1"></i>Cancel
+                                Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle me-1"></i>Log Shift
+                                Log Shift
                             </button>
                         </div>
                     </form>

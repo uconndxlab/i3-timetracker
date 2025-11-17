@@ -5,12 +5,8 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5">
-                <i class="bi bi-clock-history me-3"></i>
                 Time Shifts
             </h1>
-            <p class="lead mb-0">
-                {{ auth()->user()->isAdmin() ? 'All staff time entries' : 'Your time entries' }}
-            </p>
         
             <div class="mt-4 d-flex justify-content-center align-items-center gap-3">
                 <a href="{{ route('shifts.index', ['week' => $prev]) }}" class="btn btn-outline-secondary">

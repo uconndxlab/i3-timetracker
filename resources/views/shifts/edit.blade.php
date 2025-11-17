@@ -5,9 +5,9 @@
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
             <div class="card shadow-sm">
-                <div class="card-header bg-white">
+                <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="bi bi-pencil-square me-2"></i> Edit Shift
+                        Edit Shift
                     </h5>
                 </div>
                 <div class="card-body">
@@ -28,7 +28,7 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6 mb-3 mb-md-0">
-                                <label for="proj_id" class="form-label">Project *</label>
+                                <label for="proj_id" class="form-label">Project</label>
                                 <select name="proj_id" id="proj_id" class="form-select @error('proj_id') is-invalid @enderror" required>
                                     <option value="">Select a project...</option>
                                     @foreach($projects as $project)
@@ -43,24 +43,9 @@
                                 @enderror
                             </div>
 
-                            @if(auth()->user()->isAdmin())
-                            <div class="col-md-6">
-                                <label for="netid" class="form-label">Staff Member *</label>
-                                <input type="text" class="form-control @error('netid') is-invalid @enderror" 
-                                    id="netid" name="netid" value="{{ old('netid', $shift->netid) }}" readonly>
-                                @error('netid')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            @else
-                                <input type="hidden" name="netid" value="{{ auth()->user()->netid }}">
-                            @endif
-                        </div>
-
-                        <div class="row mb-3">
                             <div class="col-md-6 mb-3 mb-md-0">
                                 <label for="date" class="form-label">
-                                    <i class="bi bi-calendar me-1"></i>Date *
+                                    <i class="bi me-1"></i>Date
                                 </label>
                                 <input type="date" class="form-control @error('date') is-invalid @enderror" 
                                        id="date" name="date" 
@@ -69,10 +54,12 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                            
+                        </div>
+
+                        <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="duration-hours-input" class="form-label">
-                                    <i class="bi bi-clock-history me-1"></i>Duration (hours) *
+                                    <i class="bi me-1"></i>Duration (hours)
                                 </label>
                                 <input type="number" class="form-control @error('duration') is-invalid @enderror" 
                                        id="duration-hours-input" 
@@ -96,15 +83,13 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="row mb-3">
                             <div class="col-md-6 mb-2 mb-md-0">
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input @error('entered') is-invalid @enderror" 
-                                           id="entered" name="entered" value="1" 
-                                           {{ old('entered', $shift->entered) ? 'checked' : '' }}
-                                           {{ !auth()->user()->isAdmin() && $shift->entered ? 'disabled' : '' }}>
+                                        id="entered" name="entered" value="1" 
+                                        {{ old('entered', $shift->entered) ? 'checked' : '' }}
+                                        {{ !auth()->user()->isAdmin() && $shift->entered ? 'disabled' : '' }}>
                                     <label class="form-check-label" for="entered">
                                         Entered in University System (Timecard)
                                     </label>
@@ -115,14 +100,12 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                            </div>
 
                             @if(auth()->user()->isAdmin())
-                            <div class="col-md-6">
                                 <div class="form-check">
                                     <input type="checkbox" class="form-check-input @error('billed') is-invalid @enderror" 
-                                           id="billed" name="billed" value="1" 
-                                           {{ old('billed', $shift->billed) ? 'checked' : '' }}>
+                                        id="billed" name="billed" value="1" 
+                                        {{ old('billed', $shift->billed) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="billed">
                                         Billed in Honeycrisp
                                     </label>
@@ -130,20 +113,21 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                            </div>
                             @else
                                 <input type="hidden" name="billed" value="{{ $shift->billed ? '1' : '0' }}">
                             @endif
+
+                            </div>
                         </div>
 
                         <hr class="my-3">
 
                         <div class="d-flex justify-content-between">
                             <a href="{{ route('shifts.index') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-arrow-left me-1"></i> Back to Shifts
+                                Back to Shifts
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save me-1"></i> Update Shift
+                                Update Shift
                             </button>
                         </div>
                     </form>

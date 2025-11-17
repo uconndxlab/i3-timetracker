@@ -7,7 +7,7 @@
         <div class="col-12">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Project Details</h4>
+                    <h4 class="mb-0">Edit Project Details</h4>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('projects.update', $project) }}" method="POST">
@@ -43,7 +43,7 @@
             
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0"><i class="bi bi-people me-2"></i>Manage Users</h4>
+                    <h4 class="mb-0">Manage Users</h4>
                 </div>
                 <div class="card-body">
                     <h5 class="mb-3">Assigned Users</h5>
@@ -79,7 +79,7 @@
                         </div>
                     @else
                         <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>No users assigned to this project yet.
+                           No users assigned to this project yet.
                         </div>
                     @endif
                     
@@ -99,7 +99,7 @@
                             </select>
                         </div>
                         <button type="submit" class="btn btn-success">
-                            <i class="bi bi-person-plus me-1"></i> Assign Selected Users
+                            Assign Selected Users
                         </button>
                     </form>
                 </div>

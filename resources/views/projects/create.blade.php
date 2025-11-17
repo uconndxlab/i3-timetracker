@@ -6,7 +6,6 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5">
-                <i class="bi bi-folder-plus me-3"></i>
                 Create New Project
             </h1>
         </div>
@@ -17,7 +16,6 @@
             <div class="card">
                 <div class="card-header">
                     <h3 class="mb-0">
-                        <i class="bi bi-pencil-square me-2"></i>
                         Project Details
                     </h3>
                 </div>
@@ -27,7 +25,7 @@
                         
                         <div class="mb-4">
                             <label for="name" class="form-label">
-                                <i class="bi bi-type me-1"></i>Project Name *
+                                Project Name
                             </label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" 
                                    id="name" name="name" value="{{ old('name') }}" 
@@ -40,7 +38,7 @@
                         {{-- add desc field --}}
                         <div class="mb-4">
                             <label for="description" class="form-label">
-                                <i class="bi bi-card-text me-1"></i>Project Description
+                                Project Description
                             </label>
                             <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description') }}</textarea>
                             @error('description')
@@ -53,7 +51,6 @@
                                 <input type="hidden" name="active" value="0">
                                 <input type="checkbox" class="form-check-input" id="active" name="active" value="1" {{ old('active', true) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="active">
-                                    <i class="bi bi-toggle-on me-1"></i>
                                     <strong>Active Project</strong>
                                     <br>
                                 </label>
@@ -68,8 +65,8 @@
                                 <input type="hidden" name="assign_all_users" value="0">
                                 <input type="checkbox" class="form-check-input" id="assign_all_users" name="assign_all_users" value="1" {{ old('assign_all_users', false) ? 'checked' : '' }}>
                                 <label class="form-check-label" for="assign_all_users">
-                                    <i class="bi bi-people-fill me-1"></i>
                                     <strong>Assign to All Users</strong>
+                                </label>
                                 @error('assign_all_users')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -80,10 +77,10 @@
 
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle me-1"></i>Cancel
+                                Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle me-1"></i>Create Project
+                                Create Project
                             </button>
                         </div>
                     </form>

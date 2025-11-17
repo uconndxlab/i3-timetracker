@@ -5,7 +5,6 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5">
-                <i class="bi bi-clock-history me-3"></i>
                 Time Shifts
             </h1>
             <p class="lead mb-0">
@@ -42,14 +41,12 @@
             </div>
             <div class="col-md-auto">
                 <button type="submit" class="btn btn-primary px-4 d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-funnel-fill"></i>
-                    <span>Apply Filters</span>
+                    Apply Filters
                 </button>
             </div>
             <div class="col-md-auto">
                 <a href="{{ route('admin.shifts.index') }}" class="btn btn-outline-secondary px-4 d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-x-circle"></i>
-                    <span>Clear Filters</span>
+                    Clear Filters
                 </a>
             </div>
         </div>

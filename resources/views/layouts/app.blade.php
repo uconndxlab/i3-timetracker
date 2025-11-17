@@ -19,7 +19,7 @@
     <nav class="navbar navbar-expand-lg navbar-uconn">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('landing') }}">
-                <i class="bi bi-clock-history me-2"></i>
+                <i class="bi me-2"></i>
                 <div class="d-flex flex-column">
                     <span class="fw-bold">i3 Time Tracker</span>
                     <small class="opacity-75" style="font-size: 0.7rem; line-height: 1; margin-top: -2px;">University of Connecticut</small>
@@ -34,35 +34,35 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
-                            <i class="bi bi-folder me-1"></i>Projects
+                            Projects
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('shifts.*') ? 'active' : '' }}" href="{{ route('shifts.index') }}">
-                            <i class="bi bi-clock me-1"></i>Shifts
+                            Shifts
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('shifts.create') }}">
-                            <i class="bi bi-plus-square me-1"></i>Log Shift
+                            <i class="bi me-1"></i>Log Shift
                         </a>
                     </li>
 
                     @if (Auth::check() && Auth::user()->isAdmin())
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-gear me-1"></i>Admin
+                                Admin
                             </a>
                             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminDropdown">
                                 <li>
                                     <a class="dropdown-item {{ request()->routeIs('admin.shifts.*') ? 'active' : '' }}" href="{{ route('admin.shifts.index') }}">
-                                        <i class="bi bi-person-lines-fill me-2"></i>All Staff Shifts
+                                        All Staff Shifts
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
-                                        <i class="bi bi-people-fill me-2"></i>Manage Users
+                                        Manage Users
                                     </a>
                                 </li>
                             </ul>

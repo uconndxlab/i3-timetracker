@@ -8,7 +8,7 @@
                 <div class="col-md-7">
                     <div class="p-5" style="background-color: var(--uconn-navy);">
                         <h1 class="display-5 fw-bold text-white mb-3">
-                            <i class="bi bi-clock-history me-2"></i>i3 Time Tracker
+                            i3 Time Tracker
                         </h1>
                         <p class="lead text-white opacity-90 mb-4">Track time spent working on projects</p>
                         <div class="d-flex gap-3 flex-wrap">
@@ -17,7 +17,7 @@
                             </a>
                             @if(auth()->user()->isAdmin())
                             <a href="{{ route('projects.create') }}" class="btn btn-outline-light">
-                                <i class="bi bi-folder-plus me-2"></i>Create Project
+                                Create Project
                             </a>
                             @endif
                         </div>
@@ -30,7 +30,7 @@
                         <p class="mb-2 text-uppercase fw-semibold text-muted small">Hours This Week</p>
                         <div class="mt-3">
                             <a href="{{ route('shifts.index') }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-clock-history me-1"></i>View All Shifts
+                                View All Shifts
                             </a>
                         </div>
                     </div>
@@ -44,7 +44,7 @@
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-header bg-white border-bottom">
                     <h2 class="h5 mb-0 d-flex align-items-center">
-                        <i class="bi bi-activity me-2 text-primary"></i>
+                        <i class="text-primary"></i>
                         <span class="text-dark">Recent Activity</span>
                     </h2>
                 </div>
@@ -71,7 +71,7 @@
                     @else
                         <div class="text-center py-4">
                             <i class="bi bi-activity text-muted" style="font-size: 2rem;"></i>
-                            <p class="text-muted mt-3 mb-0">No recent activity</p>
+                            <p class="text-muted mb-0">No recent activity</p>
                         </div>
                     @endif
                 </div>
@@ -82,7 +82,7 @@
                 <div class="card-header bg-white border-bottom">
                     <div class="d-flex justify-content-between align-items-center">
                         <h2 class="h5 mb-0 d-flex align-items-center">
-                            <i class="bi bi-activity me-2 text-primary"></i>
+                            <i class="text-primary"></i>
                             <span class="text-dark">Your Projects</span>
                         </h2>
                     </div>
@@ -109,14 +109,14 @@
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div class="text-muted small">
                                                     @if($project->users_count ?? false)
-                                                    <span><i class="bi bi-people me-1"></i>{{ $project->users_count }}</span>
+                                                    <span><i class="bi"></i>{{ $project->users_count }}</span>
                                                     @endif
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="card-footer bg-white border-top-0 text-muted small">
                                             @if ($project->created_at)
-                                                <i class="bi bi-clock-history me-1"></i>Updated {{ $project->updated_at->diffForHumans() }}
+                                                <i class="bi"></i>Updated {{ $project->updated_at->diffForHumans() }}
                                             @else
                                                 <span>Date not available</span>
                                             @endif
