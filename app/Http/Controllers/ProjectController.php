@@ -31,9 +31,14 @@ class ProjectController extends Controller
         $user = auth()->user();
         $sortField = $request->input('sort', 'start_time');
         $direction = $request->input('direction', 'desc');
+    
+        $shiftsQuery = $project->shifts()->with('user');
         
-        $shifts = $project->shifts()
-            ->with('user') 
+        if (!$user->isAdmin()) {
+            $shiftsQuery->where('netid', $user->netid);
+        }
+        
+        $shifts = $shiftsQuery
             ->orderBy($sortField, $direction)
             ->paginate(10);
         
@@ -59,8 +64,10 @@ class ProjectController extends Controller
         $totalHours = 0;
         $billedHours = 0;
         $unbilledHours = 0;
+
+        $userShifts = $user->isAdmin() ? $project->shifts : $project->shifts->where('netid', $user->netid);
         
-        foreach ($project->shifts as $shift) {
+        foreach ($userShifts as $shift) {
             $hours = $shift->duration ? $shift->duration / 60 : 0;
             $totalHours += $hours;
             
