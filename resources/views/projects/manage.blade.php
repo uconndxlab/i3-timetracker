@@ -5,7 +5,6 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5 mb-3">
-                <i class="bi bi-gear me-3"></i>
                 Manage Projects
             </h1>
             <p class="lead mb-1">
@@ -16,17 +15,16 @@
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            @if(session('message'))
+            {{-- @if(session('message'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     <i class="bi bi-check-circle me-2"></i>{{ session('message') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-            @endif
+            @endif --}}
 
             <div class="card shadow-sm">
                 <div class="card-header">
                     <h3 class="mb-0">
-                        <i class="bi bi-list-ul me-2"></i>
                         All Projects
                     </h3>
                 </div>
