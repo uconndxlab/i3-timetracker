@@ -113,6 +113,7 @@ class ShiftController extends Controller
             'date' => 'required|date',
             'duration' => 'required|integer|min:1',
             'entered' => 'required|boolean',
+            'billed' => 'nullable|boolean',
             'start_time' => 'nullable|date_format:H:i', // while in transition
             'end_time' => 'nullable|date_format:H:i', // while in transition
         ], [], [

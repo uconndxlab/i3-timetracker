@@ -52,7 +52,7 @@
                                 @enderror
 
                                 {{-- make card box size small --}}
-                                <div class="card bg-light mt-3" style="max-height: 100px;">
+                                <div class="card bg-light mt-3">
                                     <div class="card-body">
                                         <div class="form-check form-switch">
                                             <input type="hidden" name="entered" value="0">
@@ -66,6 +66,21 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
+
+                                        @if ( Auth::user()->is_admin )
+                                            <div class="form-check form-switch mt-2">
+                                                <input type="hidden" name="billed" value="0">
+                                                <input type="checkbox" class="form-check-input @error('billed') is-invalid @enderror" 
+                                                       id="billed" name="billed" value="1" {{ old('billed', false) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="billed" style="font-size: 0.90rem;">
+                                                    <i class="bi me-1"></i>
+                                                    <strong>(Admin) Billed in Honeycrisp/Internal</strong>
+                                                </label>
+                                                @error('billed')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
