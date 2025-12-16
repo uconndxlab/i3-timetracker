@@ -44,6 +44,7 @@
     @endphp
 
     @include('partials.table', [
+        'filterable' => true,
         'items' => $projects,
         'columns' => $columns,
         'actions' => $actions,

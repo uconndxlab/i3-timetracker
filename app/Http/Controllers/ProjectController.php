@@ -78,6 +78,10 @@ class ProjectController extends Controller
             }
         }
         
+        $unbilledShiftCount = $user->isAdmin() 
+            ? $project->shifts()->where('billed', false)->count() 
+            : $project->shifts()->where('netid', $user->netid)->where('billed', false)->count();
+        
         return view('projects.show', compact(
             'project',
             'shifts',
@@ -85,7 +89,8 @@ class ProjectController extends Controller
             'shiftActions',
             'totalHours',
             'billedHours',
-            'unbilledHours'
+            'unbilledHours',
+            'unbilledShiftCount'
         ));
     }
 

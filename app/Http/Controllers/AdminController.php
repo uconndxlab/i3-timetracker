@@ -135,6 +135,19 @@ class AdminController extends Controller
         return redirect()->back()->with('success', 'Shift marked as billed successfully');
     }
 
+    public function markProjectRemainingBilled(Project $project)
+    {
+        $unbilledShifts = $project->shifts()->where('billed', false)->get();
+        $shiftCount = $unbilledShifts->count();
+        
+        if ($shiftCount > 0) {
+            $project->shifts()->where('billed', false)->update(['billed' => true]);
+            return redirect()->back()->with('success', "{$shiftCount} shift(s) marked as billed successfully.");
+        }
+        
+        return redirect()->back()->with('info', 'No unbilled shifts to mark.');
+    }
+
 
 
     // public function showProjectUsers(Project $project)

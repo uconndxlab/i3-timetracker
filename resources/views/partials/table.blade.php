@@ -31,6 +31,8 @@ function buildParams($paramConfig, $item) {
 <div class="card shadow-sm" id="dynamic-table-container">
     <div class="card-body p-0">
         @if($items->count() > 0)
+
+            @if ( isset($filterable) && $filterable )
             <div class="p-3 border-bottom">
                 <div class="input-group">
                     <span class="input-group-text bg-white">
@@ -39,7 +41,7 @@ function buildParams($paramConfig, $item) {
                     <input type="text" 
                            class="form-control" 
                            id="tableSearchInput" 
-                           placeholder="Search {{ strtolower($title ?? 'items') }}..." 
+                           placeholder="Filter table..." 
                            autocomplete="off">
                     <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" style="display: none;">
                         <i class="bi bi-x-lg"></i>
@@ -47,6 +49,7 @@ function buildParams($paramConfig, $item) {
                 </div>
                 <div id="searchResultCount" class="text-muted small mt-2" style="display: none;"></div>
             </div>
+            @endif
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
@@ -102,10 +105,8 @@ function buildParams($paramConfig, $item) {
                                                         <input class="form-check-input" type="checkbox" disabled 
                                                             {{ $value ? 'checked' : '' }}
                                                             style="width: 1.3rem; height: 1.3rem; cursor: default; 
-                                                                border-color: #dee2e6;
                                                                 background-color: {{ $value ? '#0d6efd' : '#fff' }};
                                                                 box-shadow: none;
-                                                                border-color: {{ $value ? '#0d6efd' : '#dee2e6' }};
                                                                 border-radius: 0.5rem;">
                                                     </div>
                                                 </div>
@@ -215,14 +216,10 @@ function buildParams($paramConfig, $item) {
                                                             <form action="{{ route($action['route'], $item) }}" method="POST" style="display: inline;">
                                                                 @csrf
                                                                 <button type="submit" 
-                                                                class="btn btn-sm btn-outline-transparent"
+                                                                class="btn btn-sm btn-outline-secondary"
                                                                     title="{{ $action['label'] ?? 'Toggle Admin' }}"
                                                                     onclick="return confirm('Confirm that you want to {{ $item->is_admin ? 'revoke' : 'grant' }} administrative privileges to {{ $item->name }}?')">
-                                                                    @if(isset($action['icon_src']))
-                                                                        <img src="{{ $action['icon_src'] }}" alt="i3 logo" style="width: 28px; height: 28px;">
-                                                                    @else
-                                                                        <i class="bi bi-{{ $action['icon'] ?? 'gear' }}"></i>
-                                                                    @endif
+                                                                    {{ $action['label'] }}
                                                                 </button>
                                                             </form>
                                                             @break

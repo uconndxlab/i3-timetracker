@@ -168,7 +168,7 @@ body {
     color: var(--uconn-white);
 }
 
-.btn-secondary {
+/* .btn-secondary {
     background-color: var(--uconn-gray);
     border: none;
     color: var(--uconn-white);
@@ -176,14 +176,14 @@ body {
     padding: 0.65rem 1.5rem;
     border-radius: 6px;
     transition: all 0.2s ease;
-}
+} */
 
 .btn-secondary:hover {
     background-color: var(--uconn-dark-gray);
     color: var(--uconn-white);
 }
 
-.btn-warning {
+/* .btn-warning {
     background-color: #ffc107;
     border: none;
     color: var(--uconn-navy);
@@ -193,7 +193,7 @@ body {
 .btn-warning:hover {
     background-color: #e0a800;
     color: var(--uconn-navy);
-}
+} */
 
 .btn-outline-secondary {
     border: 2px solid var(--uconn-border);
@@ -361,4 +361,9 @@ body {
 
 .page-content {
     animation: fadeInUp 0.6s ease-out;
+}
+
+
+input[type="checkbox"] {
+    border: 1px solid var(--uconn-navy);
 }
