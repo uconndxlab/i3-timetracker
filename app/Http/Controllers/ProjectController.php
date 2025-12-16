@@ -5,7 +5,6 @@ use App\Models\User;
 use App\Models\Project;
 use App\Models\Shift;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProjectController extends Controller
 {
@@ -100,8 +99,9 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $sortField = $request->input('sort');
+        $sortField = $request->input('sort', 'name');
         $direction = $request->input('direction', 'asc');
+        
         $query = Project::query();
         
         if (!$user->isAdmin()) {
@@ -111,102 +111,33 @@ class ProjectController extends Controller
                 ->distinct();
         }
         
-        if ($sortField === 'assigned_users_count' || $sortField === 'billed_hours' || $sortField === 'unbilled_hours') {
-            $allProjects = $query->get();
-
-            foreach ($allProjects as $project) {
-                $project->assigned_users_count = $project->users()->count();
-                $billedShifts = $project->shifts()->where('billed', true)->get();
-                $billedHours = 0;
-
-                foreach ($billedShifts as $shift) {
-                    $billedHours += $shift->duration ? $shift->duration / 60 : 0;
-                }
-
-                $project->billed_hours = $billedHours;
-                $unbilledShifts = $project->shifts()->where('billed', false)->get();
-                $unbilledHours = 0;
-
-                foreach ($unbilledShifts as $shift) {
-                    $unbilledHours += $shift->duration ? $shift->duration / 60 : 0;
-                }
-
-                $project->unbilled_hours = $unbilledHours;
-            }
-            
-            $allProjects = $allProjects->sortBy($sortField, SORT_REGULAR, $direction === 'desc');
-            $page = $request->input('page', 1);
-            $perPage = 10;
-            $offset = ($page - 1) * $perPage;
-            $projects = new LengthAwarePaginator(
-                $allProjects->slice($offset, $perPage),
-                $allProjects->count(),
-                $perPage,
-                $page,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-            
-            return view('projects.index', compact('projects'));
-        }
-
-        else if ($sortField === 'name') {
-            $allProjects = $query->get();
-
-            $allProjects = $allProjects->sortBy(function($project) {
-                return strtolower($project->name);
-            }, SORT_STRING, $direction === 'desc');
-
-            $page = $request->input('page', 1);
-            $perPage = 10;
-            $offset = ($page - 1) * $perPage;
-            
-            $projects = new LengthAwarePaginator(
-                $allProjects->slice($offset, $perPage),
-                $allProjects->count(),
-                $perPage,
-                $page,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-        }
-
-        else if ($sortField) {
-            $query->orderBy($sortField, $direction);
-            $projects = $query->paginate(10);
-        } 
-
-        else {
-            $allProjects = $query->get()->sortBy(function($project) {
-                return strtolower($project->name);
-            });
-
-            $page = $request->input('page', 1);
-            $perPage = 10;
-            $projects = new LengthAwarePaginator(
-                $allProjects->slice(($page - 1) * $perPage, $perPage),
-                $allProjects->count(),
-                $perPage,
-                $page,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-        }
+        $projects = $query->get();
+        
         foreach ($projects as $project) {
             $project->assigned_users_count = $project->users()->count();
+            
             $billedShifts = $project->shifts()->where('billed', true)->get();
             $billedHours = 0;
-            
             foreach ($billedShifts as $shift) {
                 $billedHours += $shift->duration ? $shift->duration / 60 : 0;
             }
-
             $project->billed_hours = $billedHours;
+            
             $unbilledShifts = $project->shifts()->where('billed', false)->get();
             $unbilledHours = 0;
-
             foreach ($unbilledShifts as $shift) {
                 $unbilledHours += $shift->duration ? $shift->duration / 60 : 0;
             }
-            
             $project->unbilled_hours = $unbilledHours;
+        }
+        
+        // Sort projects
+        if ($sortField === 'name') {
+            $projects = $projects->sortBy(function($project) {
+                return strtolower($project->name);
+            }, SORT_STRING, $direction === 'desc');
+        } else {
+            $projects = $projects->sortBy($sortField, SORT_REGULAR, $direction === 'desc');
         }
         
         return view('projects.index', compact('projects'));

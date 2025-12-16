@@ -29,19 +29,24 @@ function buildParams($paramConfig, $item) {
 @endphp
 
 <div class="card shadow-sm" id="dynamic-table-container">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h6 class="mb-0">
-            <i class="bi bi-table me-2"></i> 
-            {{ $items->total() }} {{ $items->total() == 1 ? Str::singular($title ?? 'Item') : Str::plural($title ?? 'Items') }} Found
-        </h6>
-        <div class="d-flex gap-2">
-            <small class="text-muted">
-                Showing {{ $items->firstItem() ?? 0 }}-{{ $items->lastItem() ?? 0 }} of {{ $items->total() }}
-            </small>
-        </div>
-    </div>
     <div class="card-body p-0">
         @if($items->count() > 0)
+            <div class="p-3 border-bottom">
+                <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control" 
+                           id="tableSearchInput" 
+                           placeholder="Search {{ strtolower($title ?? 'items') }}..." 
+                           autocomplete="off">
+                    <button class="btn btn-outline-secondary" type="button" id="clearSearchBtn" style="display: none;">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                <div id="searchResultCount" class="text-muted small mt-2" style="display: none;"></div>
+            </div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
@@ -170,7 +175,7 @@ function buildParams($paramConfig, $item) {
                                 
                                 @if(!empty($actions))
                                     <td>
-                                        <div class="d-flex gap-1">
+                                        <div class="d-flex gap-1 text-nowrap">
                                             @foreach($actions as $action)
                                                 @php
                                                     $showAction = true;
@@ -185,7 +190,7 @@ function buildParams($paramConfig, $item) {
                                                             <a href="{{ route($action['route'], $item) }}" 
                                                             class="btn btn-sm btn-outline-primary" 
                                                             title="{{ $action['label'] ?? 'View' }}">
-                                                                <i class="bi bi-{{ $action['icon'] ?? 'eye' }}"></i>
+                                                                View
                                                             </a>
                                                             @break
                                                             
@@ -193,7 +198,7 @@ function buildParams($paramConfig, $item) {
                                                             <a href="{{ route($action['route'], $item) }}" 
                                                             class="btn btn-sm btn-outline-secondary" 
                                                             title="{{ $action['label'] ?? 'Edit' }}">
-                                                                <i class="bi bi-{{ $action['icon'] ?? 'pencil-square' }}"></i>
+                                                                Edit
                                                             </a>
                                                             @break
                                                             
@@ -232,7 +237,7 @@ function buildParams($paramConfig, $item) {
                                                                 <a href="{{ route($action['route'], $params) }}" 
                                                                 class="btn btn-sm btn-outline-{{ $action['color'] ?? 'secondary' }}" 
                                                                 title="{{ $action['label'] ?? 'Action' }}">
-                                                                    <i class="bi bi-{{ $action['icon'] ?? 'gear' }}"></i>
+                                                                    {{ $action['label'] }}
                                                                 </a>
                                                             @endif
                                                     @endswitch
@@ -260,13 +265,6 @@ function buildParams($paramConfig, $item) {
             </div>
         @endif
     </div>
-    @if($items->hasPages())
-        <div class="card-footer">
-            <div class="d-flex justify-content-center">
-                {{ $items->links('partials.pagination') }}
-            </div>
-        </div>
-    @endif
 </div>
 
 <!-- Delete Confirmation Modal -->
@@ -301,6 +299,48 @@ function buildParams($paramConfig, $item) {
         document.getElementById('deleteForm').action = deleteUrl;
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
     }
+
+    // Search/Filter functionality
+    (function() {
+        const searchInput = document.getElementById('tableSearchInput');
+        const clearBtn = document.getElementById('clearSearchBtn');
+        const resultCount = document.getElementById('searchResultCount');
+        const tableBody = document.querySelector('#dynamic-table-container tbody');
+        
+        if (searchInput && tableBody) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                const rows = tableBody.querySelectorAll('tr');
+                let visibleCount = 0;
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Show/hide clear button
+                if (searchTerm.length > 0) {
+                    clearBtn.style.display = 'block';
+                    resultCount.style.display = 'block';
+                    resultCount.textContent = `Showing ${visibleCount} of ${rows.length} items`;
+                } else {
+                    clearBtn.style.display = 'none';
+                    resultCount.style.display = 'none';
+                }
+            });
+            
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+                searchInput.focus();
+            });
+        }
+    })();
 
     function sortBy(event, column, direction) {
         event.preventDefault();

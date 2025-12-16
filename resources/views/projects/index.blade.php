@@ -7,13 +7,11 @@
             <h1 class="display-5 mb-3">
                 Projects
             </h1>
-            <p class="lead mb-1">
+            <div class="d-flex align-items-center gap-2">
                 @if (auth()->user()->isAdmin())
-                    <a href="{{ route('projects.create') }}" class="btn btn-outline-secondary">Add New Project</a>
+                    <a href="{{ route('projects.create') }}" class="btn btn-secondary">Add New Project</a>
                 @endif
-            </p>
-            <div class="d-flex gap-2 justify-content-center flex-wrap mt-3">
-                <a href="{{ route('projects.manage') }}" class="btn btn-outline-primary">Manage Projects</a>
+                <a href="{{ route('projects.manage') }}" class="btn btn-primary">Manage Project Assignments</a>
             </div>
         </div>
     </div>
@@ -34,7 +32,7 @@
 
 
         $actions = [
-            ['key' => 'view_details', 'label' => 'View Details', 'icon' => 'eye', 'route' => 'projects.show', 'color' => 'primary'],
+            // ['key' => 'view_details', 'label' => 'View Details', 'icon' => 'eye', 'route' => 'projects.show', 'color' => 'primary'],
             ['key' => 'add_shift', 'label' => 'Add Shift', 'icon' => 'clock', 'route' => 'shifts.create', 'color' => 'success', 'params' => ['proj_id' => 'id']]
         ];
         
