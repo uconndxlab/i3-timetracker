@@ -102,10 +102,14 @@ function buildParams($paramConfig, $item) {
                                             @case('boolean')
                                                 <div class="d-flex justify-content-center align-items-center h-100">
                                                     <div class="form-check mb-0">
-                                                        <input class="form-check-input" type="checkbox" disabled 
+                                                        <input class="form-check-input billing-checkbox" 
+                                                            type="checkbox" 
+                                                            disabled 
+                                                            data-shift-id="{{ $item->id ?? '' }}"
+                                                            data-field="{{ $col['key'] }}"
+                                                            data-original-value="{{ $value ? '1' : '0' }}"
                                                             {{ $value ? 'checked' : '' }}
                                                             style="width: 1.3rem; height: 1.3rem; cursor: default; 
-                                                                background-color: {{ $value ? '#0d6efd' : '#fff' }};
                                                                 box-shadow: none;
                                                                 border-radius: 0.5rem;">
                                                     </div>

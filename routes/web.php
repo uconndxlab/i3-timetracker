@@ -22,6 +22,7 @@ Route::middleware('cas.auth')->group(function () {
 
         Route::get('/projects/{project}/manage', [AdminController::class, 'manageProject'])->name('projects.manage');
         Route::post('/projects/{project}/mark-remaining-billed', [AdminController::class, 'markProjectRemainingBilled'])->name('projects.mark-remaining-billed');
+        Route::post('/projects/{project}/batch-update-shifts', [AdminController::class, 'batchUpdateShifts'])->name('projects.batch-update-shifts');
         Route::get('/shifts', [AdminController::class, 'viewAllShifts'])->name('shifts.index');
         
         Route::get('/users', [AdminController::class, 'viewAllUsers'])->name('users.index');

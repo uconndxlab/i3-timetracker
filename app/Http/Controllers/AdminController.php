@@ -148,6 +148,48 @@ class AdminController extends Controller
         return redirect()->back()->with('info', 'No unbilled shifts to mark.');
     }
 
+    public function batchUpdateShifts(Request $request, Project $project)
+    {
+        $updates = $request->input('updates', []);
+        
+        if (empty($updates)) {
+            return response()->json(['success' => false, 'message' => 'No updates provided']);
+        }
+        
+        $updatedCount = 0;
+        
+        foreach ($updates as $shiftId => $changes) {
+            $shift = Shift::where('id', $shiftId)
+                ->whereHas('project', function($query) use ($project) {
+                    $query->where('id', $project->id);
+                })
+                ->first();
+            
+            if ($shift) {
+                $updateData = [];
+                
+                if (isset($changes['billed'])) {
+                    $updateData['billed'] = (bool) $changes['billed'];
+                }
+                
+                if (isset($changes['entered'])) {
+                    $updateData['entered'] = (bool) $changes['entered'];
+                }
+                
+                if (!empty($updateData)) {
+                    $shift->update($updateData);
+                    $updatedCount++;
+                }
+            }
+        }
+        
+        return response()->json([
+            'success' => true, 
+            'message' => "{$updatedCount} shift(s) updated successfully",
+            'updated_count' => $updatedCount
+        ]);
+    }
+
 
 
     // public function showProjectUsers(Project $project)
