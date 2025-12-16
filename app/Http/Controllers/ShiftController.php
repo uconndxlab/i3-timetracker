@@ -33,13 +33,14 @@ class ShiftController extends Controller
             }
         }
         if ($user->isAdmin()) {
-            $projects = Project::where('active', true)->get();
+            $projects = Project::where('active', true)->orderBy('name')->get();
         } else {
             $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
                 ->where('project_user.user_netid', $user->netid)
                 ->pluck('projects.id');
             $projects = Project::whereIn('id', $projectIds)
                 ->where('active', true)
+                ->orderBy('name')
                 ->get();
         }
 
