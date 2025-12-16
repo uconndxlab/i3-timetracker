@@ -38,7 +38,7 @@ class ProjectController extends Controller
         }
         
         $shifts = $shiftsQuery
-            ->orderBy($sortField, $direction);
+            ->orderBy($sortField, $direction)->get();
         
         foreach ($shifts as $shift) {
             $shift->time_range = $shift->date->format('M d, Y');
