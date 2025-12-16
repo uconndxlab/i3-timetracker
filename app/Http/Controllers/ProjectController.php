@@ -28,7 +28,7 @@ class ProjectController extends Controller
     public function show(Project $project, Request $request) 
     {
         $user = auth()->user();
-        $sortField = $request->input('sort', 'start_time');
+        $sortField = $request->input('sort', 'date');
         $direction = $request->input('direction', 'desc');
     
         $shiftsQuery = $project->shifts()->with('user');
@@ -38,8 +38,7 @@ class ProjectController extends Controller
         }
         
         $shifts = $shiftsQuery
-            ->orderBy($sortField, $direction)
-            ->paginate(10);
+            ->orderBy($sortField, $direction);
         
         foreach ($shifts as $shift) {
             $shift->time_range = $shift->date->format('M d, Y');
