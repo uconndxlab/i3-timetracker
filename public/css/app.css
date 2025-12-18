@@ -218,7 +218,7 @@ body {
     background-color: var(--uconn-white);
 }
 
-.list-group-item:hover {
+.list-group-item:not(.noani):hover {
     transform: translateX(5px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     border-color: var(--uconn-blue);

@@ -124,6 +124,12 @@
                     </div>
                 </div>
                 
+                <h6 class="mb-2">Breakdown by User:</h6>
+                <div id="userBreakdown" class="mb-3" style="max-height: 250px; overflow-y: auto;">
+                    <!-- Per-user breakdown will be listed here -->
+                </div>
+                
+                <h6 class="mb-2">Detailed Changes:</h6>
                 <div id="changesDetail" class="mb-3" style="max-height: 200px; overflow-y: auto;">
                     <!-- Changes will be listed here -->
                 </div>
@@ -305,9 +311,10 @@
             return;
         }
         
-        // Calculate summary
+        // Calculate summary and per-user breakdown
         let newlyBilledHours = 0;
         let changesHtml = '<ul class="list-unstyled">';
+        let userStats = new Map(); // userName -> { shifts: count, hours: total, newlyBilledHours: total }
         
         changedShifts.forEach((changes, shiftId) => {
             const row = document.querySelector(`[data-shift-id="${shiftId}"]`).closest('tr');
@@ -315,6 +322,16 @@
             const nameCell = row.cells[1].textContent.trim();
             const durationText = row.cells[2].textContent.trim();
             const hours = parseFloat(durationText.replace(' hr', '')) || 0;
+            
+            // Initialize user stats if not exists
+            if (!userStats.has(nameCell)) {
+                userStats.set(nameCell, { shifts: 0, hours: 0, newlyBilledHours: 0 });
+            }
+            
+            // Update user stats
+            const stats = userStats.get(nameCell);
+            stats.shifts += 1;
+            stats.hours += hours;
             
             let changeText = '';
             if (changes.hasOwnProperty('billed')) {
@@ -324,6 +341,7 @@
                     const billedCheckbox = row.querySelector('[data-field="billed"]');
                     if (billedCheckbox.dataset.originalValue === '0') {
                         newlyBilledHours += hours;
+                        stats.newlyBilledHours += hours;
                     }
                 }
             }
@@ -340,8 +358,29 @@
         
         changesHtml += '</ul>';
         
+        // Build user breakdown HTML
+        let userBreakdownHtml = '<div class="list-group">';
+        userStats.forEach((stats, userName) => {
+            userBreakdownHtml += `
+                <div class="list-group-item noani">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${userName}</strong>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted d-block">${stats.shifts} shift${stats.shifts !== 1 ? 's' : ''} modified</small>
+                            <small class="text-muted d-block">${stats.hours.toFixed(2)} hr total</small>
+                            ${stats.newlyBilledHours > 0 ? `<small class="text-success d-block"><strong>${stats.newlyBilledHours.toFixed(2)} hr newly billed</strong></small>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        userBreakdownHtml += '</div>';
+        
         document.getElementById('modifiedShiftsCount').textContent = changedShifts.size;
         document.getElementById('newlyBilledHours').textContent = newlyBilledHours.toFixed(2);
+        document.getElementById('userBreakdown').innerHTML = userBreakdownHtml;
         document.getElementById('changesDetail').innerHTML = changesHtml;
         
         new bootstrap.Modal(document.getElementById('completeBillingModal')).show();
