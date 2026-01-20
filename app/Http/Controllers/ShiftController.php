@@ -50,23 +50,9 @@ class ShiftController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $query = Shift::query();
         $sortField = $request->input('sort');
         $direction = $request->input('direction', 'asc');
-        $week = (int) $request->input('week', 0);
-        $prev = $week - 1;
-        $next = $week + 1;
-        $currOffset = $week;
-        $startDate = now()->startOfWeek()->addWeeks($week);
-        $endDate = now()->startOfWeek()->addWeeks($week + 1)->subDay();
-        $start = $startDate->format('M j, Y');
-        $end = $endDate->format('M j, Y');
-        $query = Shift::query();
-        
-        if ($week !== null) {
-            $queryStartDate = now()->startOfWeek()->addWeeks($week)->format('Y-m-d');
-            $queryEndDate = now()->startOfWeek()->addWeeks($week + 1)->format('Y-m-d');
-            $query->whereBetween('date', [$queryStartDate, $queryEndDate]);
-        }
         
         if (!$user->isAdmin()) {
             $query->where('netid', $user->netid);
@@ -102,7 +88,7 @@ class ShiftController extends Controller
             $shift->can_edit = $user->isAdmin() || ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
         }
         
-        return view('shifts.index', compact('shifts', 'prev', 'next', 'week', 'start', 'end', 'currOffset'));
+        return view('shifts.index', compact('shifts'));
     }
 
     public function store(Request $request)

@@ -8,7 +8,7 @@
                 Time Shifts
             </h1>
         
-            <div class="mt-4 d-flex justify-content-center align-items-center gap-3">
+            {{-- <div class="mt-4 d-flex justify-content-center align-items-center gap-3">
                 <a href="{{ route('shifts.index', ['week' => $prev]) }}" class="btn btn-outline-secondary">
                     <i class="bi bi-chevron-left"></i> Previous Week
                 </a>
@@ -23,7 +23,7 @@
                         Current Week
                     </a>
                 @endif
-            </div>
+            </div> --}}
         </div>
     </div>
 
@@ -60,5 +60,10 @@
         'create_route' => 'shifts.create',
         'create_label' => 'Add New Shift'
     ])
+
+    <div class="mt-4 d-flex justify-content-center">
+        {{ $shifts->links('partials.pagination') }}
+    </div>
+    
 </div>
 @endsection
