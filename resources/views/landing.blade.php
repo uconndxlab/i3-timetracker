@@ -39,45 +39,10 @@
         </div>
     </div>
 
+    {{-- show projects in a clean list with hours you have contributed split into billed / unbilled, and then also add shift form here --}}
+
     <div class="row">
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm h-100 border-0">
-                <div class="card-header bg-white border-bottom">
-                    <h2 class="h5 mb-0 d-flex align-items-center">
-                        <i class="text-primary"></i>
-                        <span class="text-dark">Recent Activity</span>
-                    </h2>
-                </div>
-                <div class="card-body">
-                    @if($activeShifts->count() > 0)
-                        @php
-                            $recentShifts = $activeShifts->sortByDesc('updated_at')->take(5);
-                        @endphp
-                        <div class="list-group list-group-flush">
-                            @foreach($recentShifts as $shift)
-                                <a href="{{ route('projects.show', $shift->project) }}" class="list-group-item list-group-item-action px-0 py-3 border-0 border-bottom">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-1 text-primary">{{ $shift->project->name }}</h6>
-                                            <p class="text-muted mb-0 small">
-                                                <i class="bi bi-clock me-1"></i>{{ $shift->updated_at->diffForHumans() }}
-                                            </p>
-                                        </div>
-                                        <i class="bi bi-chevron-right text-muted"></i>
-                                    </div>
-                                </a>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center py-4">
-                            <i class="bi bi-activity text-muted" style="font-size: 2rem;"></i>
-                            <p class="text-muted mb-0">No recent activity</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-8">
+        {{-- <div class="col-lg-8"> --}}
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white border-bottom">
                     <div class="d-flex justify-content-between align-items-center">
@@ -104,7 +69,26 @@
                                             <h5 class="card-title text-primary mb-0">
                                                 <a href="{{ route('shifts.create', ['proj_id' => $project->id]) }}" class="text-primary text-decoration-none">
                                                     {{ $project->name }}
+
+                                                    {{-- show hours contributed into billed / unbilled --}}
+                                                    <a href="{{ route('shifts.create', ['proj_id' => $project->id]) }}" class="text-decoration-none">
+                                                        <span class="badge bg-secondary ms-2">
+                                                            <i class="bi"></i>
+                                                            @php
+                                                                $billedHours = $project->shifts()
+                                                                    ->where('netid', auth()->user()->netid)
+                                                                    ->where('billed', true)
+                                                                    ->sum('duration');
+                                                                $unbilledHours = $project->shifts()
+                                                                    ->where('netid', auth()->user()->netid)
+                                                                    ->where('billed', false)
+                                                                    ->sum('duration');
+                                                            @endphp
+                                                            {{ $billedHours }} billed / {{ $unbilledHours }} unbilled
+                                                        </span>
+                                                    </a>
                                                 </a>
+
                                             </h5>
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div class="text-muted small">
@@ -128,7 +112,7 @@
                     @endif
                 </div>
             </div>
-        </div>
+        {{-- </div> --}}
     </div>
 </div>
 @endsection
