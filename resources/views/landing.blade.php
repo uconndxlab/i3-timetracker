@@ -26,8 +26,15 @@
                 
                 <div class="col-md-5">
                     <div class="p-4 h-100 d-flex flex-column justify-content-center align-items-center bg-light border rounded shadow-sm">
-                        <div class="display-1 fw-bold text-primary mb-0">{{ $hoursThisWeek }}</div>
-                        <p class="mb-2 text-uppercase fw-semibold text-muted small">Hours This Week</p>
+                        <div class="text-center mb-2">
+                            <div class="display-4 fw-bold mb-0" style="color: var(--uconn-navy);">{{ $hoursThisWeek }}</div>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem; letter-spacing: 0.05em;">HOURS THIS WEEK</p>
+                        </div>
+                        <div style="height: 100px; position: relative; margin: 1rem -0.5rem 0.5rem;">
+                            <canvas id="weeklyHoursChart"></canvas>
+                        </div>
+                        {{-- <div class="display-1 fw-bold text-primary mb-0">{{ $hoursThisWeek }}</div>
+                        <p class="mb-2 text-uppercase fw-semibold text-muted small">Hours This Week</p> --}}
                         <div class="mt-3">
                             <a href="{{ route('shifts.index') }}" class="btn btn-sm btn-outline-secondary">
                                 View All Shifts
@@ -115,4 +122,99 @@
         {{-- </div> --}}
     </div>
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const ctx = document.getElementById('weeklyHoursChart');
+const dailyData = @json(array_values($dailyHours));
+const dailyLabels = @json(array_keys($dailyHours));
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: dailyLabels,
+        datasets: [{
+            label: 'Hours',
+            data: dailyData,
+            backgroundColor: 'rgba(0, 14, 47, 0.1)',
+            borderColor: 'rgba(0, 14, 47, 0.4)',
+            borderWidth: 1.5,
+            fill: true,
+            tension: 0.3, // smoothing
+            pointRadius: 0, // 0 no pt
+            pointHoverRadius: 4,
+            pointHoverBackgroundColor: 'rgb(0, 14, 47)',
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        // layout: {
+        //     padding: {
+        //         top: 1,
+        //         bottom: 0,
+        //     }
+        // },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                padding: 6,
+                titleFont: {
+                    size: 11,
+                    weight: 'normal'
+                },
+                bodyFont: {
+                    size: 10
+                },
+                displayColors: false,
+                caretSize: 4,
+                callbacks: {
+                    title: function(context) {
+                        return context[0].label;
+                    },
+                    label: function(context) {
+                        const hours = context.parsed.y;
+                        return hours + 'h';
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                display: false,
+                beginAtZero: true,
+                grace: '10%'
+            },
+            x: {
+                ticks: {
+                    font: {
+                        size: 9,
+                        weight: '300'
+                    },
+                    color: '#bbb',
+                    padding: 4
+                },
+                grid: {
+                    display: false
+                },
+                border: {
+                    display: false
+                }
+            }
+        },
+        interaction: {
+            intersect: false,
+            mode: 'index'
+        }
+    }
+});
+</script>
+@endpush
+
 @endsection

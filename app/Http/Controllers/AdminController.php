@@ -32,8 +32,21 @@ class AdminController extends Controller
 
         $hoursThisWeek = round($totalMinutesThisWeek / 60, 2);
         // small issue of shifts that go from Saturday night -> Sunday morning are between weeks (just gonna count for previous week)
+        
+        $dailyHours = [];
+        for ($i = 0; $i < 7; $i++) {
+            $date = $startOfWeek->copy()->addDays($i);
+            $dateString = $date->format('Y-m-d');
+            
+            $dayMinutes = $shiftsThisWeek->filter(function($shift) use ($dateString) {
+                $shiftDate = $shift->date ? $shift->date->format('Y-m-d') : $shift->date;
+                return $shiftDate === $dateString;
+            })->sum('duration');
+            
+            $dailyHours[$date->format('D')] = round($dayMinutes / 60, 2);
+        }
 
-        return view('landing', compact('activeProjects', 'activeShifts', 'hoursThisWeek'));
+        return view('landing', compact('activeProjects', 'activeShifts', 'hoursThisWeek', 'dailyHours'));
     }
 
     public function login()
