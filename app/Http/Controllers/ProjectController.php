@@ -59,23 +59,14 @@ class ProjectController extends Controller
         if ($user->isAdmin()) {
             $shiftActions[] = ['key' => 'delete', 'label' => 'Delete Shift', 'icon' => 'trash', 'route' => 'shifts.destroy', 'method' => 'DELETE', 'confirm' => 'Are you sure you want to delete this shift?'];
         }
-        $totalHours = 0;
-        $billedHours = 0;
-        $unbilledHours = 0;
 
-        $userShifts = $user->isAdmin() ? $project->shifts : $project->shifts->where('netid', $user->netid);
+        $hours = $user->isAdmin() 
+            ? $project->getAllHours() 
+            : $project->getHoursForUser($user->netid);
         
-        foreach ($userShifts as $shift) {
-            $hours = $shift->duration ? $shift->duration / 60 : 0;
-            $totalHours += $hours;
-            
-            if ($shift->billed) {
-                $billedHours += $hours;
-            }
-            else {
-                $unbilledHours += $hours;
-            }
-        }
+        $totalHours = $hours['total_hours'];
+        $billedHours = $hours['billed_hours'];
+        $unbilledHours = $hours['unbilled_hours'];
         
         $unbilledShiftCount = $user->isAdmin() 
             ? $project->shifts()->where('billed', false)->count() 
@@ -109,10 +100,7 @@ class ProjectController extends Controller
         $query = Project::query();
         
         if (!$user->isAdmin()) {
-            $query->join('project_user', 'projects.id', '=', 'project_user.project_id')
-                ->where('project_user.user_netid', $user->netid)
-                ->select('projects.*')
-                ->distinct();
+            $query->assignedToUser($user->netid);
         }
         
         $projects = $query->get();
@@ -120,27 +108,17 @@ class ProjectController extends Controller
         foreach ($projects as $project) {
             $project->assigned_users_count = $project->users()->count();
             
-            $billedShifts = $project->shifts()->where('billed', true)->get();
-            $billedHours = 0;
-            foreach ($billedShifts as $shift) {
-                $billedHours += $shift->duration ? $shift->duration / 60 : 0;
-            }
-            $project->billed_hours = $billedHours;
-            
-            $unbilledShifts = $project->shifts()->where('billed', false)->get();
-            $unbilledHours = 0;
-            foreach ($unbilledShifts as $shift) {
-                $unbilledHours += $shift->duration ? $shift->duration / 60 : 0;
-            }
-            $project->unbilled_hours = $unbilledHours;
+            $hours = $project->getAllHours();
+            $project->billed_hours = $hours['billed_hours'];
+            $project->unbilled_hours = $hours['unbilled_hours'];
         }
         
-        // Sort projects
         if ($sortField === 'name') {
             $projects = $projects->sortBy(function($project) {
                 return strtolower($project->name);
             }, SORT_STRING, $direction === 'desc');
-        } else {
+        } 
+        else {
             $projects = $projects->sortBy($sortField, SORT_REGULAR, $direction === 'desc');
         }
         

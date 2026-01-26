@@ -15,9 +15,17 @@ class AdminController extends Controller
 {
     public function landing()
     {
-        $activeProjects = Project::where('active', true)->latest('updated_at')->get()->filter(function($project) {
-            return $project->users->contains('netid', auth()->user()->netid);
-        });
+        $activeProjects = Project::where('projects.active', true)
+            ->assignedToUser(auth()->user()->netid)
+            ->latest('updated_at')
+            ->get();
+        
+        foreach ($activeProjects as $project) {
+            $hours = $project->getHoursForUser(auth()->user()->netid);
+            $project->billed_hours = $hours['billed_hours'];
+            $project->unbilled_hours = $hours['unbilled_hours'];
+        }
+        
         $activeShifts = Shift::latest('updated_at')->get()->where('netid', auth()->user()->netid);
         $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY);
         $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY);
@@ -31,7 +39,6 @@ class AdminController extends Controller
         }, 0);
 
         $hoursThisWeek = round($totalMinutesThisWeek / 60, 2);
-        // small issue of shifts that go from Saturday night -> Sunday morning are between weeks (just gonna count for previous week)
         
         $dailyHours = [];
         for ($i = 0; $i < 7; $i++) {
