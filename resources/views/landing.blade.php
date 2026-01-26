@@ -46,81 +46,30 @@
         </div>
     </div>
 
-    {{-- show projects in a clean list with hours you have contributed split into billed / unbilled, and then also add shift form here --}}
+    @php
+        $columns = [
+            ['key' => 'name', 'label' => 'Project Name', 'sortable' => true, 'route' => 'projects.show'],
+            ['key' => 'billed_hours', 'label' => 'Billed Hours', 'sortable' => true],
+            ['key' => 'unbilled_hours', 'label' => 'Unbilled Hours', 'sortable' => true],
+            ['key' => 'active', 'label' => 'Status', 'sortable' => true, 'type' => 'boolean'],
+        ];
 
-    <div class="row">
-        {{-- <div class="col-lg-8"> --}}
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-bottom">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h2 class="h5 mb-0 d-flex align-items-center">
-                            <i class="text-primary"></i>
-                            <span class="text-dark">Your Projects</span>
-                        </h2>
-                    </div>
-                </div>
-                <div class="card-body"> 
-                    @if($activeProjects->isEmpty())
-                        <div class="text-center py-5">
-                            <div class="mb-3">
-                                <i class="bi bi-folder-x text-muted" style="font-size: 3rem;"></i>
-                            </div>
-                            <h3 class="h5 text-muted">No active projects</h3>
-                        </div>
-                    @else
-                        <div class="row g-3">
-                            @foreach ($activeProjects as $project)
-                                <div class="col-md-6">
-                                    <div class="card h-100 border shadow-sm">
-                                        <div class="card-body">
-                                            <h5 class="card-title text-primary mb-0">
-                                                <a href="{{ route('shifts.create', ['proj_id' => $project->id]) }}" class="text-primary text-decoration-none">
-                                                    {{ $project->name }}
+        $actions = [
+            ['key' => 'add_shift', 'label' => 'Add Shift', 'icon' => 'clock', 'route' => 'shifts.create', 'color' => 'success', 'params' => ['proj_id' => 'id']]
+        ];
+    @endphp
 
-                                                    {{-- show hours contributed into billed / unbilled --}}
-                                                    <a href="{{ route('shifts.create', ['proj_id' => $project->id]) }}" class="text-decoration-none">
-                                                        <span class="badge bg-secondary ms-2">
-                                                            <i class="bi"></i>
-                                                            @php
-                                                                $billedHours = $project->shifts()
-                                                                    ->where('netid', auth()->user()->netid)
-                                                                    ->where('billed', true)
-                                                                    ->sum('duration');
-                                                                $unbilledHours = $project->shifts()
-                                                                    ->where('netid', auth()->user()->netid)
-                                                                    ->where('billed', false)
-                                                                    ->sum('duration');
-                                                            @endphp
-                                                            {{ $billedHours }} billed / {{ $unbilledHours }} unbilled
-                                                        </span>
-                                                    </a>
-                                                </a>
-
-                                            </h5>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="text-muted small">
-                                                    @if($project->users_count ?? false)
-                                                    <span><i class="bi"></i>{{ $project->users_count }}</span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-footer bg-white border-top-0 text-muted small">
-                                            @if ($project->created_at)
-                                                <i class="bi"></i>Updated {{ $project->updated_at->diffForHumans() }}
-                                            @else
-                                                <span>Date not available</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            </div>
-        {{-- </div> --}}
-    </div>
+    @include('partials.table', [
+        // 'filterable' => true,
+        'items' => $activeProjects,
+        'columns' => $columns,
+        'actions' => $actions,
+        'title' => 'Your Projects',
+        'empty_message' => 'No active projects found.',
+        'empty_icon' => 'folder-x',
+        'create_route' => auth()->user()->isAdmin() ? 'projects.create' : null,
+        'create_label' => 'Create Project'
+    ])
 </div>
 
 @push('scripts')
