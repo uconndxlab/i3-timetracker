@@ -99,9 +99,9 @@ class ProjectController extends Controller
         
         $query = Project::query();
         
-        if (!$user->isAdmin()) {
-            $query->assignedToUser($user->netid);
-        }
+        // if (!$user->isAdmin()) {
+        //     $query->assignedToUser($user->netid);
+        // }
         
         $projects = $query->get();
         

@@ -5,7 +5,7 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5 mb-3">
-                Projects
+                All Projects
             </h1>
             <div class="d-flex align-items-center gap-2">
                 @if (auth()->user()->isAdmin())
@@ -21,7 +21,7 @@
             ['key' => 'name', 'label' => 'Project Name', 'sortable' => true, 'route' => 'projects.show'],
             ['key' => 'billed_hours', 'label' => 'Billed Hours', 'sortable' => true],
             ['key' => 'unbilled_hours', 'label' => 'Unbilled Hours', 'sortable' => true],
-            ['key' => 'active', 'label' => 'Status', 'sortable' => true, 'type' => 'boolean'],
+            ['key' => 'active', 'label' => 'Active', 'sortable' => true, 'type' => 'boolean'],
         ];
 
         if (auth()->user()->isAdmin()) {
