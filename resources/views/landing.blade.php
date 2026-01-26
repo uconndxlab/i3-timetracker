@@ -126,94 +126,112 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-const ctx = document.getElementById('weeklyHoursChart');
-const dailyData = @json(array_values($dailyHours));
-const dailyLabels = @json(array_keys($dailyHours));
 
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: dailyLabels,
-        datasets: [{
-            label: 'Hours',
-            data: dailyData,
-            backgroundColor: 'rgba(0, 14, 47, 0.1)',
-            borderColor: 'rgba(0, 14, 47, 0.4)',
-            borderWidth: 1.5,
-            fill: true,
-            tension: 0.3, // smoothing
-            pointRadius: 0, // 0 no pt
-            pointHoverRadius: 4,
-            pointHoverBackgroundColor: 'rgb(0, 14, 47)',
-            pointHoverBorderColor: '#fff',
-            pointHoverBorderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        // layout: {
-        //     padding: {
-        //         top: 1,
-        //         bottom: 0,
-        //     }
-        // },
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                padding: 6,
-                titleFont: {
-                    size: 11,
-                    weight: 'normal'
-                },
-                bodyFont: {
-                    size: 10
-                },
-                displayColors: false,
-                caretSize: 4,
-                callbacks: {
-                    title: function(context) {
-                        return context[0].label;
-                    },
-                    label: function(context) {
-                        const hours = context.parsed.y;
-                        return hours + 'h';
-                    }
-                }
-            }
-        },
-        scales: {
-            y: {
-                display: false,
-                beginAtZero: true,
-                grace: '10%'
-            },
-            x: {
-                ticks: {
-                    font: {
-                        size: 9,
-                        weight: '300'
-                    },
-                    color: '#bbb',
-                    padding: 4
-                },
-                grid: {
-                    display: false
-                },
-                border: {
-                    display: false
-                }
-            }
-        },
-        interaction: {
-            intersect: false,
-            mode: 'index'
+(function() {
+    const initChart = () => {
+        if (typeof Chart === 'undefined') {
+            // console.error('Chart.js is not loaded.');
+            setTimeout(initChart, 50);
+            return;
         }
+
+        const ctx = document.getElementById('weeklyHoursChart');
+        const dailyData = @json(array_values($dailyHours));
+        const dailyLabels = @json(array_keys($dailyHours));
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dailyLabels,
+                datasets: [{
+                    label: 'Hours',
+                    data: dailyData,
+                    backgroundColor: 'rgba(0, 14, 47, 0.1)',
+                    borderColor: 'rgba(0, 14, 47, 0.4)',
+                    borderWidth: 1.5,
+                    fill: true,
+                    tension: 0.3, // smoothing
+                    pointRadius: 0, // 0 no pt
+                    pointHoverRadius: 4,
+                    pointHoverBackgroundColor: 'rgb(0, 14, 47)',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                // layout: {
+                //     padding: {
+                //         top: 1,
+                //         bottom: 0,
+                //     }
+                // },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        padding: 6,
+                        titleFont: {
+                            size: 11,
+                            weight: 'normal'
+                        },
+                        bodyFont: {
+                            size: 10
+                        },
+                        displayColors: false,
+                        caretSize: 4,
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                const hours = context.parsed.y;
+                                return hours + 'h';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        display: false,
+                        beginAtZero: true,
+                        grace: '10%'
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 9,
+                                weight: '300'
+                            },
+                            color: '#bbb',
+                            padding: 4
+                        },
+                        grid: {
+                            display: false
+                        },
+                        border: {
+                            display: false
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                }
+            }
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initChart);
+    } else {
+        initChart();
     }
-});
+})();
+
 </script>
 @endpush
 
