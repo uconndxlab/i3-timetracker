@@ -5,7 +5,7 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5">
-                Time Shifts
+                Your Shifts
             </h1>
         
             {{-- <div class="mt-4 d-flex justify-content-center align-items-center gap-3">
@@ -61,9 +61,9 @@
         'create_label' => 'Add New Shift'
     ])
 
-    <div class="mt-4 d-flex justify-content-center">
+    {{-- <div class="mt-4 d-flex justify-content-center">
         {{ $shifts->links('partials.pagination') }}
-    </div>
+    </div> --}}
     
 </div>
 @endsection
