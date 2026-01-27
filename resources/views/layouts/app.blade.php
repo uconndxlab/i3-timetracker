@@ -38,14 +38,14 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('shifts.*') ? 'active' : '' }}" href="{{ route('shifts.index') }}">
+                        <a class="nav-link {{ request()->routeIs('shifts.index') || request()->routeIs('shifts.edit') ? 'active' : '' }}" href="{{ route('shifts.index') }}">
                             Shifts
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('shifts.create') }}">
-                            <i class="bi me-1"></i>Log Shift
+                        <a class="nav-link {{ request()->routeIs('shifts.create') ? 'active' : '' }}" href="{{ route('shifts.create') }}">
+                            <i class="bi bi-calendar-plus-fill me-1"></i>Log Shift
                         </a>
                     </li>
 
