@@ -81,7 +81,7 @@ class ShiftController extends Controller
             $query->orderBy('date', 'desc');
         }
         
-        $shifts = $query->with(['user', 'project'])->paginate(10);
+        $shifts = $query->with(['user', 'project'])->get();
         foreach ($shifts as $shift) {
             $shift->shift_date = $shift->date->format('M d, Y');
             // $shift->duration = $shift->duration ? number_format($shift->duration / 60, 2) . ' hrs' : '-';
