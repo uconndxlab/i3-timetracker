@@ -260,7 +260,7 @@ class ShiftController extends Controller
             $query->orderBy('date', 'desc');
         }
         
-        $shifts = $query->with(['user', 'project'])->paginate(50)->appends($request->query());
+        $shifts = $query->with(['user', 'project'])->paginate(30)->appends($request->except('page'));
         
         foreach ($shifts as $shift) {
             $shift->shift_date = $shift->date ? $shift->date->format('M d, Y') : '-';
