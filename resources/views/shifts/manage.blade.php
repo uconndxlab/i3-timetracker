@@ -5,15 +5,12 @@
     <div class="page-header text-center">
         <div class="container">
             <h1 class="display-5">
-                Time Shifts
+                All Staff Shifts
             </h1>
-            <p class="lead mb-0">
-                All staff time entries
-            </p>
         </div>
     </div>
 
-    <form method="GET" action="{{ route('admin.shifts.index') }}" class="mb-2">
+    <form method="GET" action="{{ route('shifts.manage') }}" class="mb-2">
         <div class="row g-2 align-items-center">
             <div class="col-md-2 ">
                 <input type="text" name="search" class="form-control" placeholder="Enter staff name" value="{{ request('search') }}">
@@ -45,7 +42,7 @@
                 </button>
             </div>
             <div class="col-md-auto">
-                <a href="{{ route('admin.shifts.index') }}" class="btn btn-outline-secondary px-4 d-flex align-items-center justify-content-center gap-2">
+                <a href="{{ route('shifts.manage') }}" class="btn btn-outline-secondary px-4 d-flex align-items-center justify-content-center gap-2">
                     Clear Filters
                 </a>
             </div>
