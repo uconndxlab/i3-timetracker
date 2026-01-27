@@ -77,7 +77,8 @@
         'create_route' => 'shifts.create',
         'create_label' => 'Add New Shift'
     ])
-    <div class="d-flex justify-content-center mt-4">
+
+    <div class="mt-4 d-flex justify-content-center">
         {{ $shifts->links('partials.pagination') }}
     </div>
 </div>
