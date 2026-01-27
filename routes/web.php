@@ -23,7 +23,6 @@ Route::middleware('cas.auth')->group(function () {
         Route::get('/projects/{project}/manage', [AdminController::class, 'manageProject'])->name('projects.manage');
         Route::post('/projects/{project}/mark-remaining-billed', [AdminController::class, 'markProjectRemainingBilled'])->name('projects.mark-remaining-billed');
         Route::post('/projects/{project}/batch-update-shifts', [AdminController::class, 'batchUpdateShifts'])->name('projects.batch-update-shifts');
-        Route::get('/shifts', [AdminController::class, 'viewAllShifts'])->name('shifts.index');
         
         Route::get('/users', [AdminController::class, 'viewAllUsers'])->name('users.index');
         Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');
@@ -53,6 +52,7 @@ Route::middleware('cas.auth')->group(function () {
         Route::get('/{shift}/edit', 'edit')->name('edit');
         Route::put('/{shift}', 'update')->name('update');
         Route::delete('/{shift}', 'destroy')->name('destroy');
+        Route::get('/manage', 'viewAllShifts')->name('manage');
     });
 });
 
