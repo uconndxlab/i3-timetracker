@@ -39,7 +39,12 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('shifts.index') || request()->routeIs('shifts.edit') ? 'active' : '' }}" href="{{ route('shifts.index') }}">
-                            Shifts
+                            Your Shifts
+                        </a>
+                    </li>
+                    <li>
+                        <a class="nav-link {{ request()->routeIs('shifts.manage') ? 'active' : '' }}" href="{{ route('shifts.manage') }}">
+                            All Shifts
                         </a>
                     </li>
 
@@ -55,11 +60,6 @@
                                 Admin
                             </a>
                             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminDropdown">
-                                <li>
-                                    <a class="dropdown-item {{ request()->routeIs('admin.shifts.*') ? 'active' : '' }}" href="{{ route('admin.shifts.index') }}">
-                                        All Staff Shifts
-                                    </a>
-                                </li>
                                 <li>
                                     <a class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
                                         Manage Users
