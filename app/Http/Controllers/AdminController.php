@@ -71,67 +71,6 @@ class AdminController extends Controller
         
     }
 
-    public function viewAllShifts(Request $request)
-    {
-        $user = auth()->user();
-        $sortField = $request->input('sort');
-        $direction = $request->input('direction', 'asc');
-        $enteredFilter = $request->input('entered_filter');
-        $billedFilter = $request->input('billed_filter');
-        $search = $request->input('search'); // Get search parameter
-        
-        $query = Shift::query();
-        if ($search) {
-            $query->whereHas('user', function($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%');
-            });
-        }
-        
-        if ($enteredFilter !== null && $enteredFilter !== '') {
-            $query->where('entered', $enteredFilter == '1');
-        }
-        
-        if ($billedFilter !== null && $billedFilter !== '') {
-            $query->where('billed', $billedFilter == '1');
-        }
-        
-        if ($sortField === 'project.name') {
-            $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
-                ->select('shifts.*')
-                ->orderBy('projects.name', $direction);
-        }
-        else if ($sortField === 'user.name') {
-            $query->leftJoin('users', 'shifts.netid', '=', 'users.netid')
-                ->select('shifts.*')
-                ->orderByRaw('CASE WHEN users.name IS NULL THEN 1 ELSE 0 END, users.name ' . $direction);
-        }
-        else if ($sortField === 'shift_date') {
-            $query->orderBy('date', $direction);
-        }
-        else if ($sortField === 'duration') {
-            $query->orderBy('duration', $direction);
-        }
-        else if ($sortField === 'entered' || $sortField === 'billed') {
-            $query->orderBy($sortField, $direction);
-        }
-        else if ($sortField) {
-            $query->orderBy($sortField, $direction);
-        }
-        else {
-            $query->orderBy('date', 'desc');
-        }
-        
-        $shifts = $query->with(['user', 'project'])->paginate(50)->appends($request->query());
-        
-        foreach ($shifts as $shift) {
-            $shift->shift_date = $shift->date ? $shift->date->format('M d, Y') : '-';
-            $shift->can_edit = $user->isAdmin() || 
-                ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
-        }
-        
-        return view('admin.shifts', compact('shifts', 'enteredFilter', 'billedFilter', 'search'));
-    }
-
 
     // public function showProjectUnbilledUsers(Project $project)
     // {
