@@ -45,4 +45,14 @@ class Shift extends Model
     {
         return $this->belongsTo(Project::class, 'proj_id');
     }
+
+    public function getTotalHoursAttribute(): float
+    {
+        return $this->duration / 60;
+    }
+
+    public function getUnbilledHoursAttribute(): float
+    {
+        return !$this->billed ? ($this->duration / 60) : 0;
+    }
 }
