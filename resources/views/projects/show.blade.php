@@ -212,7 +212,14 @@
                 
                 <h6 class="mb-2">Detailed Changes:</h6>
                 <div id="changesDetail" class="mb-3" style="max-height: 200px; overflow-y: auto;">
-                    <!-- Changes will be listed here -->
+                    {{-- per shift: date, staff name, (hours) --}}
+                    <ul class="list-unstyled">
+                        @foreach($shifts->where('billed', false) as $shift)
+                            <li class="mb-2">
+                                <strong>{{ $shift->date->format('M d, Y') }}</strong> - {{ $shift->user->name }} ({{ number_format($shift->total_hours, 2) }} hr)
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
                 
                 <p class="mb-2"><strong>Project:</strong> {{ $project->name }}</p>
