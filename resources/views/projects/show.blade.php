@@ -162,10 +162,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-warning" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i>
-                    <strong>Warning:</strong> This action cannot be undone!
-                </div>
                 
                 <h6 class="mb-3">You are about to mark the following as billed:</h6>
                 
@@ -187,11 +183,42 @@
                         </div>
                     </div>
                 </div>
+
+                <h6 class="mb-2">Breakdown by User:</h6>
+                <div id="userBreakdown" class="mb-3" style="max-height: 250px; overflow-y: auto;">
+                    <!-- for each user: how many shifts to bill, total hours (on project so far), and how many new hours to bill --> 
+
+                    <div class="list-group">
+                        @foreach($shifts->groupBy('user.name') as $user => $data)
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ $user }}</strong>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted d-block">{{ number_format($data->where('billed', false)->count()) }} shifts modified</small>
+                                        <small class="text-muted d-block">
+                                            {{ number_format($data->sum('total_hours'), 2) }} hr total
+                                        </small>
+                                        <small class="text-success d-block">
+                                            <strong>{{ number_format($data->sum('unbilled_hours'), 2) }} hr newly billed</strong>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                
+                <h6 class="mb-2">Detailed Changes:</h6>
+                <div id="changesDetail" class="mb-3" style="max-height: 200px; overflow-y: auto;">
+                    <!-- Changes will be listed here -->
+                </div>
                 
                 <p class="mb-2"><strong>Project:</strong> {{ $project->name }}</p>
                 <p class="text-muted small mb-0">
                     Once marked as billed, these shifts cannot be automatically reverted. 
-                    You would need to manually update each shift individually to mark them as unbilled again.
+                    You will need to manually change each shift to unbilled again.
                 </p>
             </div>
             <div class="modal-footer">
