@@ -114,6 +114,7 @@ class ProjectController extends Controller
             $hours = $project->getAllHours();
             $project->billed_hours = $hours['billed_hours'];
             $project->unbilled_hours = $hours['unbilled_hours'];
+            $project->is_user_assigned = $project->users()->where('user_netid', $user->netid)->exists();
         }
         
         if ($sortField === 'name') {

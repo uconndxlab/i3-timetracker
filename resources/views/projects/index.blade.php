@@ -30,10 +30,10 @@
             ]);
         }
 
-
+        
         $actions = [
             // ['key' => 'view_details', 'label' => 'View Details', 'icon' => 'eye', 'route' => 'projects.show', 'color' => 'primary'],
-            ['key' => 'add_shift', 'label' => 'Add Shift', 'icon' => 'clock', 'route' => 'shifts.create', 'color' => 'success', 'params' => ['proj_id' => 'id']]
+            ['key' => 'add_shift', 'label' => 'Add Shift', 'icon' => 'clock', 'route' => 'shifts.create', 'color' => 'success', 'params' => ['proj_id' => 'id'], 'condition' => 'is_user_assigned']
         ];
         
         if (auth()->user()->isAdmin()) {
