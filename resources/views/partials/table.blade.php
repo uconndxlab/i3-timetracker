@@ -184,6 +184,12 @@ function buildParams($paramConfig, $item) {
                                             @foreach($actions as $action)
                                                 @php
                                                     $showAction = true;
+                                                    
+                                                    if (isset($action['condition'])) {
+                                                        $conditionProperty = $action['condition'];
+                                                        $showAction = isset($item->$conditionProperty) && $item->$conditionProperty;
+                                                    }
+                                                    
                                                     if (isset($action['show_if'])) {
                                                         $propertyName = $action['show_if'];
                                                         $showAction = isset($item->$propertyName) && $item->$propertyName;
