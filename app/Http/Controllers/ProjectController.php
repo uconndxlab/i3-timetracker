@@ -72,8 +72,11 @@ class ProjectController extends Controller
             ? $project->shifts()->where('billed', false)->count() 
             : $project->shifts()->where('netid', $user->netid)->where('billed', false)->count();
         
+        $description = $project->description ?: 'N/A';
+        
         return view('projects.show', compact(
             'project',
+            'description',
             'shifts',
             'shiftColumns',
             'shiftActions',

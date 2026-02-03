@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <div class="row mb-4">
                         <div class="col-md-8">
-                            <p><strong>Description:</strong> {{ $project->desc ?: 'N/A' }}</p>
+                            <p><strong>Description:</strong> {{ $project->description ?: 'N/A' }}</p>
                             <p><strong>Status:</strong> {{ $project->active ? 'Active' : 'Inactive' }}</p>
                             {{-- <p><strong>Created At:</strong> {{ $project->created_at->format('M d, Y') }}</p> --}}
                             <p><strong>Last Updated:</strong> {{ $project->updated_at->format('M d, Y') }}</p>
