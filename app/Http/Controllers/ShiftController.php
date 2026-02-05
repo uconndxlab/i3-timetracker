@@ -53,10 +53,6 @@ class ShiftController extends Controller
         $query = Shift::query();
         $sortField = $request->input('sort');
         $direction = $request->input('direction', 'asc');
-        
-        if (!$user->isAdmin()) {
-            $query->where('netid', $user->netid);
-        }
 
         if ($sortField === 'project.name') {
             $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
