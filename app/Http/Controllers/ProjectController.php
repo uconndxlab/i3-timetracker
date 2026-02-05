@@ -108,6 +108,14 @@ class ProjectController extends Controller
         
         $projects = $query->get();
         
+        $user_assigned_projects = $projects->filter(function($project) use ($user) {
+            return $project->users()->where('user_netid', $user->netid)->exists();
+        });
+        $non_user_assigned_projects = $projects->filter(function($project) use ($user) {
+            return !$project->users()->where('user_netid', $user->netid)->exists();
+        });
+        
+        $projects = $user_assigned_projects->merge($non_user_assigned_projects);
         foreach ($projects as $project) {
             $project->assigned_users_count = $project->users()->count();
             
@@ -116,17 +124,26 @@ class ProjectController extends Controller
             $project->unbilled_hours = $hours['unbilled_hours'];
             $project->is_user_assigned = $project->users()->where('user_netid', $user->netid)->exists();
         }
-        
-        if ($sortField === 'name') {
-            $projects = $projects->sortBy(function($project) {
+
+        if ($request->has('sort')) {
+            if ($sortField === 'name') {
+                $projects = $projects->sortBy(function($project) {
+                    return strtolower($project->name);
+                }, SORT_STRING, $direction === 'desc');
+            } else {
+                $projects = $projects->sortBy($sortField, SORT_REGULAR, $direction === 'desc');
+            }
+        } else {
+            $user_assigned_projects = $user_assigned_projects->sortBy(function($project) {
                 return strtolower($project->name);
-            }, SORT_STRING, $direction === 'desc');
-        } 
-        else {
-            $projects = $projects->sortBy($sortField, SORT_REGULAR, $direction === 'desc');
+            }, SORT_STRING, false)->values();
+            $non_user_assigned_projects = $non_user_assigned_projects->sortBy(function($project) {
+                return strtolower($project->name);
+            }, SORT_STRING, false)->values();
+            $projects = $user_assigned_projects->merge($non_user_assigned_projects);
         }
         
-        return view('projects.index', compact('projects'));
+        return view('projects.index', compact('projects', 'user_assigned_projects', 'non_user_assigned_projects'));
     }
 
     public function store(Request $request)
