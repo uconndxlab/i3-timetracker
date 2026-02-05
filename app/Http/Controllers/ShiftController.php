@@ -51,6 +51,8 @@ class ShiftController extends Controller
     {
         $user = auth()->user();
         $query = Shift::query();
+        $query->where('netid', $user->netid);
+        
         $sortField = $request->input('sort');
         $direction = $request->input('direction', 'asc');
 
