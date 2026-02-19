@@ -25,10 +25,14 @@
                 </div>
                 
                 <div class="col-md-5">
-                    <div class="p-4 h-100 d-flex flex-column justify-content-center align-items-center bg-light border rounded shadow-sm">
+                    <div class="p-4 h-100 d-flex flex-column justify-content-center align-items-center bg-light border rounded shadow-sm position-relative">
+                        <button id="prev" type="button" class="btn btn-link text-decoration-none position-absolute" style="left: 0.5rem; color: #6c757d; font-size: 2rem;">‹</button>
+
+                        <button id="next" type="button" class="btn btn-link text-decoration-none position-absolute" style="right: 0.5rem; color: #6c757d; font-size: 2rem;">›</button>
+
                         <div class="text-center mb-2">
-                            <div class="display-4 fw-bold mb-0" style="color: var(--uconn-navy);">{{ $hoursThisWeek }}</div>
-                            <p class="text-muted mb-0" style="font-size: 0.75rem; letter-spacing: 0.05em;">HOURS THIS WEEK</p>
+                            <div id="current" class="display-4 fw-bold mb-0" style="color: var(--uconn-navy);">{{ $hoursThisWeek }}</div>
+                            <p id="selectedWeekLabel" class="text-muted mb-0" style="font-size: 0.75rem; letter-spacing: 0.05em;">Hours from</p>
                         </div>
                         <div style="height: 100px; position: relative; margin: 1rem -0.5rem 0.5rem;">
                             <canvas id="weeklyHoursChart"></canvas>
@@ -85,16 +89,22 @@
         }
 
         const ctx = document.getElementById('weeklyHoursChart');
-        const dailyData = @json(array_values($dailyHours));
-        const dailyLabels = @json(array_keys($dailyHours));
+        const hoursValueElement = document.getElementById('current');
+        const selectedWeekLabelElement = document.getElementById('selectedWeekLabel');
+        const prev = document.getElementById('prev');
+        const next = document.getElementById('next');
+        const weeklyChartData = @json($weeklyChartData ?? []);
+        const defaultDailyData = @json(array_values($dailyHours));
+        const defaultDailyLabels = @json(array_keys($dailyHours));
+        let currentWeekIndex = Math.max(weeklyChartData.length - 1, 0);
 
-        new Chart(ctx, {
+        const chart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: dailyLabels,
+                labels: defaultDailyLabels,
                 datasets: [{
                     label: 'Hours',
-                    data: dailyData,
+                    data: defaultDailyData,
                     backgroundColor: 'rgba(0, 14, 47, 0.1)',
                     borderColor: 'rgba(0, 14, 47, 0.4)',
                     borderWidth: 1.5,
@@ -172,6 +182,63 @@
                 }
             }
         });
+
+        const setNavState = () => {
+            if (!prev || !next) {
+                return;
+            }
+
+            prev.disabled = currentWeekIndex <= 0;
+            next.disabled = currentWeekIndex >= weeklyChartData.length - 1;
+        };
+
+        const renderWeek = () => {
+            if (!weeklyChartData.length) {
+                if (selectedWeekLabelElement) {
+                    selectedWeekLabelElement.textContent = 'Hours from selected week';
+                }
+                setNavState();
+                return;
+            }
+
+            const week = weeklyChartData[currentWeekIndex];
+            const labels = Object.keys(week.daily_hours || {});
+            const data = Object.values(week.daily_hours || {});
+
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = data;
+            chart.update();
+
+            if (hoursValueElement) {
+                hoursValueElement.textContent = week.hours_this_week;
+            }
+
+            if (selectedWeekLabelElement) {
+                selectedWeekLabelElement.textContent = week.label ? `Hours from ${week.label}` : 'Hours from selected week';
+            }
+
+            setNavState();
+        };
+
+        if (prev) {
+            prev.addEventListener('click', function () {
+                if (currentWeekIndex > 0) {
+                    currentWeekIndex -= 1;
+                    renderWeek();
+                }
+            });
+        }
+
+        if (next) {
+            next.addEventListener('click', function () {
+                if (currentWeekIndex < weeklyChartData.length - 1) {
+                    currentWeekIndex += 1;
+                    renderWeek();
+                }
+            });
+        }
+
+        renderWeek();
     };
 
     if (document.readyState === 'loading') {
