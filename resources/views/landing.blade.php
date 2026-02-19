@@ -6,17 +6,17 @@
         <div class="card-body p-0">
             <div class="row g-0">
                 <div class="col-md-7">
-                    <div class="p-5" style="background-color: var(--uconn-navy);">
+                    <div class="p-5 h-100" style="background-color: var(--uconn-navy);">
                         <h1 class="display-5 fw-bold text-white mb-3">
                             i3 Time Tracker
                         </h1>
                         <p class="lead text-white opacity-90 mb-4">Track time spent working on projects</p>
                         <div class="d-flex gap-3 flex-wrap">
-                            <a href="{{ route('shifts.create') }}" class="btn btn-outline-light">
+                            <a href="{{ route('shifts.create') }}" class="btn btn-outline-light mt-2">
                                 <i class="bi bi-plus-circle me-2"></i>Log New Shift
                             </a>
                             @if(auth()->user()->isAdmin())
-                            <a href="{{ route('projects.create') }}" class="btn btn-outline-light">
+                            <a href="{{ route('projects.create') }}" class="btn btn-outline-light mt-2">
                                 Create Project
                             </a>
                             @endif
