@@ -1,19 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="pt-4 pb-5">
-    <div class="page-header text-center">
+<div class="pt-4 pb-5 mt-4">
+    <div class="page-header text-center position-relative">
         <div class="container">
-            <h1 class="display-5 mb-3">
+            <h1 class="display-5">
                 All Projects
             </h1>
-            <div class="d-flex align-items-center gap-2">
-                @if (auth()->user()->isAdmin())
-                    <a href="{{ route('projects.create') }}" class="btn btn-secondary">Add New Project</a>
-                @endif
-                <a href="{{ route('projects.manage') }}" class="btn btn-primary">Manage Project Assignments</a>
-            </div>
         </div>
+        <a href="{{ route('projects.manage') }}" class="btn btn-primary position-absolute start-0 bottom-0 ms-3 mb-3">
+            Manage Project Assignments
+        </a>
     </div>
 
     @php
