@@ -5,7 +5,6 @@ use App\Models\User;
 use App\Models\Project;
 use App\Models\Shift;
 use Illuminate\Http\Request;
-use  Illuminate\Pagination\LengthAwarePaginator;
 
 class ShiftController extends Controller
 {
@@ -22,27 +21,14 @@ class ShiftController extends Controller
             $selectedProject = Project::find($selectedProjectId);
 
             if ($selectedProject && !$user->isAdmin()) {
-                $hasAccess = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
-                    ->where('project_user.user_netid', $user->netid)
-                    ->where('projects.id', $selectedProjectId)
-                    ->exists();
+                $hasAccess = $this->canAccessProject($user, $selectedProjectId);
                     
                 if (!$hasAccess) {
                     $selectedProject = null; 
                 }
             }
         }
-        if ($user->isAdmin()) {
-            $projects = Project::where('active', true)->orderBy('name')->get();
-        } else {
-            $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
-                ->where('project_user.user_netid', $user->netid)
-                ->pluck('projects.id');
-            $projects = Project::whereIn('id', $projectIds)
-                ->where('active', true)
-                ->orderBy('name')
-                ->get();
-        }
+        $projects = $this->availableProjects($user);
 
         return view('shifts.create', compact('projects', 'selectedProject', 'date'));
     }
@@ -110,11 +96,7 @@ class ShiftController extends Controller
         ]);
 
         if (!$user->isAdmin()) {
-            $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
-                ->where('project_user.user_netid', $user->netid)
-                ->where('projects.active', true)
-                ->pluck('projects.id')
-                ->toArray();
+            $projectIds = $this->visibleProjects($user, true);
                 
             if (!in_array($validatedData['proj_id'], $projectIds)) {
                 return back()->withErrors(['proj_id' => 'You are not authorized to log shifts for this project.']);
@@ -174,16 +156,7 @@ class ShiftController extends Controller
             return redirect()->route('shifts.index')->with('message', 'You cannot edit this shift.');
         }
         
-        if ($user->isAdmin()) {
-            $projects = Project::where('active', true)->get();
-        } else {
-            $projectIds = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
-                ->where('project_user.user_netid', $user->netid)
-                ->pluck('projects.id');
-            $projects = Project::whereIn('id', $projectIds)
-                ->where('active', true)
-                ->get();
-        }
+        $projects = $this->availableProjects($user, false);
         
         return view('shifts.edit', compact('shift', 'projects'));
     }
@@ -267,5 +240,38 @@ class ShiftController extends Controller
         }
         
         return view('shifts.manage', compact('shifts', 'enteredFilter', 'billedFilter', 'search'));
+    }
+
+    private function availableProjects(User $user, bool $orderByName = true)
+    {
+        if ($user->isAdmin()) {
+            $query = Project::where('active', true);
+            return $orderByName ? $query->orderBy('name')->get() : $query->get();
+        }
+
+        $projectIds = $this->visibleProjects($user, false);
+        $query = Project::whereIn('id', $projectIds)->where('active', true);
+
+        return $orderByName ? $query->orderBy('name')->get() : $query->get();
+    }
+
+    private function visibleProjects(User $user, bool $activeOnly): array
+    {
+        $query = Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+            ->where('project_user.user_netid', $user->netid);
+
+        if ($activeOnly) {
+            $query->where('projects.active', true);
+        }
+
+        return $query->pluck('projects.id')->toArray();
+    }
+
+    private function canAccessProject(User $user, int $projectId): bool
+    {
+        return Project::join('project_user', 'projects.id', '=', 'project_user.project_id')
+            ->where('project_user.user_netid', $user->netid)
+            ->where('projects.id', $projectId)
+            ->exists();
     }
 }
