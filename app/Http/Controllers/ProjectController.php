@@ -29,15 +29,9 @@ class ProjectController extends Controller
         $user = auth()->user();
         $sortField = $request->input('sort', 'date');
         $direction = $request->input('direction', 'desc');
-    
-        $shiftsQuery = $project->shifts()->with('user');
-        
-        if (!$user->isAdmin()) {
-            $shiftsQuery->where('netid', $user->netid);
-        }
-        
-        $shifts = $shiftsQuery
-            ->orderBy($sortField, $direction)->get();
+        $isAdmin = $user->isAdmin();
+
+        $shifts = $this->getVisibleShifts($project, $user->netid, $isAdmin, $sortField, $direction);
         
         foreach ($shifts as $shift) {
             $shift->time_range = $shift->date->format('M d, Y');
@@ -52,24 +46,15 @@ class ProjectController extends Controller
             ['key' => 'billed', 'label' => 'Billed (Honeycrisp)', 'sortable' => true, 'type' => 'boolean'],
         ];
         
-        $shiftActions = [
-            ['key' => 'edit', 'label' => 'Edit Shift', 'icon' => 'pencil-square', 'route' => 'shifts.edit'],
-        ];
-        if ($user->isAdmin()) {
-            $shiftActions[] = ['key' => 'delete', 'label' => 'Delete Shift', 'icon' => 'trash', 'route' => 'shifts.destroy', 'method' => 'DELETE', 'confirm' => 'Are you sure you want to delete this shift?'];
-        }
+        $shiftActions = $this->getShiftActions($isAdmin);
 
-        $hours = $user->isAdmin() 
-            ? $project->getAllHours() 
-            : $project->getHoursForUser($user->netid);
+        $hours = $this->getProjectHours($project, $user->netid, $isAdmin);
         
         $totalHours = $hours['total_hours'];
         $billedHours = $hours['billed_hours'];
         $unbilledHours = $hours['unbilled_hours'];
         
-        $unbilledShiftCount = $user->isAdmin() 
-            ? $project->shifts()->where('billed', false)->count() 
-            : $project->shifts()->where('netid', $user->netid)->where('billed', false)->count();
+        $unbilledShiftCount = $this->getUnbilledShiftCount($project, $user->netid, $isAdmin);
         
         $description = $project->description ?: 'N/A';
         
@@ -198,10 +183,10 @@ class ProjectController extends Controller
         
         if (!$user->projects->contains($project->id)) {
             $project->users()->attach($user->netid, ['active' => true]);
-            return $this->redirectToManageWithMessage($request, 'Successfully joined ' . $project->name);
+            return $this->redirectManage($request, 'Successfully joined ' . $project->name);
         }
 
-        return $this->redirectToManageWithMessage($request, 'You are already a member of ' . $project->name);
+        return $this->redirectManage($request, 'You are already a member of ' . $project->name);
     }
 
     public function leave(Request $request, Project $project)
@@ -210,10 +195,10 @@ class ProjectController extends Controller
         
         if ($user->projects->contains($project->id)) {
             $project->users()->detach($user->netid);
-            return $this->redirectToManageWithMessage($request, 'Successfully left ' . $project->name);
+            return $this->redirectManage($request, 'Successfully left ' . $project->name);
         }
 
-        return $this->redirectToManageWithMessage($request, 'You are not a member of ' . $project->name);
+        return $this->redirectManage($request, 'You are not a member of ' . $project->name);
     }
 
     private function manageSearchParams(Request $request): array
@@ -225,7 +210,7 @@ class ProjectController extends Controller
         return [];
     }
 
-    private function redirectToManageWithMessage(Request $request, string $message)
+    private function redirectManage(Request $request, string $message)
     {
         return redirect()
             ->route('projects.manage', $this->manageSearchParams($request))
@@ -237,6 +222,50 @@ class ProjectController extends Controller
         return $projects->sortBy(function ($project) {
             return strtolower($project->name);
         }, SORT_STRING, $descending);
+    }
+
+    private function getVisibleShifts(Project $project, string $netid, bool $isAdmin, string $sortField, string $direction)
+    {
+        $shiftsQuery = $project->shifts()->with('user');
+
+        if (!$isAdmin) {
+            $shiftsQuery->where('netid', $netid);
+        }
+
+        return $shiftsQuery->orderBy($sortField, $direction)->get();
+    }
+
+    private function getShiftActions(bool $isAdmin): array
+    {
+        $shiftActions = [
+            ['key' => 'edit', 'label' => 'Edit Shift', 'icon' => 'pencil-square', 'route' => 'shifts.edit'],
+        ];
+
+        if ($isAdmin) {
+            $shiftActions[] = ['key' => 'delete', 'label' => 'Delete Shift', 'icon' => 'trash', 'route' => 'shifts.destroy', 'method' => 'DELETE', 'confirm' => 'Are you sure you want to delete this shift?'];
+        }
+
+        return $shiftActions;
+    }
+
+    private function getProjectHours(Project $project, string $netid, bool $isAdmin): array
+    {
+        if ($isAdmin) {
+            return $project->getAllHours();
+        }
+
+        return $project->getHoursForUser($netid);
+    }
+
+    private function getUnbilledShiftCount(Project $project, string $netid, bool $isAdmin): int
+    {
+        $query = $project->shifts()->where('billed', false);
+
+        if (!$isAdmin) {
+            $query->where('netid', $netid);
+        }
+
+        return $query->count();
     }
 
 }
