@@ -160,15 +160,7 @@ class ProjectController extends Controller
     public function manage(Request $request)
     {
         $user = auth()->user();
-        $query = Project::query();
-        
-        if ($request->has('search') && $request->search) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('name', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('description', 'like', '%' . $searchTerm . '%');
-            });
-        }
+        $query = Project::query()->search($request->input('search'));
         
         $projects = $query->orderBy('name')->paginate(20)->withQueryString();
         
