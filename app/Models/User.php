@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -72,5 +71,36 @@ class User extends Authenticatable
     public function shifts()
     {
         return $this->hasMany(Shift::class, 'netid', 'netid');
+    }
+
+    public function scopeSearch($query, ?string $search)
+    {
+        if (!$search) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', '%' . $search . '%')
+              ->orWhere('netid', 'like', '%' . $search . '%')
+              ->orWhere('email', 'like', '%' . $search . '%');
+        });
+    }
+
+    public function scopeFilterAdmin($query, $adminFilter)
+    {
+        if ($adminFilter === null || $adminFilter === '') {
+            return $query;
+        }
+
+        return $query->where('is_admin', $adminFilter == '1');
+    }
+
+    public function scopeFilterActive($query, $activeFilter)
+    {
+        if ($activeFilter === null || $activeFilter === '') {
+            return $query;
+        }
+
+        return $query->where('active', $activeFilter == '1');
     }
 }
