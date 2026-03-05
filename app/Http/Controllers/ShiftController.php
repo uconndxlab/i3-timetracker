@@ -49,11 +49,7 @@ class ShiftController extends Controller
             $shifts = $this->sortByUser($shifts, $direction)->values();
         }
 
-        foreach ($shifts as $shift) {
-            $shift->shift_date = $shift->date->format('M d, Y');
-            // $shift->duration = $shift->duration ? number_format($shift->duration / 60, 2) . ' hrs' : '-';
-            $shift->can_edit = $user->isAdmin() || ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
-        }
+        $this->shiftButtons($shifts, $user, false);
         
         return view('shifts.index', compact('shifts'));
     }
@@ -185,12 +181,8 @@ class ShiftController extends Controller
         $this->shiftSort($query, $sortField, $direction, true, false);
         
         $shifts = $query->with(['user', 'project'])->paginate(30)->appends($request->except('page'));
-        
-        foreach ($shifts as $shift) {
-            $shift->shift_date = $shift->date ? $shift->date->format('M d, Y') : '-';
-            $shift->can_edit = $user->isAdmin() || 
-                ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
-        }
+
+        $this->shiftButtons($shifts, $user, true);
         
         return view('shifts.manage', compact('shifts', 'enteredFilter', 'billedFilter', 'search'));
     }
@@ -294,5 +286,19 @@ class ShiftController extends Controller
             $comparison = strcmp(strtolower($aName), strtolower($bName));
             return $direction === 'desc' ? -$comparison : $comparison;
         });
+    }
+
+    private function shiftButtons($shifts, User $user, bool $nullDate)
+    {
+        foreach ($shifts as $shift) {
+            if ($nullDate) {
+                $shift->shift_date = $shift->date ? $shift->date->format('M d, Y') : '-';
+            } else {
+                $shift->shift_date = $shift->date->format('M d, Y');
+            }
+
+            $shift->can_edit = $user->isAdmin() ||
+                ($shift->netid === $user->netid && !$shift->entered && !$shift->billed);
+        }
     }
 }
