@@ -202,23 +202,12 @@ class AdminController extends Controller
         $activeFilter = $request->input('active_filter');
         $search = $request->input('search');
         
-        $query = User::query();
-        
-        if ($search) {
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                  ->orWhere('netid', 'like', '%' . $search . '%')
-                  ->orWhere('email', 'like', '%' . $search . '%');
-            });
-        }
-        
-        if ($adminFilter !== null && $adminFilter !== '') {
-            $query->where('is_admin', $adminFilter == '1');
-        }
-        
-        if ($activeFilter !== null && $activeFilter !== '') {
-            $query->where('active', $activeFilter == '1');
-        }
+        $query = User::query()
+            ->search($search)
+            ->filterAdmin($adminFilter)
+            ->filterActive($activeFilter)
+            ->withCount('shifts')
+            ->withSum('shifts', 'duration');
         
         if ($sortField) {
             $query->orderBy($sortField, $direction);
@@ -228,10 +217,8 @@ class AdminController extends Controller
         
         $users = $query->paginate(50)->appends($request->query());
         foreach ($users as $user) {
-            $user->total_shifts = $user->shifts()->count();
-            $user->total_hours = round($user->shifts()->get()->reduce(function ($carry, $shift) {
-                return $carry + ($shift->duration ? $shift->duration / 60 : 0);
-            }, 0), 2);
+            $user->total_shifts = $user->shifts_count;
+            $user->total_hours = round(($user->shifts_sum_duration ?? 0) / 60, 2);
         }
         
         return view('admin.users', compact('users', 'adminFilter', 'activeFilter', 'search'));
