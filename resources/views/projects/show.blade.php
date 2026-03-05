@@ -19,7 +19,7 @@
                             <p><strong>Description:</strong> {{ $project->description ?: 'N/A' }}</p>
                             <p><strong>Status:</strong> {{ $project->active ? 'Active' : 'Inactive' }}</p>
                             {{-- <p><strong>Created At:</strong> {{ $project->created_at->format('M d, Y') }}</p> --}}
-                            <p><strong>Last Updated:</strong> {{ $project->updated_at->format('M d, Y') }}</p>
+                            <p><strong>Last Updated:</strong> {{ $project->updated_at ? $project->updated_at->format('M d, Y') : 'N/A' }}</p>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-light">
