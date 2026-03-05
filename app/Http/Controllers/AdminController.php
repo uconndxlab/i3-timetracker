@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Projects\AssignUserProject;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Mail\UserAddedToProject;
-use Illuminate\Support\Facades\Mail;
 use App\Actions\Shifts\BuildWeeklyChart;
 
 class AdminController extends Controller
@@ -163,25 +162,11 @@ class AdminController extends Controller
             'user_ids' => 'required|array',
             'user_ids.*' => 'exists:users,netid',
         ]);
-        $existingUserNetids = $project->users->pluck('netid')->toArray();
-        $newUserNetids = array_diff($validated['user_ids'], $existingUserNetids);
-        
-        if (!empty($newUserNetids)) {
-            $syncData = [];
-            foreach ($newUserNetids as $netid) {
-                $syncData[$netid] = ['active' => true];
-            }
-            $project->users()->syncWithoutDetaching($syncData);
+        $result = app(AssignUserProject::class)($project, $validated['user_ids']);
 
-            foreach ($newUserNetids as $netid) {
-                $user = User::where('netid', $netid)->first();
-                if ($user && $user->email) {
-                    Mail::to($user->email)->send(new UserAddedToProject($user, $project));
-                }
-            }
-            
+        if ($result['assigned_count'] > 0) {
             return redirect()->route('projects.index', $project->id)
-                ->with('success', count($newUserNetids) . ' user(s) successfully assigned to project.');
+                ->with('success', $result['assigned_count'] . ' user(s) successfully assigned to project.');
         }
 
         return redirect()->route('projects.index', $project->id)
