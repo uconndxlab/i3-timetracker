@@ -206,18 +206,10 @@ class ProjectController extends Controller
         
         if (!$user->projects->contains($project->id)) {
             $project->users()->attach($user->netid, ['active' => true]);
-            $params = [];
-            if ($request->has('search') && $request->search) {
-                $params['search'] = $request->search;
-            }
-            return redirect()->route('projects.manage', $params)->with('message', 'Successfully joined ' . $project->name);
+            return $this->redirectToManageWithMessage($request, 'Successfully joined ' . $project->name);
         }
-        
-        $params = [];
-        if ($request->has('search') && $request->search) {
-            $params['search'] = $request->search;
-        }
-        return redirect()->route('projects.manage', $params)->with('message', 'You are already a member of ' . $project->name);
+
+        return $this->redirectToManageWithMessage($request, 'You are already a member of ' . $project->name);
     }
 
     public function leave(Request $request, Project $project)
@@ -226,18 +218,26 @@ class ProjectController extends Controller
         
         if ($user->projects->contains($project->id)) {
             $project->users()->detach($user->netid);
-            $params = [];
-            if ($request->has('search') && $request->search) {
-                $params['search'] = $request->search;
-            }
-            return redirect()->route('projects.manage', $params)->with('message', 'Successfully left ' . $project->name);
+            return $this->redirectToManageWithMessage($request, 'Successfully left ' . $project->name);
         }
-        
-        $params = [];
+
+        return $this->redirectToManageWithMessage($request, 'You are not a member of ' . $project->name);
+    }
+
+    private function manageSearchParams(Request $request): array
+    {
         if ($request->has('search') && $request->search) {
-            $params['search'] = $request->search;
+            return ['search' => $request->search];
         }
-        return redirect()->route('projects.manage', $params)->with('message', 'You are not a member of ' . $project->name);
+
+        return [];
+    }
+
+    private function redirectToManageWithMessage(Request $request, string $message)
+    {
+        return redirect()
+            ->route('projects.manage', $this->manageSearchParams($request))
+            ->with('message', $message);
     }
 
 }
