@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Project;
-use App\Models\Shift;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
