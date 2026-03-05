@@ -7,103 +7,32 @@ use App\Models\User;
 use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 use App\Mail\UserAddedToProject;
 use Illuminate\Support\Facades\Mail;
+use App\Actions\Shifts\BuildWeeklyChart;
 
 class AdminController extends Controller
 {
     public function landing()
     {
+        $netid = auth()->user()->netid;
+
         $activeProjects = Project::where('projects.active', true)
-            ->assignedToUser(auth()->user()->netid)
+            ->assignedToUser($netid)
             ->latest('updated_at')
             ->get();
         
         foreach ($activeProjects as $project) {
-            $hours = $project->getHoursForUser(auth()->user()->netid);
+            $hours = $project->getHoursForUser($netid);
             $project->billed_hours = $hours['billed_hours'];
             $project->unbilled_hours = $hours['unbilled_hours'];
         }
         
-        $activeShifts = Shift::latest('updated_at')->get()->where('netid', auth()->user()->netid);
-        $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY);
-        $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY);
-
-        $shiftsThisWeek = Shift::where('netid', auth()->user()->netid)
-            ->whereBetween('date', [$startOfWeek->format('Y-m-d'), $endOfWeek->format('Y-m-d')])
-            ->get();
-
-        $totalMinutesThisWeek = $shiftsThisWeek->reduce(function ($carry, $shift) {
-            return $carry + ($shift->duration ?? 0);
-        }, 0);
-
-        $hoursThisWeek = round($totalMinutesThisWeek / 60, 2);
-        
-        $dailyHours = [];
-        for ($i = 0; $i < 7; $i++) {
-            $date = $startOfWeek->copy()->addDays($i);
-            $dateString = $date->format('Y-m-d');
-            
-            $dayMinutes = $shiftsThisWeek->filter(function($shift) use ($dateString) {
-                $shiftDate = $shift->date ? $shift->date->format('Y-m-d') : $shift->date;
-                return $shiftDate === $dateString;
-            })->sum('duration');
-            
-            $dailyHours[$date->format('D')] = round($dayMinutes / 60, 2);
-        }
-
-        $weekCount = 20;
-        $firstWeekStart = $startOfWeek->copy()->subWeeks($weekCount - 1);
-
-        $shiftsInRange = Shift::where('netid', auth()->user()->netid)
-            ->whereBetween('date', [$firstWeekStart->format('Y-m-d'), $endOfWeek->format('Y-m-d')])
-            ->get();
-
-        $dayKeys = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        $weeklyChartData = [];
-
-        for ($weekOffset = 0; $weekOffset < $weekCount; $weekOffset++) {
-            $weekStart = $firstWeekStart->copy()->addWeeks($weekOffset);
-            $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SATURDAY);
-
-            $weekShifts = $shiftsInRange->filter(function ($shift) use ($weekStart, $weekEnd) {
-                $shiftDate = $shift->date instanceof Carbon
-                    ? $shift->date
-                    : Carbon::parse($shift->date);
-
-                return $shiftDate->betweenIncluded($weekStart, $weekEnd);
-            });
-
-            $weekDailyHours = [];
-            foreach ($dayKeys as $index => $dayKey) {
-                $targetDate = $weekStart->copy()->addDays($index)->format('Y-m-d');
-
-                $dayMinutes = $weekShifts->filter(function ($shift) use ($targetDate) {
-                    $shiftDate = $shift->date instanceof Carbon
-                        ? $shift->date->format('Y-m-d')
-                        : Carbon::parse($shift->date)->format('Y-m-d');
-
-                    return $shiftDate === $targetDate;
-                })->sum(function ($shift) {
-                    return $shift->duration ?? 0;
-                });
-
-                $weekDailyHours[$dayKey] = round($dayMinutes / 60, 2);
-            }
-
-            $totalMinutesForWeek = $weekShifts->sum(function ($shift) {
-                return $shift->duration ?? 0;
-            });
-
-            $weeklyChartData[] = [
-                'label' => $weekStart->format('M j') . ' - ' . $weekEnd->format('M j'),
-                'start_date' => $weekStart->format('Y-m-d'),
-                'end_date' => $weekEnd->format('Y-m-d'),
-                'daily_hours' => $weekDailyHours,
-                'hours_this_week' => round($totalMinutesForWeek / 60, 2),
-            ];
-        }
+        $activeShifts = Shift::latest('updated_at')->get()->where('netid', $netid);
+        $chartData = app(BuildWeeklyChart::class)($netid);
+        $hoursThisWeek = $chartData['hoursThisWeek'];
+        $dailyHours = $chartData['dailyHours'];
+        $weeklyChartData = $chartData['weeklyChartData'];
 
         return view('landing', compact('activeProjects', 'activeShifts', 'hoursThisWeek', 'dailyHours', 'weeklyChartData'));
     }
