@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Models\Shift;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\AdminController;
