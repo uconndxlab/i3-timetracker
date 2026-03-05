@@ -126,4 +126,16 @@ class Project extends Model
             ->select('projects.*')
             ->distinct();
     }
+
+    public function scopeSearch($query, ?string $searchTerm)
+    {
+        if (!$searchTerm) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($searchTerm) {
+            $q->where('name', 'like', '%' . $searchTerm . '%')
+              ->orWhere('description', 'like', '%' . $searchTerm . '%');
+        });
+    }
 }
