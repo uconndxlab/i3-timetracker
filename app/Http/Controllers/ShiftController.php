@@ -42,30 +42,13 @@ class ShiftController extends Controller
         $sortField = $request->input('sort');
         $direction = $request->input('direction', 'asc');
 
-        if ($sortField === 'project.name') {
-            $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
-                ->select('shifts.*')
-                ->orderBy('projects.name', $direction);
-        } 
-        else if ($sortField === 'user.name') {
-            $query->leftJoin('users', 'shifts.netid', '=', 'users.netid')
-                ->select('shifts.*')
-                ->orderByRaw('CASE WHEN users.name IS NULL THEN 1 ELSE 0 END, users.name ' . $direction);
-        }
-        else if ($sortField === 'shift_date') {
-            $query->orderBy('date', $direction);
-        }
-        else if ($sortField === 'duration') {
-            $query->orderBy('duration', $direction);
-        }
-        else if ($sortField) {
-            $query->orderBy($sortField, $direction);
-        } 
-        else {
-            $query->orderBy('date', 'desc');
-        }
+        $this->shiftSort($query, $sortField, $direction, false, true);
         
         $shifts = $query->with(['user', 'project'])->get();
+        if ($sortField === 'user.name') {
+            $shifts = $this->sortByUser($shifts, $direction)->values();
+        }
+
         foreach ($shifts as $shift) {
             $shift->shift_date = $shift->date->format('M d, Y');
             // $shift->duration = $shift->duration ? number_format($shift->duration / 60, 2) . ' hrs' : '-';
@@ -199,37 +182,7 @@ class ShiftController extends Controller
             $query->where('billed', $billedFilter == '1');
         }
         
-        if ($sortField === 'project.name') {
-            $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
-                ->select('shifts.*')
-                ->orderBy('projects.name', $direction);
-        }
-
-        else if ($sortField === 'user.name') {
-            $query->leftJoin('users', 'shifts.netid', '=', 'users.netid')
-                ->select('shifts.*', 'users.name as user_name')
-                ->orderBy('user_name', $direction);
-        }
-
-        else if ($sortField === 'shift_date') {
-            $query->orderBy('date', $direction);
-        }
-
-        else if ($sortField === 'duration') {
-            $query->orderBy('duration', $direction);
-        }
-
-        else if ($sortField === 'entered' || $sortField === 'billed') {
-            $query->orderBy($sortField, $direction);
-        }
-
-        else if ($sortField) {
-            $query->orderBy($sortField, $direction);
-        }
-        
-        else {
-            $query->orderBy('date', 'desc');
-        }
+        $this->shiftSort($query, $sortField, $direction, true, false);
         
         $shifts = $query->with(['user', 'project'])->paginate(30)->appends($request->except('page'));
         
@@ -273,5 +226,73 @@ class ShiftController extends Controller
             ->where('project_user.user_netid', $user->netid)
             ->where('projects.id', $projectId)
             ->exists();
+    }
+
+    private function shiftSort($query, ?string $sortField, string $direction, bool $userAlias, bool $lastNull): void
+    {
+        if ($sortField === 'project.name') {
+            $query->join('projects', 'shifts.proj_id', '=', 'projects.id')
+                ->select('shifts.*')
+                ->orderBy('projects.name', $direction);
+            return;
+        }
+
+        if ($sortField === 'user.name') {
+            if ($userAlias) {
+                $query->leftJoin('users', 'shifts.netid', '=', 'users.netid')
+                    ->select('shifts.*', 'users.name as user_name')
+                    ->orderBy('user_name', $direction);
+                return;
+            }
+
+            if ($lastNull) {
+                return;
+            }
+
+            $query->leftJoin('users', 'shifts.netid', '=', 'users.netid')
+                ->select('shifts.*')
+                ->orderBy('users.name', $direction);
+            return;
+        }
+
+        if ($sortField === 'shift_date') {
+            $query->orderBy('date', $direction);
+            return;
+        }
+
+        if ($sortField === 'duration') {
+            $query->orderBy('duration', $direction);
+            return;
+        }
+
+        if ($sortField) {
+            $query->orderBy($sortField, $direction);
+            return;
+        }
+
+        $query->orderBy('date', 'desc');
+    }
+
+    private function sortByUser($shifts, string $direction)
+    {
+        return $shifts->sort(function ($a, $b) use ($direction) {
+            $aName = $a->user?->name;
+            $bName = $b->user?->name;
+
+            if ($aName === null && $bName === null) {
+                return 0;
+            }
+
+            if ($aName === null) {
+                return 1;
+            }
+
+            if ($bName === null) {
+                return -1;
+            }
+
+            $comparison = strcmp(strtolower($aName), strtolower($bName));
+            return $direction === 'desc' ? -$comparison : $comparison;
+        });
     }
 }
