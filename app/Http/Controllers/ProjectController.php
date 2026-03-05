@@ -99,46 +99,39 @@ class ProjectController extends Controller
         $sortField = $request->input('sort', 'name');
         $direction = $request->input('direction', 'asc');
         
-        $query = Project::query();
-        
-        // if (!$user->isAdmin()) {
-        //     $query->assignedToUser($user->netid);
-        // }
+        $query = Project::query()->withCount('users');
         
         $projects = $query->get();
+        $userProjectIds = $user->projects->pluck('id')->toArray();
         
-        $user_assigned_projects = $projects->filter(function($project) use ($user) {
-            return $project->users()->where('user_netid', $user->netid)->exists();
+        $user_assigned_projects = $projects->filter(function($project) use ($userProjectIds) {
+            return in_array($project->id, $userProjectIds, true);
         });
-        $non_user_assigned_projects = $projects->filter(function($project) use ($user) {
-            return !$project->users()->where('user_netid', $user->netid)->exists();
+        $non_user_assigned_projects = $projects->filter(function($project) use ($userProjectIds) {
+            return !in_array($project->id, $userProjectIds, true);
         });
         
         $projects = $user_assigned_projects->merge($non_user_assigned_projects);
         foreach ($projects as $project) {
-            $project->assigned_users_count = $project->users()->count();
+            $project->assigned_users_count = $project->users_count;
             
             $hours = $project->getAllHours();
             $project->billed_hours = $hours['billed_hours'];
             $project->unbilled_hours = $hours['unbilled_hours'];
-            $project->is_user_assigned = $project->users()->where('user_netid', $user->netid)->exists();
+            $project->is_user_assigned = in_array($project->id, $userProjectIds, true);
         }
 
         if ($request->has('sort')) {
             if ($sortField === 'name') {
-                $projects = $projects->sortBy(function($project) {
-                    return strtolower($project->name);
-                }, SORT_STRING, $direction === 'desc');
-            } else {
+                $projects = $this->sortProjectsByName($projects, $direction === 'desc');
+            } 
+            else {
                 $projects = $projects->sortBy($sortField, SORT_REGULAR, $direction === 'desc');
             }
-        } else {
-            $user_assigned_projects = $user_assigned_projects->sortBy(function($project) {
-                return strtolower($project->name);
-            }, SORT_STRING, false)->values();
-            $non_user_assigned_projects = $non_user_assigned_projects->sortBy(function($project) {
-                return strtolower($project->name);
-            }, SORT_STRING, false)->values();
+        } 
+        else {
+            $user_assigned_projects = $this->sortProjectsByName($user_assigned_projects)->values();
+            $non_user_assigned_projects = $this->sortProjectsByName($non_user_assigned_projects)->values();
             $projects = $user_assigned_projects->merge($non_user_assigned_projects);
         }
         
@@ -237,6 +230,13 @@ class ProjectController extends Controller
         return redirect()
             ->route('projects.manage', $this->manageSearchParams($request))
             ->with('message', $message);
+    }
+
+    private function sortProjectsByName($projects, bool $descending = false)
+    {
+        return $projects->sortBy(function ($project) {
+            return strtolower($project->name);
+        }, SORT_STRING, $descending);
     }
 
 }
