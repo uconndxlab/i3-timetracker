@@ -1,54 +1,44 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mt-4">
-    <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-        <div class="card-body p-0">
-            <div class="row g-0">
-                <div class="col-md-7">
-                    <div class="p-5 h-100" style="background-color: var(--uconn-navy);">
-                        <h1 class="display-5 fw-bold text-white mb-3">
-                            i3 Time Tracker
-                        </h1>
-                        <p class="lead text-white opacity-90 mb-4">Track time spent working on projects</p>
-                        <div class="d-flex gap-3 flex-wrap">
-                            <a href="{{ route('shifts.create') }}" class="btn btn-outline-light mt-2">
-                                <i class="bi bi-plus-circle me-2"></i>Log New Shift
-                            </a>
-                            @if(auth()->user()->isAdmin())
-                            <a href="{{ route('projects.create') }}" class="btn btn-outline-light mt-2">
-                                Create Project
-                            </a>
-                            @endif
-                        </div>
-                    </div>
+<div class="landing-page landing-page-web mt-3">
+    <section class="landing-hero-band mb-4">
+        <div class="landing-hero-grid">
+            <div class="landing-hero-content">
+                <p class="landing-kicker mb-3">Institutional Insights & Innovation</p>
+                <h1 class="landing-title mb-3">Time Tracker</h1>
+                <div class="d-flex gap-3 flex-wrap align-items-center">
+                    <a href="{{ route('shifts.create') }}" class="btn landing-btn-primary">
+                        Log New Shift
+                    </a>
+                    <a href="{{ route('shifts.index') }}" class="btn landing-btn-secondary">
+                        View All Shifts
+                    </a>
+                    @if(auth()->user()->isAdmin())
+                    <a href="{{ route('projects.create') }}" class="btn landing-btn-secondary">
+                        Create Project
+                    </a>
+                    @endif
                 </div>
-                
-                <div class="col-md-5">
-                    <div class="p-4 h-100 d-flex flex-column justify-content-center align-items-center bg-light border rounded shadow-sm position-relative">
-                        <button id="prev" type="button" class="btn btn-link text-decoration-none position-absolute" style="left: 0.5rem; color: #6c757d; font-size: 2rem;">‹</button>
+            </div>
 
-                        <button id="next" type="button" class="btn btn-link text-decoration-none position-absolute" style="right: 0.5rem; color: #6c757d; font-size: 2rem;">›</button>
+            <div class="landing-weekly-panel">
+                <button id="prev" type="button" class="btn btn-link text-decoration-none landing-kpi-nav landing-kpi-prev">‹</button>
+                <button id="next" type="button" class="btn btn-link text-decoration-none landing-kpi-nav landing-kpi-next">›</button>
+                <div id="current" class="landing-kpi-value mb-0">{{ $hoursThisWeek }}</div>
+                <p id="selectedWeekLabel" class="landing-kpi-subtext mb-0">Hours from</p>
 
-                        <div class="text-center mb-2">
-                            <div id="current" class="display-4 fw-bold mb-0" style="color: var(--uconn-navy);">{{ $hoursThisWeek }}</div>
-                            <p id="selectedWeekLabel" class="text-muted mb-0" style="font-size: 0.75rem; letter-spacing: 0.05em;">Hours from</p>
-                        </div>
-                        <div style="height: 100px; position: relative; margin: 1rem -0.5rem 0.5rem;">
-                            <canvas id="weeklyHoursChart"></canvas>
-                        </div>
-                        {{-- <div class="display-1 fw-bold text-primary mb-0">{{ $hoursThisWeek }}</div>
-                        <p class="mb-2 text-uppercase fw-semibold text-muted small">Hours This Week</p> --}}
-                        <div class="mt-3">
-                            <a href="{{ route('shifts.index') }}" class="btn btn-sm btn-outline-secondary">
-                                View All Shifts
-                            </a>
-                        </div>
-                    </div>
+                <div class="landing-kpi-chart-wrap mt-3">
+                    <canvas id="weeklyHoursChart"></canvas>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="landing-projects-section">
+        <div class="landing-section-head mb-3">
+            <h2 class="landing-section-title mb-1">Assigned Projects</h2>
+        </div>
 
     @php
         $columns = [
@@ -64,16 +54,16 @@
     @endphp
 
     @include('partials.table', [
-        // 'filterable' => true,
         'items' => $activeProjects,
         'columns' => $columns,
         'actions' => $actions,
-        'title' => 'Your Projects',
+        'title' => null,
         'empty_message' => 'No active projects found.',
         'empty_icon' => 'folder-x',
         'create_route' => auth()->user()->isAdmin() ? 'projects.create' : null,
         'create_label' => 'Create Project'
     ])
+    </section>
 </div>
 
 @push('scripts')
@@ -105,14 +95,14 @@
                 datasets: [{
                     label: 'Hours',
                     data: defaultDailyData,
-                    backgroundColor: 'rgba(0, 14, 47, 0.1)',
-                    borderColor: 'rgba(0, 14, 47, 0.4)',
-                    borderWidth: 1.5,
+                    backgroundColor: 'rgba(145, 217, 255, 0.2)',
+                    borderColor: 'rgba(170, 228, 255, 0.95)',
+                    borderWidth: 1.8,
                     fill: true,
-                    tension: 0.3, // smoothing
+                    tension: 0.42, // smoothing
                     pointRadius: 0, // 0 no pt
-                    pointHoverRadius: 4,
-                    pointHoverBackgroundColor: 'rgb(0, 14, 47)',
+                    pointHoverRadius: 0,
+                    pointHoverBackgroundColor: 'rgb(230, 247, 255)',
                     pointHoverBorderColor: '#fff',
                     pointHoverBorderWidth: 2
                 }]
@@ -131,7 +121,7 @@
                         display: false
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        backgroundColor: 'rgba(2, 22, 62, 0.92)',
                         padding: 6,
                         titleFont: {
                             size: 11,
@@ -165,7 +155,7 @@
                                 size: 9,
                                 weight: '300'
                             },
-                            color: '#bbb',
+                            color: 'rgba(232, 241, 255, 0.7)',
                             padding: 4
                         },
                         grid: {

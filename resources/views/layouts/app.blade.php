@@ -90,37 +90,48 @@
         </div>
     </nav>
 
-    <div class="container mt-4">
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                <strong>Please correct the following errors:</strong>
-                <ul class="mb-0 mt-2">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+    <main class="app-main">
+        <div class="container mt-4">
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Please correct the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-        @if (session('message'))
-            <div class="alert alert-success">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                {{ session('message') }}
-            </div>
-        @endif
+            @if (session('message'))
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    {{ session('message') }}
+                </div>
+            @endif
 
-        @if (session('error'))
-            <div class="alert alert-danger">
-                <i class="bi bi-x-circle-fill me-2"></i>
-                {{ session('error') }}
-            </div>
-        @endif
-    </div>
+            @if (session('error'))
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle-fill me-2"></i>
+                    {{ session('error') }}
+                </div>
+            @endif
+        </div>
 
-    <div class="container page-content">
-        @yield('content')
-    </div>
+        <div class="container page-content">
+            @yield('content')
+        </div>
+    </main>
+
+    <footer class="internal-footer">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+            <p class="mb-0 internal-footer-brand">Institutional Insights & Innovation · University of Connecticut</p>
+            <div class="internal-footer-links d-flex flex-wrap gap-3">
+                <a href="https://i3.uconn.edu/" target="_blank" rel="noopener noreferrer">i3</a>
+            </div>
+        </div>
+    </footer>
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
