@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Project;
-use App\Models\Shift;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -30,15 +29,9 @@ class ProjectController extends Controller
         $user = auth()->user();
         $sortField = $request->input('sort', 'date');
         $direction = $request->input('direction', 'desc');
-    
-        $shiftsQuery = $project->shifts()->with('user');
-        
-        if (!$user->isAdmin()) {
-            $shiftsQuery->where('netid', $user->netid);
-        }
-        
-        $shifts = $shiftsQuery
-            ->orderBy($sortField, $direction)->get();
+        $isAdmin = $user->isAdmin();
+
+        $shifts = $this->getVisibleShifts($project, $user->netid, $isAdmin, $sortField, $direction);
         
         foreach ($shifts as $shift) {
             $shift->time_range = $shift->date->format('M d, Y');
@@ -53,24 +46,15 @@ class ProjectController extends Controller
             ['key' => 'billed', 'label' => 'Billed (Honeycrisp)', 'sortable' => true, 'type' => 'boolean'],
         ];
         
-        $shiftActions = [
-            ['key' => 'edit', 'label' => 'Edit Shift', 'icon' => 'pencil-square', 'route' => 'shifts.edit'],
-        ];
-        if ($user->isAdmin()) {
-            $shiftActions[] = ['key' => 'delete', 'label' => 'Delete Shift', 'icon' => 'trash', 'route' => 'shifts.destroy', 'method' => 'DELETE', 'confirm' => 'Are you sure you want to delete this shift?'];
-        }
+        $shiftActions = $this->getShiftActions($isAdmin);
 
-        $hours = $user->isAdmin() 
-            ? $project->getAllHours() 
-            : $project->getHoursForUser($user->netid);
+        $hours = $this->getProjectHours($project, $user->netid, $isAdmin);
         
         $totalHours = $hours['total_hours'];
         $billedHours = $hours['billed_hours'];
         $unbilledHours = $hours['unbilled_hours'];
         
-        $unbilledShiftCount = $user->isAdmin() 
-            ? $project->shifts()->where('billed', false)->count() 
-            : $project->shifts()->where('netid', $user->netid)->where('billed', false)->count();
+        $unbilledShiftCount = $this->getUnbilledShiftCount($project, $user->netid, $isAdmin);
         
         $description = $project->description ?: 'N/A';
         
@@ -100,46 +84,39 @@ class ProjectController extends Controller
         $sortField = $request->input('sort', 'name');
         $direction = $request->input('direction', 'asc');
         
-        $query = Project::query();
-        
-        // if (!$user->isAdmin()) {
-        //     $query->assignedToUser($user->netid);
-        // }
+        $query = Project::query()->withCount('users');
         
         $projects = $query->get();
+        $userProjectIds = $user->projects->pluck('id')->toArray();
         
-        $user_assigned_projects = $projects->filter(function($project) use ($user) {
-            return $project->users()->where('user_netid', $user->netid)->exists();
+        $user_assigned_projects = $projects->filter(function($project) use ($userProjectIds) {
+            return in_array($project->id, $userProjectIds, true);
         });
-        $non_user_assigned_projects = $projects->filter(function($project) use ($user) {
-            return !$project->users()->where('user_netid', $user->netid)->exists();
+        $non_user_assigned_projects = $projects->filter(function($project) use ($userProjectIds) {
+            return !in_array($project->id, $userProjectIds, true);
         });
         
         $projects = $user_assigned_projects->merge($non_user_assigned_projects);
         foreach ($projects as $project) {
-            $project->assigned_users_count = $project->users()->count();
+            $project->assigned_users_count = $project->users_count;
             
             $hours = $project->getAllHours();
             $project->billed_hours = $hours['billed_hours'];
             $project->unbilled_hours = $hours['unbilled_hours'];
-            $project->is_user_assigned = $project->users()->where('user_netid', $user->netid)->exists();
+            $project->is_user_assigned = in_array($project->id, $userProjectIds, true);
         }
 
         if ($request->has('sort')) {
             if ($sortField === 'name') {
-                $projects = $projects->sortBy(function($project) {
-                    return strtolower($project->name);
-                }, SORT_STRING, $direction === 'desc');
-            } else {
+                $projects = $this->sortProjectsByName($projects, $direction === 'desc');
+            } 
+            else {
                 $projects = $projects->sortBy($sortField, SORT_REGULAR, $direction === 'desc');
             }
-        } else {
-            $user_assigned_projects = $user_assigned_projects->sortBy(function($project) {
-                return strtolower($project->name);
-            }, SORT_STRING, false)->values();
-            $non_user_assigned_projects = $non_user_assigned_projects->sortBy(function($project) {
-                return strtolower($project->name);
-            }, SORT_STRING, false)->values();
+        } 
+        else {
+            $user_assigned_projects = $this->sortProjectsByName($user_assigned_projects)->values();
+            $non_user_assigned_projects = $this->sortProjectsByName($non_user_assigned_projects)->values();
             $projects = $user_assigned_projects->merge($non_user_assigned_projects);
         }
         
@@ -183,15 +160,7 @@ class ProjectController extends Controller
     public function manage(Request $request)
     {
         $user = auth()->user();
-        $query = Project::query();
-        
-        if ($request->has('search') && $request->search) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('name', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('description', 'like', '%' . $searchTerm . '%');
-            });
-        }
+        $query = Project::query()->search($request->input('search'));
         
         $projects = $query->orderBy('name')->paginate(20)->withQueryString();
         
@@ -206,18 +175,10 @@ class ProjectController extends Controller
         
         if (!$user->projects->contains($project->id)) {
             $project->users()->attach($user->netid, ['active' => true]);
-            $params = [];
-            if ($request->has('search') && $request->search) {
-                $params['search'] = $request->search;
-            }
-            return redirect()->route('projects.manage', $params)->with('message', 'Successfully joined ' . $project->name);
+            return $this->redirectManage($request, 'Successfully joined ' . $project->name);
         }
-        
-        $params = [];
-        if ($request->has('search') && $request->search) {
-            $params['search'] = $request->search;
-        }
-        return redirect()->route('projects.manage', $params)->with('message', 'You are already a member of ' . $project->name);
+
+        return $this->redirectManage($request, 'You are already a member of ' . $project->name);
     }
 
     public function leave(Request $request, Project $project)
@@ -226,18 +187,77 @@ class ProjectController extends Controller
         
         if ($user->projects->contains($project->id)) {
             $project->users()->detach($user->netid);
-            $params = [];
-            if ($request->has('search') && $request->search) {
-                $params['search'] = $request->search;
-            }
-            return redirect()->route('projects.manage', $params)->with('message', 'Successfully left ' . $project->name);
+            return $this->redirectManage($request, 'Successfully left ' . $project->name);
         }
-        
-        $params = [];
+
+        return $this->redirectManage($request, 'You are not a member of ' . $project->name);
+    }
+
+    private function manageSearchParams(Request $request): array
+    {
         if ($request->has('search') && $request->search) {
-            $params['search'] = $request->search;
+            return ['search' => $request->search];
         }
-        return redirect()->route('projects.manage', $params)->with('message', 'You are not a member of ' . $project->name);
+
+        return [];
+    }
+
+    private function redirectManage(Request $request, string $message)
+    {
+        return redirect()
+            ->route('projects.manage', $this->manageSearchParams($request))
+            ->with('message', $message);
+    }
+
+    private function sortProjectsByName($projects, bool $descending = false)
+    {
+        return $projects->sortBy(function ($project) {
+            return strtolower($project->name);
+        }, SORT_STRING, $descending);
+    }
+
+    private function getVisibleShifts(Project $project, string $netid, bool $isAdmin, string $sortField, string $direction)
+    {
+        $shiftsQuery = $project->shifts()->with('user');
+
+        if (!$isAdmin) {
+            $shiftsQuery->where('netid', $netid);
+        }
+
+        return $shiftsQuery->orderBy($sortField, $direction)->get();
+    }
+
+    private function getShiftActions(bool $isAdmin): array
+    {
+        $shiftActions = [
+            ['key' => 'edit', 'label' => 'Edit Shift', 'icon' => 'pencil-square', 'route' => 'shifts.edit'],
+        ];
+
+        if ($isAdmin) {
+            $shiftActions[] = ['key' => 'delete', 'label' => 'Delete Shift', 'icon' => 'trash', 'route' => 'shifts.destroy', 'method' => 'DELETE', 'confirm' => 'Are you sure you want to delete this shift?'];
+        }
+
+        return $shiftActions;
+    }
+
+    private function getProjectHours(Project $project, string $netid, bool $isAdmin): array
+    {
+        if ($isAdmin) {
+            return $project->getAllHours();
+        }
+
+        return $project->getHoursForUser($netid);
+    }
+
+    private function getUnbilledShiftCount(Project $project, string $netid, bool $isAdmin): int
+    {
+        $query = $project->shifts()->where('billed', false);
+
+        if (!$isAdmin) {
+            $query->where('netid', $netid);
+        }
+
+        return $query->count();
     }
 
 }

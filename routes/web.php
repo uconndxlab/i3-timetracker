@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Models\Shift;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\AdminController;
@@ -16,7 +15,6 @@ Route::middleware('cas.auth')->group(function () {
         // Route::get('/projects/{project}/unbilled-users', [AdminController::class, 'showProjectUnbilledUsers'])->name('projects.unbilled_users');
         // Route::put('/shifts/{shift}/mark-billed', [AdminController::class, 'markShiftBilled'])->name('shifts.mark-billed');
 
-        Route::get('/projects/{project}/users', [AdminController::class, 'showProjectUsers'])->name('projects.users');
         Route::post('/projects/{project}/users', [AdminController::class, 'assignUsers'])->name('projects.assign-users');
         Route::delete('/projects/{project}/users/{netid}', [AdminController::class, 'removeUser'])->name('projects.remove-user');
 
