@@ -48,14 +48,6 @@
                         </a>
                     </li>
 
-                    @if (Auth::check() && Auth::user()->isAdmin())
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('admin.users.index') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
-                                Manage Users
-                            </a>
-                        </li>
-                    @endif
-
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('shifts.create') ? 'active' : '' }}" href="{{ route('shifts.create') }}">
                             <i class="bi bi-calendar-plus-fill me-1"></i>Log Shift
@@ -65,15 +57,21 @@
 
                 <div class="d-flex align-items-center ms-auto">
                     @if ( Auth::check() )
-                        <a class="navbar-text me-3 text-decoration-none text-dark">
-                            <span class="navbar-text me-3">
-                                <i class="bi bi-person-circle me-1"></i>{{ Auth::user()->name ?? 'User' }}
-                            </span>
-                        </a>
+                        @if (Auth::user()->isAdmin())
+                            <ul class="navbar-nav me-2">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('admin.users.index') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                        Admin
+                                    </a>
+                                </li>
+                            </ul>
+                        @endif
+
+
                         <ul class="navbar-nav">
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('logout') }}">
-                                    <i class="bi bi-box-arrow-right me-1"></i>Logout
+                                    <i class="bi me-1"></i>Logout ({{ Auth::user()->name ?? 'User' }})
                                 </a>
                             </li>
                         </ul>
