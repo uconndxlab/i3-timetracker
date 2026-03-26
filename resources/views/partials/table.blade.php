@@ -51,7 +51,7 @@ function buildParams($paramConfig, $item) {
             </div>
             @endif
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover mb-0 app-data-table">
                     <thead class="table-light">
                         <tr>
                             @foreach($columns as $col)

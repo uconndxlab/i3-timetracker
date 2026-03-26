@@ -507,12 +507,35 @@ body {
     margin-bottom: 0;
 }
 
+#dynamic-table-container,
+#dynamic-table-container .table,
+#dynamic-table-container .form-control,
+#dynamic-table-container .input-group-text,
+#dynamic-table-container .btn {
+    font-family: inherit;
+}
+
+#dynamic-table-container .app-data-table thead th {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.01em;
+}
+
+#dynamic-table-container .app-data-table tbody td {
+    font-size: 0.95rem;
+    color: var(--uconn-text);
+    line-height: 1.4;
+}
+
+#dynamic-table-container .app-data-table .btn {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
 .app-table-wrap #dynamic-table-container thead th {
     background: #eef3fb;
     color: #526580;
-    font-size: 0.76rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     border-bottom: 1px solid #d6e0ef;
 }
 
@@ -737,9 +760,6 @@ body {
 }
 
 .landing-page-web #dynamic-table-container thead th {
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 0.74rem;
     color: #5f6f88;
     background-color: #f1f5fb;
     border-bottom: 1px solid #d5dfef;
