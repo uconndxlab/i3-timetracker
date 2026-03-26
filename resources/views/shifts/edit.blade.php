@@ -39,51 +39,57 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
 
+                                <div class="card bg-light mt-3">
+                                    <div class="card-body">
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox" class="form-check-input @error('entered') is-invalid @enderror" 
+                                                id="entered" name="entered" value="1" 
+                                                {{ old('entered', $shift->entered) ? 'checked' : '' }}
+                                                {{ !auth()->user()->isAdmin() && $shift->entered ? 'disabled' : '' }}>
+                                            <label class="form-check-label" for="entered" style="font-size: 0.90rem;">
+                                                <i class="bi me-1"></i>
+                                                <strong>Recorded in University Employee Portal (CoreCT)</strong>
+                                            </label>
+                                            @if(!auth()->user()->isAdmin() && $shift->entered)
+                                                <input type="hidden" name="entered" value="1">
+                                            @endif
+                                            @error('entered')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        @if(auth()->user()->isAdmin())
+                                            <div class="form-check form-switch mt-2">
+                                                <input type="checkbox" class="form-check-input @error('billed') is-invalid @enderror" 
+                                                    id="billed" name="billed" value="1" 
+                                                    {{ old('billed', $shift->billed) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="billed" style="font-size: 0.90rem;">
+                                                    <i class="bi me-1"></i>
+                                                    <strong>(Admin) Billed in Honeycrisp/Internal</strong>
+                                                </label>
+                                                @error('billed')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        @else
+                                            <input type="hidden" name="billed" value="{{ $shift->billed ? '1' : '0' }}">
+                                        @endif
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-6">
                                 <label for="date" class="form-label">
                                     <i class="bi me-1"></i>Date
                                 </label>
-                                <input type="date" class="form-control @error('date') is-invalid @enderror" 
+                                <input type="date" class="form-control mb-3 @error('date') is-invalid @enderror" 
                                        id="date" name="date" 
                                        value="{{ old('date', $shift->date->format('Y-m-d')) }}" required>
                                 @error('date')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
 
-                                <div class="form-check mt-3">
-                                    <input type="checkbox" class="form-check-input @error('entered') is-invalid @enderror" 
-                                        id="entered" name="entered" value="1" 
-                                        {{ old('entered', $shift->entered) ? 'checked' : '' }}
-                                        {{ !auth()->user()->isAdmin() && $shift->entered ? 'disabled' : '' }}>
-                                    <label class="form-check-label" for="entered">
-                                        Entered in University System (Timecard)
-                                    </label>
-                                    @if(!auth()->user()->isAdmin() && $shift->entered)
-                                        <input type="hidden" name="entered" value="1">
-                                    @endif
-                                    @error('entered')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                            @if(auth()->user()->isAdmin())
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input @error('billed') is-invalid @enderror" 
-                                        id="billed" name="billed" value="1" 
-                                        {{ old('billed', $shift->billed) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="billed">
-                                        Billed in Honeycrisp
-                                    </label>
-                                    @error('billed')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            @else
-                                <input type="hidden" name="billed" value="{{ $shift->billed ? '1' : '0' }}">
-                            @endif
-
-                            </div>
-
-                            <div class="col-md-6">
                                 <label for="duration-hours-input" class="form-label">
                                     <i class="bi me-1"></i>Duration (hours)
                                 </label>

@@ -7,39 +7,28 @@
         <h1 class="app-page-title">Log New Shift</h1>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="app-panel">
+    <div class="app-panel">
                 <h3 class="app-panel-title">Shift Information</h3>
                     <form action="{{ route('shifts.store') }}" method="POST">
                         @csrf
                         <input type="hidden" name="netid" value="{{ cas()->user() }}">
                         <input type="hidden" id="duration" name="duration" value="{{ old('duration', 60) }}">
 
-                        <div class="mb-4">
-                            <label for="proj_id" class="block text-black-700 text-sm font-bold mb-2">Project</label>
-                            <select name="proj_id" id="proj_id" class="form-select" required>
-                                <option value="">Select a project</option>
-                                @foreach($projects as $project)
-                                    <option value="{{ $project->id }}" {{ (old('proj_id') == $project->id || (isset($selectedProject) && $selectedProject->id == $project->id)) ? 'selected' : '' }}>
-                                        {{ $project->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('proj_id')
-                                <p class="text-red-500 text-xs italic">{{ $message }}</p>
-                            @enderror
-                        </div>
-
                         <div class="row mb-4">
                             <div class="col-md-6">
-                                <label for="date" class="form-label">
-                                    <i class="bi me-1"></i>Date
+                                <label for="proj_id" class="form-label">
+                                    <i class="bi me-1"></i>Project
                                 </label>
-                                <input type="date" class="form-control @error('date') is-invalid @enderror" 
-                                       id="date" name="date" value="{{ old('date', $date) }}" required>
-                                @error('date')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                <select name="proj_id" id="proj_id" class="form-select mb-3" required>
+                                    <option value="">Select a project</option>
+                                    @foreach($projects as $project)
+                                        <option value="{{ $project->id }}" {{ (old('proj_id') == $project->id || (isset($selectedProject) && $selectedProject->id == $project->id)) ? 'selected' : '' }}>
+                                            {{ $project->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('proj_id')
+                                    <p class="text-red-500 text-xs italic">{{ $message }}</p>
                                 @enderror
 
                                 {{-- make card box size small --}}
@@ -77,23 +66,34 @@
                             </div>
 
                             <div class="col-md-6">
+                                <label for="date" class="form-label">
+                                    <i class="bi me-1"></i>Date
+                                </label>
+                                <input type="date" class="form-control mb-3 @error('date') is-invalid @enderror" 
+                                       id="date" name="date" value="{{ old('date', $date) }}" required>
+                                @error('date')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+
                                 <label for="duration-hours-input" class="form-label">
                                     <i class="bi me-1"></i>Duration (hours)
                                 </label>
                                 <input type="number" class="form-control @error('duration') is-invalid @enderror" 
-                                       id="duration-hours-input" value="{{ old('duration') ? number_format(old('duration') / 60, 2) : '1.00' }}" 
-                                       min="0" step="0.25" required>
+                                        id="duration-hours-input" value="{{ old('duration') ? number_format(old('duration') / 60, 2) : '1.00' }}" 
+                                        min="0" step="0.25" required>
                                 @error('duration')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
 
-                                <div class="mt-3">
-                                    <div class="btn-group btn-group-sm" role="group" style="flex-wrap: wrap;">
+                                <div class="mt-2">
+                                    <div class="btn-group btn-group-sm w-100" role="group" style="flex-wrap: wrap;">
                                         <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-30)">-30min</button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-15)">-15min</button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="setDuration(0)">0min</button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(15)">+15min</button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(30)">+30min</button>
+                                    </div>
+                                    <div class="btn-group btn-group-sm w-100 mt-1" role="group">
                                         <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-60)">-1hr</button>
                                         <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(60)">+1hr</button>
                                     </div>
@@ -112,8 +112,6 @@
                             </button>
                         </div>
                     </form>
-            </div>
-        </div>
     </div>
 </div>
 
