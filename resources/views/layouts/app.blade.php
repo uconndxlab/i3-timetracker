@@ -11,7 +11,7 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
 </head>
 
@@ -21,8 +21,8 @@
             <a class="navbar-brand d-flex align-items-center" href="{{ route('landing') }}">
                 <i class="bi me-2"></i>
                 <div class="d-flex flex-column">
-                    <span class="fw-bold">i3 Time Tracker</span>
-                    <small class="opacity-75" style="font-size: 0.7rem; line-height: 1; margin-top: -2px;">University of Connecticut</small>
+                    <span class="fw" style="font-size: 1.25rem;">i3 Time Tracker</span>
+                    <small class="opacity-75" style="font-size: 0.55rem; line-height: 1; margin-top: -2px;">Institutional Insights & Innovation</small>
                 </div>
             </a>
     
@@ -48,26 +48,19 @@
                         </a>
                     </li>
 
+                    @if (Auth::check() && Auth::user()->isAdmin())
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('admin.users.index') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                Manage Users
+                            </a>
+                        </li>
+                    @endif
+
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('shifts.create') ? 'active' : '' }}" href="{{ route('shifts.create') }}">
                             <i class="bi bi-calendar-plus-fill me-1"></i>Log Shift
                         </a>
                     </li>
-
-                    @if (Auth::check() && Auth::user()->isAdmin())
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Admin
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminDropdown">
-                                <li>
-                                    <a class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
-                                        Manage Users
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    @endif
                 </ul>
 
                 <div class="d-flex align-items-center ms-auto">

@@ -1,12 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mt-4">
+<div class="app-page">
+    <div class="app-page-hero">
+        <h1 class="app-page-title">Register New User</h1>
+        <p class="app-page-subtitle">Complete the required details to create access.</p>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow">
-                
-                <div class="card-body">
+            <div class="app-panel">
                     <p class="text-muted mb-4">Please fill in the details below to register a new user.</p>
 
                     <form method="POST" action="{{ route('users.store') }}">
@@ -32,7 +35,6 @@
                             </button>
                         </div>
                     </form>
-                </div>
             </div>
         </div>
     </div>

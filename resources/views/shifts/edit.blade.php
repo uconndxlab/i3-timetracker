@@ -1,16 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mt-4">
+<div class="app-page">
+    <div class="app-page-hero">
+        <h1 class="app-page-title">Edit Shift</h1>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-md-10 col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        Edit Shift
-                    </h5>
-                </div>
-                <div class="card-body">
+            <div class="app-panel">
+                <h5 class="app-panel-title">Shift Details</h5>
                     @if ($errors->any())
                         <div class="alert alert-danger mb-3">
                             <ul class="mb-0">
@@ -131,7 +130,6 @@
                             </button>
                         </div>
                     </form>
-                </div>
             </div>
         </div>
     </div>

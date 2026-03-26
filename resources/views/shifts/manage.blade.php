@@ -1,16 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mt-4">
-    <div class="page-header text-center">
-        <div class="container">
-            <h1 class="display-5">
-                All Staff Shifts
-            </h1>
-        </div>
+<div class="app-page">
+    <div class="app-page-hero">
+        <h1 class="app-page-title">All Staff Shifts</h1>
     </div>
 
-    <form method="GET" action="{{ route('shifts.manage') }}" class="mb-2">
+    <form method="GET" action="{{ route('shifts.manage') }}" class="app-filter-bar">
         <div class="row g-2 align-items-center">
             <div class="col-md-2 ">
                 <input type="text" name="search" class="form-control" placeholder="Enter staff name" value="{{ request('search') }}">
@@ -67,16 +63,18 @@
         ];
     @endphp
 
-    @include('partials.table', [
-        'items' => $shifts,
-        'columns' => $columns,
-        'actions' => $actions,
-        'title' => 'Shift',
-        'empty_message' => 'No shifts found.',
-        'empty_icon' => 'calendar-x',
-        'create_route' => 'shifts.create',
-        'create_label' => 'Add New Shift'
-    ])
+    <div class="app-panel app-table-wrap">
+        @include('partials.table', [
+            'items' => $shifts,
+            'columns' => $columns,
+            'actions' => $actions,
+            'title' => 'Shift',
+            'empty_message' => 'No shifts found.',
+            'empty_icon' => 'calendar-x',
+            'create_route' => 'shifts.create',
+            'create_label' => 'Add New Shift'
+        ])
+    </div>
 
     <div class="mt-4 d-flex justify-content-center">
         {{ $shifts->links('partials.pagination') }}

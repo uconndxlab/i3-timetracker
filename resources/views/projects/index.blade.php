@@ -1,16 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="pt-4 pb-5 mt-4">
-    <div class="page-header text-center position-relative">
-        <div class="container">
-            <h1 class="display-5">
-                All Projects
-            </h1>
+<div class="app-page">
+    <div class="app-page-hero">
+        <h1 class="app-page-title">Your Projects</h1>
+        <div class="app-page-tools">
+            <a href="{{ route('projects.manage') }}" class="btn btn-light">
+                Manage Project Assignments
+            </a>
         </div>
-        <a href="{{ route('projects.manage') }}" class="btn btn-primary position-absolute start-0 bottom-0 ms-3 mb-3">
-            Manage Project Assignments
-        </a>
     </div>
 
     @php
@@ -40,16 +38,18 @@
         }
     @endphp
 
-    @include('partials.table', [
-        'filterable' => true,
-        'items' => $projects,
-        'columns' => $columns,
-        'actions' => $actions,
-        'title' => 'Project',
-        'empty_message' => 'No projects found.',
-        'empty_icon' => 'folder-x',
-        'create_route' => auth()->user()->isAdmin() ? 'projects.create' : null,
-        'create_label' => 'Add New Project'
-    ])
+    <div class="app-panel app-table-wrap">
+        @include('partials.table', [
+            'filterable' => true,
+            'items' => $projects,
+            'columns' => $columns,
+            'actions' => $actions,
+            'title' => 'Project',
+            'empty_message' => 'No projects found.',
+            'empty_icon' => 'folder-x',
+            'create_route' => auth()->user()->isAdmin() ? 'projects.create' : null,
+            'create_label' => 'Add New Project'
+        ])
+    </div>
 </div>
 @endsection

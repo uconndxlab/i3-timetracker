@@ -1,17 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mt-4">
-    <div class="page-header text-center">
-        <div class="container">
-            <h1 class="display-5">
-                <i class="bi me-3"></i>
-                Staff Management
-            </h1>
-        </div>
+<div class="app-page">
+    <div class="app-page-hero">
+        <h1 class="app-page-title">Staff Management</h1>
     </div>
 
-    <form method="GET" action="{{ route('admin.users.index') }}" class="mb-2">
+    <form method="GET" action="{{ route('admin.users.index') }}" class="app-filter-bar">
         <div class="row g-2 align-items-center">
             <div class="col-md-3">
                 <input type="text" name="search" class="form-control" placeholder="Search by name, NetID, or email" value="{{ request('search') }}">
@@ -58,14 +53,16 @@
         ];
     @endphp
 
-    @include('partials.table', [
-        'items' => $users,
-        'columns' => $columns,
-        'actions' => $actions,
-        'title' => 'User',
-        'empty_message' => 'No users found.',
-        'empty_icon' => 'people-fill',
-    ])
+    <div class="app-panel app-table-wrap">
+        @include('partials.table', [
+            'items' => $users,
+            'columns' => $columns,
+            'actions' => $actions,
+            'title' => 'User',
+            'empty_message' => 'No users found.',
+            'empty_icon' => 'people-fill',
+        ])
+    </div>
     
     <div class="d-flex justify-content-center mt-4">
         {{ $users->links('partials.pagination') }}

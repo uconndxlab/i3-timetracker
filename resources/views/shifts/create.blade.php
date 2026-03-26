@@ -2,24 +2,15 @@
 
 @section('content')
 
-<div class="mt-4">
-    <div class="page-header text-center">
-        <div class="container">
-            <h1 class="display-5">
-                Log New Shift
-            </h1>
-        </div>
+<div class="app-page">
+    <div class="app-page-hero">
+        <h1 class="app-page-title">Log New Shift</h1>
     </div>
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="mb-0">
-                        Shift Information
-                    </h3>
-                </div>
-                <div class="card-body">
+            <div class="app-panel">
+                <h3 class="app-panel-title">Shift Information</h3>
                     <form action="{{ route('shifts.store') }}" method="POST">
                         @csrf
                         <input type="hidden" name="netid" value="{{ cas()->user() }}">
@@ -121,7 +112,6 @@
                             </button>
                         </div>
                     </form>
-                </div>
             </div>
         </div>
     </div>

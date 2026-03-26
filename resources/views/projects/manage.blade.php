@@ -1,34 +1,16 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mt-4">
-    <div class="page-header text-center">
-        <div class="container">
-            <h1 class="display-5 mb-3">
-                Manage Projects
-            </h1>
-            <p class="lead mb-1">
-                Join or leave projects you're working on
-            </p>
-        </div>
+<div class="app-page">
+    <div class="app-page-hero">
+        <h1 class="app-page-title">Manage Projects</h1>
+        <p class="app-page-subtitle">Join or leave projects you are currently working on.</p>
     </div>
 
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            {{-- @if(session('message'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('message') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif --}}
-
-            <div class="card shadow-sm">
-                <div class="card-header">
-                    <h3 class="mb-0">
-                        All Projects
-                    </h3>
-                </div>
-                <div class="card-body">
+        <div class="col-lg-9">
+            <div class="app-panel">
+                <h3 class="app-panel-title">All Projects</h3>
                     <form method="GET" action="{{ route('projects.manage') }}" class="mb-4">
                         <div class="input-group">
                             <input type="text" class="form-control" name="search" placeholder="Search projects by name or description..." value="{{ request('search') }}">
@@ -88,7 +70,6 @@
                             @endif
                         </div>
                     @endif
-                </div>
             </div>
         </div>
     </div>

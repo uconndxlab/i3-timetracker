@@ -1,30 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="mt-4">
-    <div class="page-header text-center">
-        <div class="container">
-            <h1 class="display-5">
-                Your Shifts
-            </h1>
-        
-            {{-- <div class="mt-4 d-flex justify-content-center align-items-center gap-3">
-                <a href="{{ route('shifts.index', ['week' => $prev]) }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-chevron-left"></i> Previous Week
-                </a>
-                <h5 class="mb-0 fw-bold">{{ $start }} to {{ $end }}</h5>
-                @if($next <= 0)
-                <a href="{{ route('shifts.index', ['week' => $next]) }}" class="btn btn-outline-secondary">
-                    Next Week <i class="bi bi-chevron-right"></i>
-                </a>
-                @endif
-                @if($currOffset != 0)
-                    <a href="{{ route('shifts.index') }}" class="btn btn-secondary">
-                        Current Week
-                    </a>
-                @endif
-            </div> --}}
-        </div>
+<div class="app-page">
+    <div class="app-page-hero">
+        <h1 class="app-page-title">Your Shifts</h1>
     </div>
 
     @php
@@ -50,16 +29,18 @@
         ];
     @endphp
 
-    @include('partials.table', [
-        'items' => $shifts,
-        'columns' => $columns,
-        'actions' => $actions,
-        'title' => 'Shift',
-        'empty_message' => 'No shifts found for this week.',
-        'empty_icon' => 'calendar-x',
-        'create_route' => 'shifts.create',
-        'create_label' => 'Add New Shift'
-    ])
+    <div class="app-panel app-table-wrap">
+        @include('partials.table', [
+            'items' => $shifts,
+            'columns' => $columns,
+            'actions' => $actions,
+            'title' => 'Shift',
+            'empty_message' => 'No shifts found for this week.',
+            'empty_icon' => 'calendar-x',
+            'create_route' => 'shifts.create',
+            'create_label' => 'Add New Shift'
+        ])
+    </div>
 
     {{-- <div class="mt-4 d-flex justify-content-center">
         {{ $shifts->links('partials.pagination') }}
