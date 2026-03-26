@@ -6,10 +6,8 @@
         <h1 class="app-page-title">Edit Shift</h1>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-8">
-            <div class="app-panel">
-                <h5 class="app-panel-title">Shift Details</h5>
+    <div class="app-panel">
+        <h5 class="app-panel-title">Shift Details</h5>
                     @if ($errors->any())
                         <div class="alert alert-danger mb-3">
                             <ul class="mb-0">
@@ -40,9 +38,7 @@
                                 @error('proj_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                            </div>
 
-                            <div class="col-md-6 mb-3 mb-md-0">
                                 <label for="date" class="form-label">
                                     <i class="bi me-1"></i>Date
                                 </label>
@@ -52,39 +48,8 @@
                                 @error('date')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
-                            </div>
-                        </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="duration-hours-input" class="form-label">
-                                    <i class="bi me-1"></i>Duration (hours)
-                                </label>
-                                <input type="number" class="form-control @error('duration') is-invalid @enderror" 
-                                       id="duration-hours-input" 
-                                       value="{{ old('duration') ? number_format(old('duration') / 60, 2) : number_format($shift->duration / 60, 2) }}" 
-                                       min="0" step="0.25" required>
-                                @error('duration')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-
-                                <div class="mt-2">
-                                    <div class="btn-group btn-group-sm w-100" role="group" style="flex-wrap: wrap;">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-30)">-30min</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-15)">-15min</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="setDuration(0)">0min</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(15)">+15min</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(30)">+30min</button>
-                                    </div>
-                                    <div class="btn-group btn-group-sm w-100 mt-1" role="group">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-60)">-1hr</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(60)">+1hr</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6 mb-2 mb-md-0">
-                                <div class="form-check">
+                                <div class="form-check mt-3">
                                     <input type="checkbox" class="form-check-input @error('entered') is-invalid @enderror" 
                                         id="entered" name="entered" value="1" 
                                         {{ old('entered', $shift->entered) ? 'checked' : '' }}
@@ -117,6 +82,33 @@
                             @endif
 
                             </div>
+
+                            <div class="col-md-6">
+                                <label for="duration-hours-input" class="form-label">
+                                    <i class="bi me-1"></i>Duration (hours)
+                                </label>
+                                <input type="number" class="form-control @error('duration') is-invalid @enderror" 
+                                        id="duration-hours-input" 
+                                        value="{{ old('duration') ? number_format(old('duration') / 60, 2) : number_format($shift->duration / 60, 2) }}" 
+                                        min="0" step="0.25" required>
+                                @error('duration')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+
+                                <div class="mt-2">
+                                    <div class="btn-group btn-group-sm w-100" role="group" style="flex-wrap: wrap;">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-30)">-30min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-15)">-15min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="setDuration(0)">0min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(15)">+15min</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(30)">+30min</button>
+                                    </div>
+                                    <div class="btn-group btn-group-sm w-100 mt-1" role="group">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(-60)">-1hr</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="adjustDuration(60)">+1hr</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <hr class="my-3">
@@ -130,8 +122,6 @@
                             </button>
                         </div>
                     </form>
-            </div>
-        </div>
     </div>
 </div>
 
