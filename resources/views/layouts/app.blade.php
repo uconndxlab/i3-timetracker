@@ -19,7 +19,7 @@
     <nav class="navbar navbar-expand-lg navbar-uconn">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('landing') }}">
-                <i class="bi me-2"></i>
+                <img src="{{ asset('i3.svg') }}" alt="i3" class="navbar-brand-logo me-2">
                 <div class="d-flex flex-column">
                     <span class="fw" style="font-size: 1.25rem;">i3 Time Tracker</span>
                     <small class="opacity-75" style="font-size: 0.55rem; line-height: 1; margin-top: -2px;">Institutional Insights & Innovation</small>
@@ -33,7 +33,7 @@
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
+                        <a class="nav-link {{ request()->routeIs('projects.*') && !request()->routeIs('projects.create') ? 'active' : '' }}" href="{{ route('projects.index') }}">
                             Projects
                         </a>
                     </li>
@@ -50,7 +50,7 @@
 
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('shifts.create') ? 'active' : '' }}" href="{{ route('shifts.create') }}">
-                            <i class="bi bi-calendar-plus-fill me-1"></i>Log Shift
+                            Log Shift
                         </a>
                     </li>
                 </ul>
@@ -59,10 +59,27 @@
                     @if ( Auth::check() )
                         @if (Auth::user()->isAdmin())
                             <ul class="navbar-nav me-2">
-                                <li class="nav-item">
-                                    <a class="nav-link {{ request()->routeIs('admin.users.index') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.users.index') || request()->routeIs('projects.create') ? 'active' : '' }}"
+                                       href="#"
+                                       id="adminDropdown"
+                                       role="button"
+                                       data-bs-toggle="dropdown"
+                                       aria-expanded="false">
                                         Admin
                                     </a>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                        <li>
+                                            <a class="dropdown-item {{ request()->routeIs('admin.users.index') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
+                                                Manage Staff
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item {{ request()->routeIs('projects.create') ? 'active' : '' }}" href="{{ route('projects.create') }}">
+                                                Create Project
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </li>
                             </ul>
                         @endif
@@ -117,10 +134,10 @@
 
     <footer class="internal-footer">
         <div class="container d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-            <p class="mb-0 internal-footer-brand">Institutional Insights & Innovation · University of Connecticut</p>
-            <div class="internal-footer-links d-flex flex-wrap gap-3">
-                <a href="https://i3.uconn.edu/" target="_blank" rel="noopener noreferrer">i3</a>
-            </div>
+            <p class="mb-0 internal-footer-brand d-flex align-items-center gap-2">
+                {{-- <img src="{{ asset('i3.svg') }}" alt="i3" class="internal-footer-logo"> --}}
+                <span>Institutional Insights & Innovation · University of Connecticut</span>
+            </p>
         </div>
     </footer>
 

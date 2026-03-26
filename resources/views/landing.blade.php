@@ -9,16 +9,11 @@
                 <h1 class="landing-title mb-3">Time Tracker</h1>
                 <div class="d-flex gap-3 flex-wrap align-items-center">
                     <a href="{{ route('shifts.create') }}" class="btn landing-btn-primary">
-                        Log New Shift
+                        Log Shift
                     </a>
                     <a href="{{ route('shifts.index') }}" class="btn landing-btn-secondary">
-                        View All Shifts
+                        View Shifts
                     </a>
-                    @if(auth()->user()->isAdmin())
-                    <a href="{{ route('projects.create') }}" class="btn landing-btn-secondary">
-                        Create Project
-                    </a>
-                    @endif
                 </div>
             </div>
 

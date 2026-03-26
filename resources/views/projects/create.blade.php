@@ -6,9 +6,7 @@
         <h1 class="app-page-title">Create New Project</h1>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="app-panel">
+    <div class="app-panel">
                 <h3 class="app-panel-title">Project Details</h3>
                     <form action="{{ route('projects.store') }}" method="POST">
                         @csrf
@@ -74,8 +72,6 @@
                             </button>
                         </div>
                     </form>
-            </div>
-        </div>
     </div>
 </div>
 @endsection
