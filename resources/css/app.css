@@ -543,6 +543,41 @@ body {
     border-bottom-color: #e0e7f3;
 }
 
+.app-pagination .page-link {
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #30476e;
+    border: 1px solid #d6e0ef;
+    background-color: #ffffff;
+    border-radius: 8px;
+    min-width: 2rem;
+    text-align: center;
+    padding: 0.33rem 0.6rem;
+}
+
+.app-pagination .page-item + .page-item {
+    margin-left: 0.35rem;
+}
+
+.app-pagination .page-link:hover {
+    color: #173763;
+    background-color: #eef4fd;
+    border-color: #bfd0e8;
+}
+
+.app-pagination .page-item.active .page-link {
+    background-color: var(--theme-accent);
+    border-color: var(--theme-accent);
+    color: #00183a;
+}
+
+.app-pagination .page-item.disabled .page-link {
+    color: #8b9bb4;
+    background-color: #f5f8fc;
+    border-color: #dce4ef;
+}
+
 .app-split-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(280px, 0.65fr);

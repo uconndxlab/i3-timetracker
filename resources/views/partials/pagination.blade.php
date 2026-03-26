@@ -1,5 +1,5 @@
 @if ($paginator->hasPages())
-    <nav aria-label="pagination">
+    <nav aria-label="pagination" class="app-pagination">
         <ul class="pagination pagination-sm justify-content-center mb-0">
             @if ($paginator->onFirstPage())
                 <li class="page-item disabled">
