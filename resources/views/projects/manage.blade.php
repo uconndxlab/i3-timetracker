@@ -4,12 +4,9 @@
 <div class="app-page">
     <div class="app-page-hero">
         <h1 class="app-page-title">Manage Projects</h1>
-        <p class="app-page-subtitle">Join or leave projects you are currently working on.</p>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-9">
-            <div class="app-panel">
+    <div class="app-panel">
                 <h3 class="app-panel-title">All Projects</h3>
                     <form method="GET" action="{{ route('projects.manage') }}" class="mb-4">
                         <div class="input-group">
@@ -70,8 +67,6 @@
                             @endif
                         </div>
                     @endif
-            </div>
-        </div>
     </div>
 </div>
 @endsection
