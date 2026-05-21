@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Actions\Projects\ProjectHours;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,18 +27,6 @@ class Project extends Model
     public function shifts()
     {
         return $this->hasMany(Shift::class, 'proj_id');
-    }
-
-    public function getHoursForUser(string $netid): array
-    {
-        $userShifts = $this->shifts()->where('netid', $netid)->get();
-
-        return app(ProjectHours::class)($userShifts);
-    }
-
-    public function getAllHours(): array
-    {
-        return app(ProjectHours::class)($this->shifts()->get());
     }
 
     public function scopeAssignedToUser($query, string $netid)

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Admin\BuildAdminDashboard;
 use App\Models\Project;
 use App\Models\Shift;
 use App\Models\User;
@@ -121,7 +120,7 @@ class ShiftController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'shift' => app(BuildAdminDashboard::class)->formatShiftRow($shift),
+                'shift' => $shift->toAdminRow(),
                 'csrf_token' => csrf_token(),
             ]);
         }

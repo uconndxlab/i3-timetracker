@@ -135,52 +135,44 @@
             }
 
             const buttons = viewToggle.querySelectorAll('.dashboard-segment__btn');
-            const storageKey = 'navbarViewMode';
-
-            const syncViewToUrl = (view) => {
-                const url = new URL(window.location.href);
-                if (view === 'admin') {
-                    url.searchParams.set('view', 'admin');
-                } else {
-                    url.searchParams.delete('view');
-                }
-                const next = url.pathname + url.search + url.hash;
-                const current = window.location.pathname + window.location.search + window.location.hash;
-                if (next !== current) {
-                    history.replaceState(null, '', next);
-                }
-            };
 
             const resolveView = () => {
                 const urlView = new URLSearchParams(window.location.search).get('view');
-                if (urlView === 'admin' || urlView === 'user') {
-                    return urlView;
-                }
-                const stored = localStorage.getItem(storageKey);
-                if (stored === 'admin' || stored === 'user') {
-                    return stored;
-                }
-                return 'user';
+                return urlView === 'admin' ? 'admin' : 'user';
             };
 
-            const setView = (view) => {
+            const syncViewButtons = (view) => {
                 buttons.forEach((btn) => {
                     const active = btn.dataset.view === view;
                     btn.classList.toggle('active', active);
                     btn.setAttribute('aria-pressed', active ? 'true' : 'false');
                 });
-                localStorage.setItem(storageKey, view);
-                syncViewToUrl(view);
-                document.dispatchEvent(new CustomEvent('navbar-view-change', { detail: { view } }));
+            };
+
+            const navigateToView = (view) => {
+                const url = new URL(window.location.href);
+                if (view === 'admin') {
+                    url.searchParams.set('view', 'admin');
+                } else {
+                    url.searchParams.delete('view');
+                    url.searchParams.delete('period_start');
+                }
+
+                const next = url.pathname + url.search + url.hash;
+                const current = window.location.pathname + window.location.search + window.location.hash;
+
+                if (next !== current) {
+                    window.location.assign(next);
+                }
             };
 
             window.navbarResolveView = resolveView;
-            window.navbarSetView = setView;
+            window.navbarSetView = navigateToView;
 
-            setView(resolveView());
+            syncViewButtons(resolveView());
 
             buttons.forEach((btn) => {
-                btn.addEventListener('click', () => setView(btn.dataset.view));
+                btn.addEventListener('click', () => navigateToView(btn.dataset.view));
             });
         })();
     </script>

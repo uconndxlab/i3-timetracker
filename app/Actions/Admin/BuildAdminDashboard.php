@@ -4,71 +4,41 @@ declare(strict_types=1);
 
 namespace App\Actions\Admin;
 
-use App\Actions\Projects\ProjectHours;
 use App\Actions\Shifts\BuildHoursTimeline;
 use App\Models\Project;
 use App\Models\Shift;
 use App\Models\User;
+use App\Support\PayPeriod;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class BuildAdminDashboard
 {
-    private const WEEK_START = Carbon::THURSDAY;
-
-    private const WEEK_END = Carbon::WEDNESDAY;
-
-    public function __invoke(int $weekCount = 20): array
+    public function __invoke(int $weekCount = 20, ?string $periodStart = null): array
     {
-        $startOfWeek = Carbon::now()->startOfWeek(self::WEEK_START);
-        $endOfWeek = Carbon::now()->endOfWeek(self::WEEK_END);
-        $firstWeekStart = $startOfWeek->copy()->subWeeks($weekCount - 1);
+        $weeklyPeriods = $this->buildWeeklyPeriodMetadata($weekCount);
+        $activeWeekIndex = PayPeriod::resolveActiveIndex($weeklyPeriods, $periodStart);
 
-        $allShifts = Shift::query()->with(['user', 'project'])->get();
+        $activePeriod = $weeklyPeriods[$activeWeekIndex];
+        $periodDetail = $this->buildPeriodDetail($activePeriod['start_date'], $activePeriod['end_date']);
+        $activePeriod = array_merge($activePeriod, $periodDetail);
 
-        $periodRangeShifts = Shift::query()
-            ->with(['user', 'project'])
-            ->whereBetween('date', [
-                $firstWeekStart->format('Y-m-d'),
-                $endOfWeek->format('Y-m-d'),
-            ])
-            ->get();
+        $weeklyPeriods[$activeWeekIndex] = $activePeriod;
 
-        $weeklyPeriods = [];
-
-        for ($weekOffset = 0; $weekOffset < $weekCount; $weekOffset++) {
-            $weekStart = $firstWeekStart->copy()->addWeeks($weekOffset);
-            $weekEnd = $weekStart->copy()->endOfWeek(self::WEEK_END);
-            $periodShifts = $this->filterShiftsBetween($periodRangeShifts, $weekStart, $weekEnd);
-
-            $weeklyPeriods[] = [
-                'label' => $this->formatPeriodLabel($weekStart, $weekEnd),
-                'start_date' => $weekStart->format('Y-m-d'),
-                'end_date' => $weekEnd->format('Y-m-d'),
-                'is_current_week' => $weekStart->isSameDay($startOfWeek),
-                'hours_this_period' => $this->sumHours($periodShifts),
-                'employees' => $this->buildEmployeeRows($allShifts, $periodShifts),
-                'project_rows' => $this->buildProjectRows($allShifts, $periodShifts),
-                'shifts' => $this->buildShiftRows($periodShifts),
-                'days' => $this->buildDailySeries($periodShifts, $weekStart),
-            ];
-        }
-
-        $currentWeekIndex = collect($weeklyPeriods)->search(fn ($week) => $week['is_current_week'] ?? false);
-        if ($currentWeekIndex === false) {
-            $currentWeekIndex = max(count($weeklyPeriods) - 1, 0);
-        }
+        $activeProjects = Project::query()
+            ->where('active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return [
-            'weekly_periods' => $weeklyPeriods,
-            'current_week_index' => $currentWeekIndex,
-            'org_projects' => $this->buildOrgProjects($allShifts),
-            'org_stats' => $this->buildOrgStats($allShifts),
+            'weekly_periods' => $this->stripPeriodMetadata($weeklyPeriods),
+            'active_period' => $activePeriod,
+            'current_week_index' => $activeWeekIndex,
+            'org_projects' => $this->buildOrgProjects($activeProjects->pluck('name', 'id')),
+            'org_stats' => $this->buildOrgStats(),
             'hours_timeline' => app(BuildHoursTimeline::class)(null),
-            'projects' => Project::query()
-                ->where('active', true)
-                ->orderBy('name')
-                ->get(['id', 'name'])
+            'projects' => $activeProjects
                 ->map(fn (Project $project) => [
                     'id' => $project->id,
                     'name' => $project->name,
@@ -78,88 +48,198 @@ class BuildAdminDashboard
         ];
     }
 
-    public function formatShiftRow(Shift $shift): array
+    public function buildPeriodDetail(string $startDate, string $endDate): array
     {
-        $date = $shift->date instanceof Carbon
-            ? $shift->date
-            : Carbon::parse($shift->date);
+        $weekStart = Carbon::parse($startDate)->startOfWeek(PayPeriod::WEEK_START);
+        $periodShifts = $this->loadPeriodShifts($startDate, $endDate);
+
+        $allTimeByUser = $this->loadAllTimeByUser();
+        $topProjectByUser = $this->loadTopProjectByNetid();
+        $allTimeByProject = $this->loadAllTimeByProject();
+        $topEmployeeByProject = $this->loadTopEmployeeByProject();
+        $projectNames = Project::query()->pluck('name', 'id');
+        $userNames = User::query()->pluck('name', 'netid');
 
         return [
-            'id' => $shift->id,
-            'netid' => $shift->netid,
-            'employee_name' => $shift->user?->name ?? $shift->netid,
-            'proj_id' => $shift->proj_id,
-            'project_name' => $shift->project?->name ?? 'Unknown project',
-            'date' => $date->format('Y-m-d'),
-            'date_display' => $date->format('n/j/y'),
-            'duration_minutes' => $shift->duration ?? 0,
-            'hours' => round(($shift->duration ?? 0) / 60, 2),
-            'entered' => (bool) $shift->entered,
-            'billed' => (bool) $shift->billed,
+            'hours_this_period' => $this->sumHours($periodShifts),
+            'employees' => $this->buildEmployeeRows(
+                $periodShifts,
+                $allTimeByUser,
+                $topProjectByUser,
+                $projectNames,
+                $userNames,
+            ),
+            'project_rows' => $this->buildProjectRows(
+                $periodShifts,
+                $allTimeByProject,
+                $topEmployeeByProject,
+                $projectNames,
+            ),
+            'shifts' => $this->buildShiftRows($periodShifts),
+            'days' => $this->buildDailySeries($periodShifts, $weekStart),
         ];
+    }
+
+    /**
+     * @return list<array{label: string, start_date: string, end_date: string, is_current_week: bool, hours_this_period: float, days: list<array>}>
+     */
+    public function buildWeeklyPeriodMetadata(int $weekCount = 20): array
+    {
+        $weeks = PayPeriod::buildWeeks($weekCount);
+        $firstWeekStart = $weeks[0]['start'];
+        $rangeStart = $firstWeekStart->format('Y-m-d');
+        $rangeEnd = PayPeriod::currentWeekEnd()->format('Y-m-d');
+
+        $minutesByDate = DB::table('shifts')
+            ->whereBetween('date', [$rangeStart, $rangeEnd])
+            ->selectRaw('date, SUM(duration) as minutes')
+            ->groupBy('date')
+            ->pluck('minutes', 'date');
+
+        $periods = [];
+
+        foreach ($weeks as $week) {
+            $periods[] = [
+                'label' => $week['label'],
+                'start_date' => $week['start_date'],
+                'end_date' => $week['end_date'],
+                'is_current_week' => $week['is_current_week'],
+                'hours_this_period' => PayPeriod::sumHoursFromDailyMinutes($minutesByDate, $week['start'], $week['end']),
+                'days' => PayPeriod::buildDailySeries($minutesByDate, $week['start']),
+            ];
+        }
+
+        return $periods;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $weeklyPeriods
+     * @return list<array<string, mixed>>
+     */
+    private function stripPeriodMetadata(array $weeklyPeriods): array
+    {
+        return array_map(fn (array $period) => [
+            'label' => $period['label'],
+            'start_date' => $period['start_date'],
+            'end_date' => $period['end_date'],
+            'is_current_week' => $period['is_current_week'],
+            'hours_this_period' => $period['hours_this_period'],
+        ], $weeklyPeriods);
     }
 
     private function buildShiftRows(Collection $periodShifts): array
     {
         return $periodShifts
-            ->sortByDesc(function ($shift) {
-                $date = $shift->date instanceof Carbon
-                    ? $shift->date
-                    : Carbon::parse($shift->date);
-
-                return $date->format('Y-m-d').str_pad((string) $shift->id, 8, '0', STR_PAD_LEFT);
-            })
+            ->sortByDesc(fn ($shift) => $shift->date.$shift->id)
             ->values()
-            ->map(fn (Shift $shift) => $this->formatShiftRow($shift))
+            ->map(fn ($shift) => Shift::formatAdminRow($shift))
             ->all();
     }
 
-    private function buildEmployeeRows(Collection $allShifts, Collection $periodShifts): array
+    private function loadPeriodShifts(string $rangeStart, string $rangeEnd): Collection
     {
-        $netids = $allShifts->pluck('netid')->unique();
+        return DB::table('shifts')
+            ->join('users', 'shifts.netid', '=', 'users.netid')
+            ->join('projects', 'shifts.proj_id', '=', 'projects.id')
+            ->whereBetween('shifts.date', [$rangeStart, $rangeEnd])
+            ->select([
+                'shifts.id',
+                'shifts.netid',
+                'shifts.proj_id',
+                'shifts.date',
+                'shifts.duration',
+                'shifts.entered',
+                'shifts.billed',
+                'users.name as employee_name',
+                'projects.name as project_name',
+            ])
+            ->orderByDesc('shifts.date')
+            ->orderByDesc('shifts.id')
+            ->get();
+    }
 
-        return User::query()
-            ->whereIn('netid', $netids)
-            ->orderBy('name')
-            ->get()
-            ->map(function (User $user) use ($allShifts, $periodShifts) {
-                $userShifts = $allShifts->where('netid', $user->netid);
-                $userPeriodShifts = $periodShifts->where('netid', $user->netid);
-                $topProject = $this->topProjectForShifts($userShifts);
-                $periodHours = app(ProjectHours::class)($userPeriodShifts);
-                $totalHours = app(ProjectHours::class)($userShifts);
+    /**
+     * @param  Collection<string, object>  $allTimeByUser
+     * @param  Collection<string, object>  $topProjectByUser
+     * @param  Collection<int|string, string>  $projectNames
+     */
+    private function buildEmployeeRows(
+        Collection $periodShifts,
+        Collection $allTimeByUser,
+        Collection $topProjectByUser,
+        Collection $projectNames,
+        Collection $userNames,
+    ): array {
+        $periodUnbilledMinutes = $periodShifts
+            ->where('billed', false)
+            ->groupBy('netid')
+            ->map(fn (Collection $shifts) => $shifts->sum(fn ($shift) => $shift->duration ?? 0));
+
+        $netids = $periodShifts->pluck('netid')
+            ->merge($allTimeByUser->keys())
+            ->unique();
+
+        return $netids
+            ->map(function (string $netid) use ($periodUnbilledMinutes, $allTimeByUser, $topProjectByUser, $projectNames, $userNames) {
+                $allTime = $allTimeByUser->get($netid);
+                $topProject = $topProjectByUser->get($netid);
+
+                $unbilledHours = round(((int) ($periodUnbilledMinutes[$netid] ?? 0)) / 60, 2);
+                $totalHours = round(((int) ($allTime->total_minutes ?? 0)) / 60, 2);
 
                 return [
-                    'netid' => $user->netid,
-                    'name' => $user->name,
-                    'unbilled_hours' => $periodHours['unbilled_hours'],
-                    'total_hours' => $totalHours['total_hours'],
-                    'top_project' => $topProject['name'],
-                    'last_shift_date' => $this->lastShiftDate($userShifts),
+                    'netid' => $netid,
+                    'name' => $userNames->get($netid, $netid),
+                    'unbilled_hours' => $unbilledHours,
+                    'total_hours' => $totalHours,
+                    'top_project' => $projectNames->get($topProject->proj_id ?? null, '—'),
+                    'last_shift_date' => isset($allTime->last_date)
+                        ? Carbon::parse($allTime->last_date)->format('n/j/y')
+                        : null,
                 ];
             })
             ->filter(fn (array $row) => $row['unbilled_hours'] > 0 || $row['total_hours'] > 0)
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
             ->values()
             ->all();
     }
 
-    private function buildProjectRows(Collection $allShifts, Collection $periodShifts): array
-    {
-        return $allShifts
+    /**
+     * @param  Collection<int|string, object>  $allTimeByProject
+     * @param  Collection<int|string, object>  $topEmployeeByProject
+     * @param  Collection<int|string, string>  $projectNames
+     */
+    private function buildProjectRows(
+        Collection $periodShifts,
+        Collection $allTimeByProject,
+        Collection $topEmployeeByProject,
+        Collection $projectNames,
+    ): array {
+        $periodMinutes = $periodShifts
             ->groupBy('proj_id')
-            ->map(function (Collection $projectShifts) use ($periodShifts) {
-                $first = $projectShifts->first();
-                $projectId = $first->proj_id;
-                $projectPeriodShifts = $periodShifts->where('proj_id', $projectId);
-                $topEmployee = $this->topEmployeeForShifts($projectShifts);
+            ->map(fn (Collection $shifts) => $shifts->sum(fn ($shift) => $shift->duration ?? 0));
+
+        $projectIds = $periodShifts->pluck('proj_id')
+            ->merge($allTimeByProject->keys())
+            ->unique();
+
+        return $projectIds
+            ->map(function ($projectId) use ($periodMinutes, $allTimeByProject, $topEmployeeByProject, $projectNames) {
+                $allTime = $allTimeByProject->get($projectId);
+                $topEmployee = $topEmployeeByProject->get($projectId);
+
+                $hoursLastPeriod = round(((int) ($periodMinutes[$projectId] ?? 0)) / 60, 2);
+                $totalHours = round(((int) ($allTime->total_minutes ?? 0)) / 60, 2);
 
                 return [
                     'id' => $projectId,
-                    'name' => $first->project?->name ?? 'Unknown project',
-                    'hours_last_period' => $this->sumHours($projectPeriodShifts),
-                    'total_hours' => $this->sumHours($projectShifts),
-                    'top_employee' => $topEmployee['name'],
-                    'last_shift_date' => $this->lastShiftDate($projectShifts),
+                    'name' => $projectNames->get($projectId, 'Unknown project'),
+                    'hours_last_period' => $hoursLastPeriod,
+                    'total_hours' => $totalHours,
+                    'top_employee' => $topEmployee->employee_name ?? '—',
+                    'last_shift_date' => isset($allTime->last_date)
+                        ? Carbon::parse($allTime->last_date)->format('n/j/y')
+                        : null,
                 ];
             })
             ->filter(fn (array $row) => $row['hours_last_period'] > 0 || $row['total_hours'] > 0)
@@ -170,69 +250,52 @@ class BuildAdminDashboard
 
     private function buildDailySeries(Collection $periodShifts, Carbon $weekStart): array
     {
-        $days = [];
+        $minutesByDate = $periodShifts
+            ->groupBy(fn ($shift) => Carbon::parse($shift->date)->format('Y-m-d'))
+            ->map(fn (Collection $dayShifts) => $dayShifts->sum(fn ($shift) => $shift->duration ?? 0));
 
-        for ($i = 0; $i < 7; $i++) {
-            $date = $weekStart->copy()->addDays($i);
-            $dateString = $date->format('Y-m-d');
-
-            $minutes = $periodShifts
-                ->filter(function ($shift) use ($dateString) {
-                    $shiftDate = $shift->date instanceof Carbon
-                        ? $shift->date->format('Y-m-d')
-                        : Carbon::parse($shift->date)->format('Y-m-d');
-
-                    return $shiftDate === $dateString;
-                })
-                ->sum(fn ($shift) => $shift->duration ?? 0);
-
-            $days[] = [
-                'label' => strtoupper($date->format('D')),
-                'date' => $dateString,
-                'hours' => round($minutes / 60, 2),
-            ];
-        }
-
-        return $days;
+        return PayPeriod::buildDailySeries($minutesByDate, $weekStart);
     }
 
-    private function buildOrgProjects(Collection $allShifts): array
+    /**
+     * @param  Collection<int|string, string>  $projectNames
+     */
+    private function buildOrgProjects(Collection $projectNames): array
     {
-        $projectHours = app(ProjectHours::class);
-
-        return Project::query()
-            ->where('active', true)
-            ->orderBy('name')
+        $hoursByProject = DB::table('shifts')
+            ->select('proj_id')
+            ->selectRaw('COALESCE(SUM(CASE WHEN billed = 1 THEN duration ELSE 0 END), 0) / 60 as billed_hours')
+            ->selectRaw('COALESCE(SUM(CASE WHEN billed = 0 THEN duration ELSE 0 END), 0) / 60 as unbilled_hours')
+            ->groupBy('proj_id')
             ->get()
-            ->map(function (Project $project) use ($allShifts, $projectHours) {
-                $shifts = $allShifts->where('proj_id', $project->id);
-                $hours = $projectHours($shifts);
+            ->keyBy('proj_id');
+
+        return $projectNames
+            ->map(function (string $name, $projectId) use ($hoursByProject) {
+                $hours = $hoursByProject->get($projectId);
 
                 return [
-                    'id' => $project->id,
-                    'name' => $project->name,
-                    'billed_hours' => $hours['billed_hours'],
-                    'unbilled_hours' => $hours['unbilled_hours'],
+                    'id' => $projectId,
+                    'name' => $name,
+                    'billed_hours' => round((float) ($hours->billed_hours ?? 0), 2),
+                    'unbilled_hours' => round((float) ($hours->unbilled_hours ?? 0), 2),
                 ];
             })
             ->filter(fn (array $row) => $row['billed_hours'] > 0 || $row['unbilled_hours'] > 0)
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
             ->values()
             ->all();
     }
 
-    private function buildOrgStats(Collection $allShifts): array
+    private function buildOrgStats(): array
     {
-        $totalHours = $this->sumHours($allShifts);
+        $totalMinutes = (int) DB::table('shifts')->sum('duration');
+        $totalHours = round($totalMinutes / 60, 2);
 
-        $weekStarts = $allShifts->map(function ($shift) {
-            $date = $shift->date instanceof Carbon
-                ? $shift->date
-                : Carbon::parse($shift->date);
+        $weeksWorked = PayPeriod::countWeeksWorked(
+            DB::table('shifts')->distinct()->pluck('date')
+        );
 
-            return $date->copy()->startOfWeek(self::WEEK_START)->format('Y-m-d');
-        })->unique();
-
-        $weeksWorked = $weekStarts->count();
         $avgHoursPerWeek = $weeksWorked > 0
             ? round($totalHours / $weeksWorked, 2)
             : 0.0;
@@ -243,74 +306,57 @@ class BuildAdminDashboard
         ];
     }
 
-    private function topProjectForShifts(Collection $shifts): array
+    private function loadAllTimeByUser(): Collection
     {
-        if ($shifts->isEmpty()) {
-            return ['id' => null, 'name' => '—'];
-        }
-
-        $top = $shifts
-            ->groupBy('proj_id')
-            ->map(fn (Collection $group) => [
-                'id' => $group->first()->proj_id,
-                'name' => $group->first()->project?->name ?? 'Unknown project',
-                'hours' => $group->sum(fn ($shift) => $shift->duration ?? 0),
-            ])
-            ->sortByDesc('hours')
-            ->first();
-
-        return ['id' => $top['id'], 'name' => $top['name']];
-    }
-
-    private function topEmployeeForShifts(Collection $shifts): array
-    {
-        if ($shifts->isEmpty()) {
-            return ['netid' => null, 'name' => '—'];
-        }
-
-        $top = $shifts
+        return DB::table('shifts')
+            ->select('netid')
+            ->selectRaw('COALESCE(SUM(duration), 0) as total_minutes')
+            ->selectRaw('MAX(date) as last_date')
             ->groupBy('netid')
-            ->map(fn (Collection $group) => [
-                'netid' => $group->first()->netid,
-                'name' => $group->first()->user?->name ?? $group->first()->netid,
-                'hours' => $group->sum(fn ($shift) => $shift->duration ?? 0),
-            ])
-            ->sortByDesc('hours')
-            ->first();
-
-        return ['netid' => $top['netid'], 'name' => $top['name']];
+            ->get()
+            ->keyBy('netid');
     }
 
-    private function lastShiftDate(Collection $shifts): ?string
+    private function loadTopProjectByNetid(): Collection
     {
-        $latest = $shifts
-            ->map(fn ($shift) => $shift->date instanceof Carbon
-                ? $shift->date
-                : Carbon::parse($shift->date))
-            ->sortDesc()
-            ->first();
+        return DB::table('shifts')
+            ->select('netid', 'proj_id')
+            ->selectRaw('SUM(duration) as total_minutes')
+            ->groupBy('netid', 'proj_id')
+            ->orderBy('netid')
+            ->orderByDesc('total_minutes')
+            ->get()
+            ->groupBy('netid')
+            ->map->first();
+    }
 
-        return $latest?->format('n/j/y');
+    private function loadAllTimeByProject(): Collection
+    {
+        return DB::table('shifts')
+            ->select('proj_id')
+            ->selectRaw('COALESCE(SUM(duration), 0) as total_minutes')
+            ->selectRaw('MAX(date) as last_date')
+            ->groupBy('proj_id')
+            ->get()
+            ->keyBy('proj_id');
+    }
+
+    private function loadTopEmployeeByProject(): Collection
+    {
+        return DB::table('shifts')
+            ->join('users', 'shifts.netid', '=', 'users.netid')
+            ->select('shifts.proj_id', 'shifts.netid', 'users.name as employee_name')
+            ->selectRaw('SUM(shifts.duration) as total_minutes')
+            ->groupBy('shifts.proj_id', 'shifts.netid', 'users.name')
+            ->orderBy('shifts.proj_id')
+            ->orderByDesc('total_minutes')
+            ->get()
+            ->groupBy('proj_id')
+            ->map->first();
     }
 
     private function sumHours(Collection $shifts): float
     {
         return round($shifts->sum(fn ($shift) => $shift->duration ?? 0) / 60, 2);
-    }
-
-    private function filterShiftsBetween(Collection $shifts, Carbon $start, Carbon $end): Collection
-    {
-        return $shifts->filter(function ($shift) use ($start, $end) {
-            $shiftDate = $shift->date instanceof Carbon
-                ? $shift->date
-                : Carbon::parse($shift->date);
-
-            return $shiftDate->betweenIncluded($start, $end);
-        });
-    }
-
-    private function formatPeriodLabel(Carbon $start, Carbon $end): string
-    {
-        return $start->format('M jS, Y').' - '.$end->format('M jS, Y');
     }
 }

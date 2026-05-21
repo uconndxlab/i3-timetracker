@@ -31,7 +31,7 @@ const sortDirBtn = document.getElementById('sortDirBtn');
 const sortDirIcon = document.getElementById('sortDirIcon');
 const sortButtons = document.querySelectorAll('[data-sort]');
 
-const formatHours = (hours) => Number(hours || 0).toFixed(2);
+const formatHours = I3.formatHours;
 
 const renderEnteredCheck = (isChecked, shiftIds, extraAttrs = '') => {
     if (dashboardReadOnly) {
@@ -53,36 +53,8 @@ const renderEnteredCheck = (isChecked, shiftIds, extraAttrs = '') => {
         </button>`;
 };
 
-const mergeProjectHours = (shifts) => {
-    const byProject = {};
-
-    shifts.forEach((shift) => {
-        const key = String(shift.proj_id);
-        if (!byProject[key]) {
-            byProject[key] = {
-                proj_id: shift.proj_id,
-                project_name: shift.project_name,
-                hours: 0,
-                entered: true,
-                shift_ids: [],
-            };
-        }
-        byProject[key].hours += (shift.duration_minutes || 0) / 60;
-        byProject[key].entered = byProject[key].entered && Boolean(shift.entered);
-        byProject[key].shift_ids.push(shift.id);
-    });
-
-    return Object.values(byProject)
-        .map((row) => ({
-            ...row,
-            hours: Math.round(row.hours * 100) / 100,
-            entered: row.entered !== false,
-        }))
-        .sort((a, b) => b.hours - a.hours);
-};
-
 const getShiftsInDisplayOrder = (day) => {
-    const projectHours = day.project_hours || mergeProjectHours(day.shifts || []);
+    const projectHours = day.project_hours || [];
     const shiftsByProject = {};
 
     (day.shifts || []).forEach((shift) => {
@@ -307,9 +279,11 @@ const getFilteredDays = () => {
 
     const days = (week.days || []).map((day) => {
         let shifts = [...(day.shifts || [])];
+        let projectHours = day.project_hours || [];
 
         if (projectFilter !== 'all') {
             shifts = shifts.filter((shift) => String(shift.proj_id) === String(projectFilter));
+            projectHours = projectHours.filter((row) => String(row.proj_id) === String(projectFilter));
         }
 
         const durationMinutes = shifts.reduce((sum, shift) => sum + (shift.duration_minutes || 0), 0);
@@ -318,7 +292,7 @@ const getFilteredDays = () => {
         return {
             ...day,
             shifts,
-            project_hours: mergeProjectHours(shifts),
+            project_hours: projectHours,
             duration_minutes: durationMinutes,
             duration_hours: durationHours,
             duration_display: formatHours(durationHours) + ' hr',
@@ -343,28 +317,18 @@ const getFilteredDays = () => {
 };
 
 const renderPeriodMenu = () => {
-    if (!periodMenuEl) {
-        return;
-    }
-
-    periodMenuEl.innerHTML = weeklyChartData.map((week, index) => `
-        <li>
-            <button type="button" role="option" data-week-index="${index}" ${index === currentWeekIndex ? 'aria-selected="true"' : ''}>
-                ${week.label}
-            </button>
-        </li>
-    `).join('');
-
-    periodMenuEl.querySelectorAll('[data-week-index]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            currentWeekIndex = Number(btn.dataset.weekIndex);
+    I3.initPeriodPicker({
+        toggleEl: periodToggleEl,
+        menuEl: periodMenuEl,
+        periods: weeklyChartData,
+        activeIndex: currentWeekIndex,
+        onSelect: (index) => {
+            currentWeekIndex = index;
             window.dashboardWeekIndex = currentWeekIndex;
             window.dashboardSetWeekIndex?.(currentWeekIndex);
             editingDayDate = null;
-            periodMenuEl.classList.add('d-none');
-            periodToggleEl?.setAttribute('aria-expanded', 'false');
             render();
-        });
+        },
     });
 };
 
@@ -372,7 +336,7 @@ const renderDayCard = (day) => {
     const collapseId = `day-shifts-${day.date}`;
 
     const displayShifts = getShiftsInDisplayOrder(day);
-    const projectHours = day.project_hours || mergeProjectHours(day.shifts || []);
+    const projectHours = day.project_hours || [];
     const isEditing = !dashboardReadOnly && editingDayDate === day.date;
     const hasEditableShifts = !dashboardReadOnly && displayShifts.some((shift) => shift.can_edit);
 
@@ -657,19 +621,6 @@ projectFilterEl?.addEventListener('change', () => {
     projectFilter = projectFilterEl.value;
     editingDayDate = null;
     render();
-});
-
-periodToggleEl?.addEventListener('click', () => {
-    const isOpen = !periodMenuEl.classList.contains('d-none');
-    periodMenuEl.classList.toggle('d-none', isOpen);
-    periodToggleEl.setAttribute('aria-expanded', String(!isOpen));
-});
-
-document.addEventListener('click', (event) => {
-    if (!event.target.closest('.dashboard-period-select')) {
-        periodMenuEl?.classList.add('d-none');
-        periodToggleEl?.setAttribute('aria-expanded', 'false');
-    }
 });
 
 shiftGridEl?.addEventListener('click', async (event) => {

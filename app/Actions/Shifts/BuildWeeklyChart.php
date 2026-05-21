@@ -3,20 +3,16 @@
 namespace App\Actions\Shifts;
 
 use App\Models\Shift;
+use App\Support\PayPeriod;
 use Carbon\Carbon;
 
 class BuildWeeklyChart
 {
-    private const WEEK_START = Carbon::THURSDAY;
-
-    private const WEEK_END = Carbon::WEDNESDAY;
-
     public function __invoke(string $netid, int $weekCount = 20, bool $isAdmin = false): array
     {
-        $startOfWeek = Carbon::now()->startOfWeek(self::WEEK_START);
-        $endOfWeek = Carbon::now()->endOfWeek(self::WEEK_END);
-
-        $firstWeekStart = $startOfWeek->copy()->subWeeks($weekCount - 1);
+        $weeks = PayPeriod::buildWeeks($weekCount);
+        $firstWeekStart = $weeks[0]['start'];
+        $endOfWeek = PayPeriod::currentWeekEnd();
 
         $shiftsInRange = Shift::where('netid', $netid)
             ->with('project')
@@ -25,9 +21,9 @@ class BuildWeeklyChart
 
         $weeklyChartData = [];
 
-        for ($weekOffset = 0; $weekOffset < $weekCount; $weekOffset++) {
-            $weekStart = $firstWeekStart->copy()->addWeeks($weekOffset);
-            $weekEnd = $weekStart->copy()->endOfWeek(self::WEEK_END);
+        foreach ($weeks as $week) {
+            $weekStart = $week['start'];
+            $weekEnd = $week['end'];
 
             $weekShifts = $shiftsInRange->filter(function ($shift) use ($weekStart, $weekEnd) {
                 $shiftDate = $shift->date instanceof Carbon
@@ -41,24 +37,21 @@ class BuildWeeklyChart
             $totalMinutesForWeek = $weekShifts->sum(fn ($shift) => $shift->duration ?? 0);
 
             $weeklyChartData[] = [
-                'label' => $this->formatPeriodLabel($weekStart, $weekEnd),
-                'start_date' => $weekStart->format('Y-m-d'),
-                'end_date' => $weekEnd->format('Y-m-d'),
+                'label' => $week['label'],
+                'start_date' => $week['start_date'],
+                'end_date' => $week['end_date'],
                 'hours_this_week' => round($totalMinutesForWeek / 60, 2),
                 'days' => $days,
                 'daily_hours' => collect($days)->mapWithKeys(fn ($day) => [$day['key'] => $day['hours']])->all(),
                 'shifts' => $this->buildShiftCards($weekShifts, $isAdmin),
-                'is_current_week' => $weekStart->isSameDay($startOfWeek),
+                'is_current_week' => $week['is_current_week'],
             ];
         }
 
         $currentWeek = collect($weeklyChartData)->firstWhere('is_current_week')
             ?? $weeklyChartData[array_key_last($weeklyChartData)];
 
-        $currentWeekIndex = collect($weeklyChartData)->search(fn ($week) => $week['is_current_week'] ?? false);
-        if ($currentWeekIndex === false) {
-            $currentWeekIndex = max(count($weeklyChartData) - 1, 0);
-        }
+        $currentWeekIndex = PayPeriod::resolveActiveIndex($weeklyChartData, null);
 
         return [
             'hoursThisWeek' => $currentWeek['hours_this_week'] ?? 0,
@@ -150,10 +143,5 @@ class BuildWeeklyChart
             'project_name' => $shift->project?->name ?? 'Unknown project',
             'project_description' => $shift->project?->description ?? '',
         ];
-    }
-
-    private function formatPeriodLabel(Carbon $start, Carbon $end): string
-    {
-        return $start->format('M jS, Y') . ' - ' . $end->format('M jS, Y');
     }
 }

@@ -1,4 +1,5 @@
 (function () {
+    const config = window.userDashboardConfig || {};
     const backdrop = document.getElementById('joinProjectsModalBackdrop');
     const modal = document.getElementById('joinProjectsModal');
     const openBtn = document.getElementById('openJoinProjectsModalBtn');
@@ -11,24 +12,20 @@
     const leavingEl = document.getElementById('joinProjectsLeaving');
     const errorsEl = document.getElementById('joinProjectsModalErrors');
 
-    if (!modal || !listEl || !window.joinableProjects) {
+    if (!modal || !listEl || !config.joinableProjects) {
         return;
     }
 
-    const syncUrl = window.joinProjectsSyncUrl;
+    const syncUrl = config.joinProjectsSyncUrl;
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     let initialJoined = new Set();
     let selected = new Set();
     let searchTerm = '';
 
-    const escapeHtml = (value) => String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+    const escapeHtml = I3.escapeHtml;
 
-    const getFilteredProjects = () => window.joinableProjects.filter((project) => {
+    const getFilteredProjects = () => config.joinableProjects.filter((project) => {
         if (!searchTerm) {
             return true;
         }
@@ -126,7 +123,7 @@
 
     const openModal = () => {
         initialJoined = new Set(
-            window.joinableProjects
+            config.joinableProjects
                 .filter((project) => project.joined)
                 .map((project) => String(project.id))
         );

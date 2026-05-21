@@ -44,4 +44,30 @@ class Shift extends Model
     {
         return ! $this->billed ? ($this->duration / 60) : 0;
     }
+
+    public function toAdminRow(): array
+    {
+        return self::formatAdminRow($this);
+    }
+
+    public static function formatAdminRow(object $shift): array
+    {
+        $date = $shift->date instanceof \Carbon\Carbon
+            ? $shift->date
+            : \Carbon\Carbon::parse($shift->date);
+
+        return [
+            'id' => $shift->id,
+            'netid' => $shift->netid,
+            'employee_name' => $shift->employee_name ?? $shift->user?->name ?? $shift->netid,
+            'proj_id' => $shift->proj_id,
+            'project_name' => $shift->project_name ?? $shift->project?->name ?? 'Unknown project',
+            'date' => $date->format('Y-m-d'),
+            'date_display' => $date->format('n/j/y'),
+            'duration_minutes' => $shift->duration ?? 0,
+            'hours' => round(($shift->duration ?? 0) / 60, 2),
+            'entered' => (bool) $shift->entered,
+            'billed' => (bool) $shift->billed,
+        ];
+    }
 }

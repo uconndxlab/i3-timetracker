@@ -5,7 +5,7 @@
     const openBtn = document.getElementById('openCreateProjectModalBtn');
     const closeBtn = document.getElementById('createProjectModalClose');
     const errorsEl = document.getElementById('createProjectModalErrors');
-    const storeUrl = window.projectsStoreUrl;
+    const storeUrl = window.adminDashboardConfig?.projectsStoreUrl;
 
     if (!modal || !form || !storeUrl) {
         return;

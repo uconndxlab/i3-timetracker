@@ -1,6 +1,7 @@
 @php
     $orgProjects = $adminDashboard['org_projects'] ?? [];
     $orgStats = $adminDashboard['org_stats'] ?? [];
+    $activePeriod = $adminDashboard['active_period'] ?? [];
     $navbarView = $navbarView ?? 'user';
 @endphp
 
@@ -23,10 +24,10 @@
             </div>
 
             <div class="dashboard-toolbar-period text-center">
-                <span class="dashboard-period-badge d-none" id="adminCurrentPeriodBadge">Current Period</span>
+                <span class="dashboard-period-badge {{ ($activePeriod['is_current_week'] ?? false) ? '' : 'd-none' }}" id="adminCurrentPeriodBadge">Current Period</span>
                 <div class="dashboard-period-select">
                     <button type="button" class="dashboard-period-toggle" id="adminPeriodToggle" aria-haspopup="listbox" aria-expanded="false">
-                        View Period: <span id="adminPeriodLabel"></span>
+                        View Period: <span id="adminPeriodLabel">{{ $activePeriod['label'] ?? '' }}</span>
                         <i class="bi bi-chevron-down ms-1"></i>
                     </button>
                     <ul class="dashboard-period-menu d-none" id="adminPeriodMenu" role="listbox"></ul>
@@ -34,7 +35,7 @@
             </div>
 
             <div class="dashboard-toolbar-total">
-                Total: <span class="dashboard-total-value wavy-underline" id="adminPeriodTotal">0.00</span>
+                Total: <span class="dashboard-total-value wavy-underline" id="adminPeriodTotal">{{ number_format($activePeriod['hours_this_period'] ?? 0, 2) }}</span>
             </div>
         </div>
 
@@ -60,7 +61,38 @@
                     <span>Honeycrisp</span>
                     <span></span>
                 </div>
-                <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminShiftList"></ul>
+                <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminShiftList">
+                    @forelse($activePeriod['shifts'] ?? [] as $row)
+                    <li class="i3-data-table__row" data-search="{{ strtolower($row['employee_name'].' '.$row['project_name'].' '.$row['date_display']) }}">
+                        <span class="i3-data-table__label" data-label="Employee">
+                            <span class="i3-hash">#</span> {{ $row['employee_name'] }}
+                        </span>
+                        <span data-label="Project"><span class="i3-hash">#</span> {{ $row['project_name'] }}</span>
+                        <span data-label="Date">{{ $row['date_display'] }}</span>
+                        <span data-label="Hours">{{ number_format($row['hours'], 2) }}</span>
+                        <span data-label="Timecard">
+                            <span class="i3-check {{ $row['entered'] ? 'is-checked' : '' }}" aria-hidden="true">
+                                <i class="bi bi-check-lg"></i>
+                            </span>
+                        </span>
+                        <span data-label="Honeycrisp">
+                            <span class="i3-check {{ $row['billed'] ? 'is-checked' : '' }}" aria-hidden="true">
+                                <i class="bi bi-check-lg"></i>
+                            </span>
+                        </span>
+                        <span class="i3-data-table__actions" data-label="Actions">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-secondary admin-shift-edit-btn"
+                                    data-shift='@json($row)'
+                                    aria-label="Edit shift for {{ $row['employee_name'] }}">
+                                Edit
+                            </button>
+                        </span>
+                    </li>
+                    @empty
+                        <li class="i3-data-table__empty">No shifts for this period.</li>
+                    @endforelse
+                </ul>
             </div>
         </div>
     </div>
@@ -75,7 +107,26 @@
                     <span>Top Project</span>
                     <span>Last Shift Date</span>
                 </div>
-                <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminEmployeeList"></ul>
+                <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminEmployeeList">
+                    @forelse($activePeriod['employees'] ?? [] as $row)
+                    <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_project']) }}">
+                        <span class="i3-data-table__label" data-label="Employee">
+                            <span class="i3-hash">#</span>
+                            @if(!empty($row['netid']))
+                                <a href="{{ route('admin.users.dashboard', ['user' => $row['netid']]) }}" class="i3-link">{{ $row['name'] }}</a>
+                            @else
+                                {{ $row['name'] }}
+                            @endif
+                        </span>
+                        <span data-label="Unbilled Hrs">{{ number_format($row['unbilled_hours'], 2) }}</span>
+                        <span data-label="Total Hrs">{{ number_format($row['total_hours'], 2) }}</span>
+                        <span data-label="Top Project"><span class="i3-hash">#</span> {{ $row['top_project'] }}</span>
+                        <span data-label="Last Shift">{{ $row['last_shift_date'] ?? '—' }}</span>
+                    </li>
+                    @empty
+                        <li class="i3-data-table__empty">No employee shift data for this period.</li>
+                    @endforelse
+                </ul>
             </div>
         </div>
     </div>
@@ -90,16 +141,30 @@
                     <span>Top Employee</span>
                     <span>Last Shift Date</span>
                 </div>
-                <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminProjectList"></ul>
+                <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminProjectList">
+                    @forelse($activePeriod['project_rows'] ?? [] as $row)
+                    <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_employee']) }}">
+                        <span class="i3-data-table__label" data-label="Project">
+                            <span class="i3-hash">#</span> {{ $row['name'] }}
+                        </span>
+                        <span data-label="Hrs Last Period">{{ number_format($row['hours_last_period'], 2) }}</span>
+                        <span data-label="Total Hrs">{{ number_format($row['total_hours'], 2) }}</span>
+                        <span data-label="Top Employee">{{ $row['top_employee'] }}</span>
+                        <span data-label="Last Shift">{{ $row['last_shift_date'] ?? '—' }}</span>
+                    </li>
+                    @empty
+                        <li class="i3-data-table__empty">No project shift data for this period.</li>
+                    @endforelse
+                </ul>
             </div>
         </div>
     </div>
 
-    @include('partials.admin-shift-modal')
     @include('partials.admin-create-project-modal')
 
     <hr class="dashboard-stats-divider">
 
+    <div id="adminOrgStats">
     @include('partials.dashboard-stats', [
         'ariaLabel' => 'Organization statistics',
         'projects' => $orgProjects,
@@ -118,4 +183,5 @@
         ],
         'rangeAriaLabel' => 'Admin hours chart range',
     ])
+    </div>
 </div>

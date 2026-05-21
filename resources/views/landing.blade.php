@@ -92,7 +92,7 @@
     ])
 </div>
 
-@if($adminDashboard ?? null)
+@if($isAdminViewer ?? false)
     @include('partials.admin-dashboard', ['adminDashboard' => $adminDashboard, 'navbarView' => $navbarView])
 @endif
 
@@ -103,9 +103,8 @@
 @include('partials.bootstrap-js')
 
 @push('scripts')
+<script src="{{ asset('js/i3-utils.js') }}"></script>
 <script>
-    window.joinableProjects = @json($joinableProjects ?? []);
-    window.joinProjectsSyncUrl = @json(route('projects.sync-memberships'));
     window.userDashboardConfig = {
         dashboardReadOnly: @json($dashboardReadOnly ?? false),
         weeklyChartData: @json($weeklyChartData ?? []),
@@ -116,99 +115,49 @@
         editableProjects: @json($logShiftProjects->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->values()),
         csrfToken: @json(csrf_token()),
         defaultShiftDate: @json($defaultShiftDate),
+        joinableProjects: @json($joinableProjects ?? []),
+        joinProjectsSyncUrl: @json(route('projects.sync-memberships')),
     };
-    @if($adminDashboard ?? null)
-    window.projectsStoreUrl = @json(route('projects.store'));
-    window.adminWeeklyPeriods = @json($adminDashboard['weekly_periods'] ?? []);
-    window.adminWeekIndex = {{ $adminDashboard['current_week_index'] ?? 0 }};
-    window.adminHoursTimeline = @json($adminDashboard['hours_timeline'] ?? []);
-    window.adminEmployeeDashboardUrl = (netid) => @json(route('admin.users.dashboard', ['user' => '__NETID__'])).replace('__NETID__', encodeURIComponent(netid));
+    window.shiftModalConfig = {
+        mode: @json(($isAdminViewer ?? false) && request()->query('view') === 'admin' ? 'admin' : 'user'),
+        canDelete: @json(($isAdminViewer ?? false) && request()->query('view') === 'admin'),
+        defaultShiftDate: @json($defaultShiftDate),
+        storeUrl: @json(route('shifts.store')),
+        shiftBaseUrl: @json(url('/shifts')),
+    };
+    window.dashboardChartConfig = {
+        user: {
+            weeklyChartData: @json($weeklyChartData ?? []),
+            hoursTimeline: @json($hoursTimeline ?? []),
+        },
+        @if($adminDashboard ?? null)
+        admin: {
+            hoursTimeline: @json($adminDashboard['hours_timeline'] ?? []),
+            activePeriod: @json($adminDashboard['active_period'] ?? []),
+        },
+        @endif
+    };
+    @if($isAdminViewer ?? false)
+    window.adminDashboardConfig = {
+        landingUrl: @json(route('landing', ['view' => 'admin'])),
+        projectsStoreUrl: @json(route('projects.store')),
+        @if($adminDashboard ?? null)
+        weeklyPeriods: @json($adminDashboard['weekly_periods'] ?? []),
+        weekIndex: {{ $adminDashboard['current_week_index'] ?? 0 }},
+        hoursTimeline: @json($adminDashboard['hours_timeline'] ?? []),
+        activePeriod: @json($adminDashboard['active_period'] ?? []),
+        @endif
+    };
     @endif
 </script>
 <script defer src="{{ asset('js/user-dashboard.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="{{ asset('js/dashboard-chart.js') }}"></script>
-<script>
-(function() {
-    const userWeeklyChartData = @json($weeklyChartData ?? []);
-    const userHoursTimeline = @json($hoursTimeline ?? []);
-
-    const formatChartDayLabel = (day) => {
-        if (!day?.date) {
-            return day?.key || day?.label || '';
-        }
-
-        const parts = day.date.split('-');
-        return `${Number(parts[1])}/${Number(parts[2])}`;
-    };
-
-    const bootDashboardCharts = () => {
-        if (typeof window.initDashboardChart !== 'function') {
-            setTimeout(bootDashboardCharts, 50);
-            return;
-        }
-
-    window.initDashboardChart({
-        rootId: 'userDashboard',
-        canvasId: 'weeklyHoursChart',
-        totalId: 'statsChartTotal',
-        hoursTimeline: userHoursTimeline,
-        defaultRange: 'month',
-        maxTicksLimit: 4,
-        getPeriodSeries: () => {
-            const week = userWeeklyChartData[window.dashboardWeekIndex ?? 0];
-            if (!week?.days?.length) {
-                return { labels: [], data: [], total: 0 };
-            }
-
-            return {
-                labels: week.days.map((day) => day.key || formatChartDayLabel(day)),
-                data: week.days.map((day) => day.hours ?? 0),
-                total: week.hours_this_week ?? 0,
-            };
-        },
-    });
-
-    window.updateWeeklyChart = () => window.refreshDashboardChart('weeklyHoursChart');
-
-    window.dashboardSetWeekIndex = (index) => {
-        window.dashboardWeekIndex = index;
-        window.updateWeeklyChart();
-    };
-
-    @if($adminDashboard ?? null)
-    const adminWeeklyPeriods = window.adminWeeklyPeriods || [];
-
-    window.initDashboardChart({
-        rootId: 'adminDashboard',
-        canvasId: 'adminHoursChart',
-        totalId: 'adminStatsChartTotal',
-        hoursTimeline: window.adminHoursTimeline || {},
-        defaultRange: 'period',
-        maxTicksLimit: 7,
-        getPeriodSeries: () => {
-            const period = adminWeeklyPeriods[window.adminWeekIndex ?? 0];
-            const days = period?.days || [];
-
-            return {
-                labels: days.map((day) => day.label || ''),
-                data: days.map((day) => day.hours ?? 0),
-                total: period?.hours_this_period ?? 0,
-            };
-        },
-    });
-    @endif
-    };
-
-    bootDashboardCharts();
-})();
-</script>
 @unless($dashboardReadOnly ?? false)
 <script defer src="{{ asset('js/shift-modal.js') }}"></script>
 <script defer src="{{ asset('js/join-projects-modal.js') }}"></script>
 @endunless
-@if($adminDashboard ?? null)
-<script defer src="{{ asset('js/admin-shift-modal.js') }}"></script>
+@if($isAdminViewer ?? false)
 <script defer src="{{ asset('js/admin-create-project-modal.js') }}"></script>
 <script defer src="{{ asset('js/admin-dashboard.js') }}"></script>
 @endif

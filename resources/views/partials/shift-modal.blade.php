@@ -1,8 +1,18 @@
+@php
+    $shiftModalMode = ($isAdminViewer ?? false) && request()->query('view') === 'admin' ? 'admin' : 'user';
+    $shiftModalProjects = $shiftModalMode === 'admin'
+        ? ($adminDashboard['projects'] ?? [])
+        : $logShiftProjects->map(fn ($project) => ['id' => $project->id, 'name' => $project->name])->values()->all();
+@endphp
+
 <div class="shift-modal-backdrop d-none" id="shiftModalBackdrop" aria-hidden="true"></div>
 <div class="shift-modal d-none" id="shiftModal" role="dialog" aria-modal="true" aria-labelledby="shiftModalTitle">
     <div class="shift-modal__dialog">
         <div class="shift-modal__header">
-            <div class="shift-modal__number">No. <span class="shift-modal__number-value">[{{ $nextShiftNumber }}]</span></div>
+            <div class="shift-modal__number">
+                <span id="shiftModalNumberPrefix">No.</span>
+                <span class="shift-modal__number-value" id="shiftModalNumberValue">[{{ $nextShiftNumber }}]</span>
+            </div>
             <h2 class="shift-modal__title" id="shiftModalTitle">New Shift</h2>
             <button type="button" class="shift-modal__close" id="shiftModalClose" aria-label="Close">
                 <i class="bi bi-x-lg"></i>
@@ -11,19 +21,26 @@
 
         <form id="shiftModalForm" action="{{ route('shifts.store') }}" method="POST" novalidate>
             @csrf
-            <input type="hidden" name="netid" value="{{ auth()->user()->netid }}">
+            <input type="hidden" name="netid" id="shiftModalNetid" value="{{ auth()->user()->netid }}">
             <input type="hidden" name="duration" id="shiftModalDuration" value="60">
 
             <div class="shift-modal__body">
                 <div id="shiftModalErrors" class="alert alert-danger d-none py-2 small"></div>
+
+                <div class="shift-modal__field d-none" id="shiftModalEmployeeField">
+                    <span class="shift-modal__field-label">Employee:</span>
+                    <div class="shift-modal__field-control fw-semibold" id="shiftModalEmployee"></div>
+                </div>
 
                 <div class="shift-modal__field">
                     <label class="shift-modal__field-label" for="shiftModalProject">Project:</label>
                     <div class="shift-modal__field-control">
                         <select name="proj_id" id="shiftModalProject" class="form-select shift-modal__select" required>
                             <option value="">Select a project</option>
-                            @foreach($logShiftProjects as $project)
-                                <option value="{{ $project->id }}">{{ $project->name }}</option>
+                            @foreach($shiftModalProjects as $project)
+                                <option value="{{ is_array($project) ? $project['id'] : $project->id }}">
+                                    {{ is_array($project) ? $project['name'] : $project->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -68,17 +85,18 @@
                         <span>Entered in Timecard</span>
                     </label>
 
-                    @if(auth()->user()->isAdmin())
-                    <label class="i3-check">
+                    <label class="i3-check {{ $shiftModalMode === 'admin' || auth()->user()->isAdmin() ? '' : 'd-none' }}" id="shiftModalBilledWrap">
                         <input type="hidden" name="billed" value="0">
                         <input type="checkbox" name="billed" id="shiftModalBilled" value="1" class="i3-check__input">
                         <span class="i3-check__box"><i class="bi bi-check-lg"></i></span>
-                        <span>Billed (Admin)</span>
+                        <span id="shiftModalBilledLabel">{{ $shiftModalMode === 'admin' ? 'Billed (Honeycrisp)' : 'Billed (Admin)' }}</span>
                     </label>
-                    @endif
                 </div>
 
-                <button type="submit" class="shift-modal__submit">Log Shift</button>
+                <div class="d-flex flex-wrap gap-2 justify-content-end w-100">
+                    <button type="button" class="btn btn-outline-danger btn-sm d-none" id="shiftModalDelete">Delete</button>
+                    <button type="submit" class="shift-modal__submit" id="shiftModalSubmit">Log Shift</button>
+                </div>
             </div>
         </form>
     </div>

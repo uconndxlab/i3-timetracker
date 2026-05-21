@@ -50,7 +50,6 @@
             instance.totalEl.textContent = Number(series.total || 0).toFixed(2);
         }
 
-        instance.chart.update('none');
         instance.chart.data.datasets[0].backgroundColor = buildGradient(instance.chart);
         instance.chart.update('none');
     };
@@ -156,6 +155,10 @@
             return null;
         }
 
+        if (instances[config.canvasId]?.chart) {
+            instances[config.canvasId].chart.destroy();
+        }
+
         const instance = {
             canvas,
             canvasId: config.canvasId,
@@ -189,4 +192,76 @@
 
         applyChartSeries(instance);
     };
+
+    const bootLandingCharts = () => {
+        const config = window.dashboardChartConfig || {};
+
+        const bootChart = (chartConfig, retries = 0) => {
+            if (typeof window.initDashboardChart !== 'function') {
+                if (retries < 40) {
+                    setTimeout(() => bootChart(chartConfig, retries + 1), 50);
+                }
+                return;
+            }
+
+            window.initDashboardChart(chartConfig);
+        };
+
+        if (config.user) {
+            bootChart({
+                rootId: 'userDashboard',
+                canvasId: 'weeklyHoursChart',
+                totalId: 'statsChartTotal',
+                hoursTimeline: config.user.hoursTimeline || [],
+                defaultRange: 'month',
+                maxTicksLimit: 4,
+                getPeriodSeries: () => {
+                    const week = config.user.weeklyChartData?.[window.dashboardWeekIndex ?? 0];
+                    if (!week?.days?.length) {
+                        return { labels: [], data: [], total: 0 };
+                    }
+
+                    return {
+                        labels: week.days.map((day) => day.key || window.I3.formatChartDayLabel(day)),
+                        data: week.days.map((day) => day.hours ?? 0),
+                        total: week.hours_this_week ?? 0,
+                    };
+                },
+            });
+
+            window.updateWeeklyChart = () => window.refreshDashboardChart('weeklyHoursChart');
+
+            window.dashboardSetWeekIndex = (index) => {
+                window.dashboardWeekIndex = index;
+                window.updateWeeklyChart();
+            };
+        }
+
+        if (config.admin) {
+            bootChart({
+                rootId: 'adminDashboard',
+                canvasId: 'adminHoursChart',
+                totalId: 'adminStatsChartTotal',
+                hoursTimeline: config.admin.hoursTimeline || [],
+                defaultRange: 'period',
+                maxTicksLimit: 7,
+                getPeriodSeries: () => {
+                    const period = config.admin.activePeriod || {};
+                    const days = period.days || [];
+
+                    return {
+                        labels: days.map((day) => day.label || day.key || ''),
+                        data: days.map((day) => day.hours ?? 0),
+                        total: period.hours_this_period ?? 0,
+                    };
+                },
+            });
+        }
+    };
+
+    window.bootLandingCharts = bootLandingCharts;
+
+    if (window.dashboardChartConfig) {
+        bootLandingCharts();
+    }
 })();
