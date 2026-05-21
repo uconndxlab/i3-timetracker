@@ -9,7 +9,8 @@
             <div class="dashboard-toolbar-sort">
                 <div class="dashboard-toolbar-label">View Table By:</div>
                 <div class="dashboard-segment" id="adminTableViewToggle" role="group" aria-label="View table by">
-                    <button type="button" class="dashboard-segment__btn active" data-admin-table="employee">Employee</button>
+                    <button type="button" class="dashboard-segment__btn active" data-admin-table="shift">Shift</button>
+                    <button type="button" class="dashboard-segment__btn" data-admin-table="employee">Employee</button>
                     <button type="button" class="dashboard-segment__btn" data-admin-table="project">Project</button>
                 </div>
             </div>
@@ -35,12 +36,25 @@
             <input type="search"
                    class="form-control dashboard-search-input w-100"
                    id="adminTableSearch"
-                   placeholder="Search through employees . . ."
+                   placeholder="Search through shifts . . ."
                    autocomplete="off">
         </div>
     </div>
 
-    <div class="i3-data-table i3-data-table--5col" id="adminEmployeePanel">
+    <div class="i3-data-table i3-data-table--7col" id="adminShiftPanel">
+        <div class="i3-data-table__head">
+            <span>Employee</span>
+            <span>Project</span>
+            <span>Date</span>
+            <span>Hours</span>
+            <span>Timecard</span>
+            <span>Honeycrisp</span>
+            <span></span>
+        </div>
+        <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminShiftList"></ul>
+    </div>
+
+    <div class="i3-data-table i3-data-table--5col d-none" id="adminEmployeePanel">
         <div class="i3-data-table__head">
             <span>Employee Name</span>
             <span>Unbilled Hours</span>
@@ -61,6 +75,8 @@
         </div>
         <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminProjectList"></ul>
     </div>
+
+    @include('partials.admin-shift-modal')
 
     <hr class="dashboard-stats-divider">
 

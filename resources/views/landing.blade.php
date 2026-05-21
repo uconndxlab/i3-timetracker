@@ -4,10 +4,10 @@
 @if($dashboardReadOnly ?? false)
     <div class="dashboard-viewing-user mb-3">
         <span class="dashboard-viewing-user__name">
-            <span class="dashboard-viewing-user__dot" aria-hidden="true"></span>
+            <span class="i3-dot" aria-hidden="true"></span>
             {{ \Illuminate\Support\Str::title($subjectUser->name) }}
             <span class="dashboard-viewing-user__sep" aria-hidden="true">/</span>
-            <a href="{{ route('landing', ['view' => 'admin']) }}" class="dashboard-viewing-user__back">Back To Admin</a>
+            <a href="{{ route('landing', ['view' => 'admin']) }}" class="i3-link">Back To Admin</a>
         </span>
     </div>
 @endif
@@ -892,6 +892,7 @@
 <script defer src="{{ asset('js/join-projects-modal.js') }}"></script>
 @endunless
 @if($adminDashboard ?? null)
+<script defer src="{{ asset('js/admin-shift-modal.js') }}"></script>
 <script defer src="{{ asset('js/admin-dashboard.js') }}"></script>
 @endif
 @endpush

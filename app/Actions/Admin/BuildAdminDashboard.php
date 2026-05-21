@@ -41,6 +41,7 @@ class BuildAdminDashboard
                 'hours_this_period' => $this->sumHours($periodShifts),
                 'employees' => $this->buildEmployeeRows($allShifts, $periodShifts),
                 'project_rows' => $this->buildProjectRows($allShifts, $periodShifts),
+                'shifts' => $this->buildShiftRows($periodShifts),
                 'days' => $this->buildDailySeries($periodShifts, $weekStart),
             ];
         }
@@ -56,7 +57,53 @@ class BuildAdminDashboard
             'org_projects' => $this->buildOrgProjects($allShifts),
             'org_stats' => $this->buildOrgStats($allShifts),
             'hours_timeline' => app(BuildHoursTimeline::class)(null),
+            'projects' => Project::query()
+                ->where('active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (Project $project) => [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                ])
+                ->values()
+                ->all(),
         ];
+    }
+
+    public function formatShiftRow(Shift $shift): array
+    {
+        $date = $shift->date instanceof Carbon
+            ? $shift->date
+            : Carbon::parse($shift->date);
+
+        return [
+            'id' => $shift->id,
+            'netid' => $shift->netid,
+            'employee_name' => $shift->user?->name ?? $shift->netid,
+            'proj_id' => $shift->proj_id,
+            'project_name' => $shift->project?->name ?? 'Unknown project',
+            'date' => $date->format('Y-m-d'),
+            'date_display' => $date->format('n/j/y'),
+            'duration_minutes' => $shift->duration ?? 0,
+            'hours' => round(($shift->duration ?? 0) / 60, 2),
+            'entered' => (bool) $shift->entered,
+            'billed' => (bool) $shift->billed,
+        ];
+    }
+
+    private function buildShiftRows(Collection $periodShifts): array
+    {
+        return $periodShifts
+            ->sortByDesc(function ($shift) {
+                $date = $shift->date instanceof Carbon
+                    ? $shift->date
+                    : Carbon::parse($shift->date);
+
+                return $date->format('Y-m-d') . str_pad((string) $shift->id, 8, '0', STR_PAD_LEFT);
+            })
+            ->values()
+            ->map(fn (Shift $shift) => $this->formatShiftRow($shift))
+            ->all();
     }
 
     private function buildEmployeeRows(Collection $allShifts, Collection $periodShifts): array

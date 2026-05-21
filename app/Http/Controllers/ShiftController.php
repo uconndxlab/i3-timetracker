@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Actions\Admin\BuildAdminDashboard;
 use App\Models\User;
 use App\Models\Project;
 use App\Models\Shift;
@@ -156,20 +157,11 @@ class ShiftController extends Controller
         }
 
         $shift->update($validatedData);
-        $shift->load('project');
+        $shift->load(['project', 'user']);
 
         if ($request->expectsJson()) {
             return response()->json([
-                'shift' => [
-                    'id' => $shift->id,
-                    'proj_id' => $shift->proj_id,
-                    'project_name' => $shift->project?->name ?? 'Unknown project',
-                    'duration_minutes' => $shift->duration ?? 0,
-                    'duration_hours' => round(($shift->duration ?? 0) / 60, 2),
-                    'entered' => (bool) $shift->entered,
-                    'billed' => (bool) $shift->billed,
-                    'can_edit' => $this->canEditShift($user, $shift),
-                ],
+                'shift' => app(BuildAdminDashboard::class)->formatShiftRow($shift),
                 'csrf_token' => csrf_token(),
             ]);
         }
@@ -261,7 +253,14 @@ class ShiftController extends Controller
         }
         
         $shift->delete();
-        
+
+        if (request()->expectsJson()) {
+            return response()->json([
+                'shift_id' => $shift->id,
+                'csrf_token' => csrf_token(),
+            ]);
+        }
+
         return redirect()->route('shifts.index')->with('message', 'Shift deleted successfully.');
     }
 
