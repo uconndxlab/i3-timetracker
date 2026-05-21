@@ -19,6 +19,10 @@ class CasAuthenticate
     public function handle(Request $request, Closure $next): Response
     {
         if (!cas()->isAuthenticated()) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+
             cas()->authenticate();
         }
 

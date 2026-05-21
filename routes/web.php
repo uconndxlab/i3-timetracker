@@ -23,6 +23,7 @@ Route::middleware('cas.auth')->group(function () {
         Route::post('/projects/{project}/batch-update-shifts', [AdminController::class, 'batchUpdateShifts'])->name('projects.batch-update-shifts');
         
         Route::get('/users', [AdminController::class, 'viewAllUsers'])->name('users.index');
+        Route::get('/users/{user:netid}', [AdminController::class, 'viewUserLanding'])->name('users.dashboard');
         Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');
     });
 
@@ -34,6 +35,7 @@ Route::middleware('cas.auth')->group(function () {
         Route::get('/{project}', 'show')->name('show');
 
         Route::post('/', 'store')->name('store');
+        Route::post('/sync-memberships', 'syncMemberships')->name('sync-memberships');
         Route::post('/{project}/join', 'join')->name('join');
         Route::delete('/{project}/leave', 'leave')->name('leave');
         Route::put('/{project}', 'update')->name('update');
@@ -43,14 +45,16 @@ Route::middleware('cas.auth')->group(function () {
 
         
     Route::controller(ShiftController::class)->prefix('shifts')->name('shifts.')->group(function () {
-        Route::get('/', 'index')->name('index'); 
+        Route::get('/', 'index')->name('index');
+        Route::get('/manage', 'viewAllShifts')->name('manage');
         Route::get('/create', 'create')->name('create');
-        Route::post('/', 'store')->name('store'); 
+        Route::post('/', 'store')->name('store');
+        Route::post('/bulk-entered', 'bulkUpdateEntered')->name('bulk-update-entered');
+        Route::post('/{shift}/entered', 'updateEntered')->name('update-entered');
         // Route::get('/{shift}', 'show')->name('show');
         Route::get('/{shift}/edit', 'edit')->name('edit');
         Route::put('/{shift}', 'update')->name('update');
         Route::delete('/{shift}', 'destroy')->name('destroy');
-        Route::get('/manage', 'viewAllShifts')->name('manage');
     });
 });
 

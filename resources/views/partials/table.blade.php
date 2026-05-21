@@ -18,6 +18,7 @@
     'create_label' => 'Add New Project'
 ])
 --}}
+@include('partials.bootstrap-js')
 @php
 function buildParams($paramConfig, $item) {
     $result = [];

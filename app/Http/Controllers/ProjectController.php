@@ -169,6 +169,49 @@ class ProjectController extends Controller
         return view('projects.manage', compact('projects', 'userProjectIds'));
     }
 
+    public function syncMemberships(Request $request)
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'project_ids' => 'present|array',
+            'project_ids.*' => 'integer|exists:projects,id',
+        ]);
+
+        $desiredIds = Project::query()
+            ->where('active', true)
+            ->whereIn('id', $validated['project_ids'])
+            ->pluck('id');
+
+        $currentIds = $user->projects()
+            ->where('projects.active', true)
+            ->pluck('projects.id');
+
+        $toJoin = $desiredIds->diff($currentIds);
+        $toLeave = $currentIds->diff($desiredIds);
+
+        foreach ($toJoin as $projectId) {
+            Project::find($projectId)?->users()->syncWithoutDetaching([
+                $user->netid => ['active' => true],
+            ]);
+        }
+
+        foreach ($toLeave as $projectId) {
+            $user->projects()->detach($projectId);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Projects updated successfully.',
+                'joined' => $toJoin->count(),
+                'left' => $toLeave->count(),
+                'csrf_token' => csrf_token(),
+            ]);
+        }
+
+        return redirect()->route('landing')->with('message', 'Projects updated successfully.');
+    }
+
     public function join(Request $request, Project $project)
     {
         $user = auth()->user();

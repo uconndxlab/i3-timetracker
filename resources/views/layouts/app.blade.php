@@ -1,91 +1,67 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8">
     <title>i3 Time Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="University of Connecticut i3 Time Tracking System">
 
+    <script>
+        (function () {
+            const stored = localStorage.getItem('theme');
+            const theme = stored === 'dark' || stored === 'light'
+                ? stored
+                : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
+
     <link rel="icon" href="{{ asset('i3.svg') }}" type="image/svg+xml">
-    
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-uconn">
-        <div class="container-fluid">
-            <a class="navbar-brand d-flex align-items-center" href="{{ route('landing') }}">
-                <i class="bi me-2"></i>
-                <div class="d-flex flex-column">
-                    <span class="fw-bold">i3 Time Tracker</span>
-                    <small class="opacity-75" style="font-size: 0.7rem; line-height: 1; margin-top: -2px;">University of Connecticut</small>
-                </div>
-            </a>
-    
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-    
-            <div class="collapse navbar-collapse" id="mainNavbar">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
-                            Projects
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('shifts.index') || request()->routeIs('shifts.edit') ? 'active' : '' }}" href="{{ route('shifts.index') }}">
-                            Your Shifts
-                        </a>
-                    </li>
-                    <li>
-                        <a class="nav-link {{ request()->routeIs('shifts.manage') ? 'active' : '' }}" href="{{ route('shifts.manage') }}">
-                            All Shifts
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('shifts.create') ? 'active' : '' }}" href="{{ route('shifts.create') }}">
-                            <i class="bi bi-calendar-plus-fill me-1"></i>Log Shift
-                        </a>
-                    </li>
-
-                    @if (Auth::check() && Auth::user()->isAdmin())
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active' : '' }}" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Admin
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminDropdown">
-                                <li>
-                                    <a class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
-                                        Manage Users
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+    <nav class="navbar py-2">
+        <div class="container-fluid navbar-branding px-3 px-md-4">
+            <div class="navbar-branding-left d-flex align-items-center">
+                <a href="{{ route('landing') }}" class="d-inline-block">
+                    <img src="{{ asset('i3.svg') }}" alt="i3" class="navbar-logo" width="48" height="48">
+                </a>
+                @auth
+                    @if (Auth::user()->isAdmin() && !request()->routeIs('admin.users.dashboard'))
+                        <div class="dashboard-segment navbar-view-toggle" id="navbarViewToggle" role="group" aria-label="Switch between user and admin view">
+                            <button type="button" class="dashboard-segment__btn active" data-view="user" aria-pressed="true">User</button>
+                            <button type="button" class="dashboard-segment__btn" data-view="admin" aria-pressed="false">Admin</button>
+                        </div>
                     @endif
-                </ul>
+                @endauth
+            </div>
 
-                <div class="d-flex align-items-center ms-auto">
-                    @if ( Auth::check() )
-                        <a class="navbar-text me-3 text-decoration-none text-dark">
-                            <span class="navbar-text me-3">
-                                <i class="bi bi-person-circle me-1"></i>{{ Auth::user()->name ?? 'User' }}
-                            </span>
-                        </a>
-                        <ul class="navbar-nav">
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('logout') }}">
-                                    <i class="bi bi-box-arrow-right me-1"></i>Logout
-                                </a>
-                            </li>
-                        </ul>
-                    @endif
+            <div class="navbar-branding-center text-center">
+                <div class="navbar-app-title">i3 Time Tracker</div>
+                <div class="navbar-branding-meta d-inline-flex align-items-center justify-content-center gap-2 mt-1">
+                    <span class="navbar-chip navbar-chip--pill">UNIVERSITY OF CONNECTICUT</span>
+                    <button type="button" class="navbar-chip navbar-chip--toggle" id="themeToggle" aria-label="Toggle light and dark mode">
+                        <i class="bi bi-moon-fill" id="themeToggleIcon" aria-hidden="true"></i>
+                    </button>
                 </div>
+            </div>
+
+            <div class="navbar-branding-right d-flex align-items-center gap-2 gap-md-3">
+                @auth
+                    <span class="navbar-username text-nowrap">
+                        {{ Auth::user()->name ?? 'User' }}
+                    </span>
+                    <a href="{{ route('logout') }}" class="btn btn-sm navbar-logout-btn text-nowrap">
+                        Logout <i class="bi bi-box-arrow-right ms-1"></i>
+                    </a>
+                @endauth
             </div>
         </div>
     </nav>
@@ -123,7 +99,66 @@
     </div>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    @stack('bootstrap-js')
+    <script>
+        (function () {
+            const toggle = document.getElementById('themeToggle');
+            if (!toggle) {
+                return;
+            }
+
+            const icon = document.getElementById('themeToggleIcon');
+
+            const applyTheme = (theme) => {
+                document.documentElement.setAttribute('data-bs-theme', theme);
+                localStorage.setItem('theme', theme);
+                if (icon) {
+                    icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+                }
+            };
+
+            applyTheme(document.documentElement.getAttribute('data-bs-theme') || 'light');
+
+            toggle.addEventListener('click', () => {
+                const next = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+                applyTheme(next);
+            });
+        })();
+
+        (function () {
+            const viewToggle = document.getElementById('navbarViewToggle');
+            if (!viewToggle) {
+                return;
+            }
+
+            const buttons = viewToggle.querySelectorAll('.dashboard-segment__btn');
+            const storageKey = 'navbarViewMode';
+
+            const setView = (view) => {
+                buttons.forEach((btn) => {
+                    const active = btn.dataset.view === view;
+                    btn.classList.toggle('active', active);
+                    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+                });
+                localStorage.setItem(storageKey, view);
+                document.dispatchEvent(new CustomEvent('navbar-view-change', { detail: { view } }));
+            };
+
+            const urlView = new URLSearchParams(window.location.search).get('view');
+            if (urlView === 'admin' || urlView === 'user') {
+                setView(urlView);
+            } else {
+                const stored = localStorage.getItem(storageKey);
+                if (stored === 'admin' || stored === 'user') {
+                    setView(stored);
+                }
+            }
+
+            buttons.forEach((btn) => {
+                btn.addEventListener('click', () => setView(btn.dataset.view));
+            });
+        })();
+    </script>
     @stack('scripts')
 </body>
 
