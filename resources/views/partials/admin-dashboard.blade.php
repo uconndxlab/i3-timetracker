@@ -4,6 +4,12 @@
 @endphp
 
 <div class="dashboard d-none" id="adminDashboard">
+    <div class="dashboard-actions d-flex flex-wrap justify-content-end gap-2 mb-3">
+        <button type="button" class="dashboard-btn dashboard-btn--primary" id="openCreateProjectModalBtn">
+            <i class="bi bi-plus-lg me-2"></i>New Project
+        </button>
+    </div>
+
     <div class="mb-4">
         <div class="dashboard-toolbar d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
             <div class="dashboard-toolbar-sort">
@@ -77,6 +83,7 @@
     </div>
 
     @include('partials.admin-shift-modal')
+    @include('partials.admin-create-project-modal')
 
     <hr class="dashboard-stats-divider">
 

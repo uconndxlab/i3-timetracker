@@ -34,7 +34,7 @@ Route::middleware('cas.auth')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/{project}', 'show')->name('show');
 
-        Route::post('/', 'store')->name('store');
+        Route::post('/', 'store')->name('store')->middleware('admin');
         Route::post('/sync-memberships', 'syncMemberships')->name('sync-memberships');
         Route::post('/{project}/join', 'join')->name('join');
         Route::delete('/{project}/leave', 'leave')->name('leave');

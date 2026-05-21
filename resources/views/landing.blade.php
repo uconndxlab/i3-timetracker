@@ -103,6 +103,7 @@
     window.joinableProjects = @json($joinableProjects ?? []);
     window.joinProjectsSyncUrl = @json(route('projects.sync-memberships'));
     @if($adminDashboard ?? null)
+    window.projectsStoreUrl = @json(route('projects.store'));
     window.adminWeeklyPeriods = @json($adminDashboard['weekly_periods'] ?? []);
     window.adminWeekIndex = {{ $adminDashboard['current_week_index'] ?? 0 }};
     window.adminHoursTimeline = @json($adminDashboard['hours_timeline'] ?? []);
@@ -893,6 +894,7 @@
 @endunless
 @if($adminDashboard ?? null)
 <script defer src="{{ asset('js/admin-shift-modal.js') }}"></script>
+<script defer src="{{ asset('js/admin-create-project-modal.js') }}"></script>
 <script defer src="{{ asset('js/admin-dashboard.js') }}"></script>
 @endif
 @endpush

@@ -46,7 +46,7 @@
             <div class="navbar-branding-center text-center">
                 <div class="navbar-app-title">i3 Time Tracker</div>
                 <div class="navbar-branding-meta d-inline-flex align-items-center justify-content-center gap-2 mt-1">
-                    <span class="navbar-chip navbar-chip--pill">UNIVERSITY OF CONNECTICUT</span>
+                    <span class="navbar-chip navbar-chip--pill d-none d-md-inline-flex">UNIVERSITY OF CONNECTICUT</span>
                     <button type="button" class="navbar-chip navbar-chip--toggle" id="themeToggle" aria-label="Toggle light and dark mode">
                         <i class="bi bi-moon-fill" id="themeToggleIcon" aria-hidden="true"></i>
                     </button>
@@ -55,7 +55,7 @@
 
             <div class="navbar-branding-right d-flex align-items-center gap-2 gap-md-3">
                 @auth
-                    <span class="navbar-username text-nowrap">
+                    <span class="navbar-username text-nowrap d-none d-sm-inline">
                         {{ Auth::user()->name ?? 'User' }}
                     </span>
                     <a href="{{ route('logout') }}" class="btn btn-sm navbar-logout-btn text-nowrap">

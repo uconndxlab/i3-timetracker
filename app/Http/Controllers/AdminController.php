@@ -238,11 +238,11 @@ class AdminController extends Controller
         $result = app(AssignUserProject::class)($project, $validated['user_ids']);
 
         if ($result['assigned_count'] > 0) {
-            return redirect()->route('projects.index', $project->id)
+            return redirect()->route('landing', ['view' => 'admin'])
                 ->with('success', $result['assigned_count'] . ' user(s) successfully assigned to project.');
         }
 
-        return redirect()->route('projects.index', $project->id)
+        return redirect()->route('landing', ['view' => 'admin'])
             ->with('info', 'All selected users were already assigned to this project.');
     }
 
@@ -254,47 +254,18 @@ class AdminController extends Controller
     {
         $project->users()->detach($netid);
 
-        return redirect()->route('projects.index', $project->id)
+        return redirect()->route('landing', ['view' => 'admin'])
             ->with('success', 'User successfully removed from project.');
     }
 
     public function manageProject(Project $project)
     {
-        $users = User::orderBy('name')->get();
-        $assignedUsers = $project->users;
-        
-        return view('admin.manage', compact('project', 'users', 'assignedUsers'));
+        return redirect()->route('landing', ['view' => 'admin']);
     }
 
-    
     public function viewAllUsers(Request $request)
     {
-        $sortField = $request->input('sort');
-        $direction = $request->input('direction', 'asc');
-        $adminFilter = $request->input('admin_filter');
-        $activeFilter = $request->input('active_filter');
-        $search = $request->input('search');
-        
-        $query = User::query()
-            ->search($search)
-            ->filterAdmin($adminFilter)
-            ->filterActive($activeFilter)
-            ->withCount('shifts')
-            ->withSum('shifts', 'duration');
-        
-        if ($sortField) {
-            $query->orderBy($sortField, $direction);
-        } else {
-            $query->orderBy('name', 'asc');
-        }
-        
-        $users = $query->paginate(50)->appends($request->query());
-        foreach ($users as $user) {
-            $user->total_shifts = $user->shifts_count;
-            $user->total_hours = round(($user->shifts_sum_duration ?? 0) / 60, 2);
-        }
-        
-        return view('admin.users', compact('users', 'adminFilter', 'activeFilter', 'search'));
+        return redirect()->route('landing', ['view' => 'admin']);
     }
 
     public function toggleAdmin(User $user)
@@ -307,6 +278,7 @@ class AdminController extends Controller
         $user->save();
         
         $status = $user->is_admin ? 'granted' : 'revoked';
-        return redirect()->back()->with('message', "Admin privileges {$status} for {$user->name}.");
+        return redirect()->route('landing', ['view' => 'admin'])
+            ->with('message', "Admin privileges {$status} for {$user->name}.");
     }
 }
