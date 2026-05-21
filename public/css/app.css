@@ -800,6 +800,7 @@ body {
     background: #dce4ea;
     color: #111;
 }
+
 .dashboard-shift-card__edit-btn:disabled {
     opacity: 0.65;
     cursor: wait;
@@ -954,19 +955,13 @@ body {
     min-width: 40rem;
 }
 
-.i3-data-table--3col .i3-data-table__head,
-.i3-data-table--3col .i3-data-table__row,
-.i3-data-table--5col .i3-data-table__head,
-.i3-data-table--5col .i3-data-table__row,
-.i3-data-table--7col .i3-data-table__head,
-.i3-data-table--7col .i3-data-table__row {
+:is(.i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__head,
+:is(.i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
     grid-template-columns: var(--i3-cols);
     gap: var(--i3-gap);
 }
 
-.i3-data-table--3col .i3-data-table__row,
-.i3-data-table--5col .i3-data-table__row,
-.i3-data-table--7col .i3-data-table__row {
+:is(.i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
     padding: var(--i3-row-py) 0;
 }
 
@@ -1326,10 +1321,8 @@ body {
         min-width: 36rem;
     }
 
-    .i3-data-table--5col .i3-data-table__head,
-    .i3-data-table--5col .i3-data-table__row,
-    .i3-data-table--7col .i3-data-table__head,
-    .i3-data-table--7col .i3-data-table__row {
+    :is(.i3-data-table--5col, .i3-data-table--7col) .i3-data-table__head,
+    :is(.i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
         font-size: 0.72rem;
     }
 
@@ -1381,7 +1374,6 @@ body.join-modal-open {
     overflow: hidden;
 }
 
-.i3-modal-backdrop,
 .shift-modal-backdrop,
 .join-modal-backdrop {
     position: fixed;
@@ -1394,7 +1386,6 @@ body.join-modal-open {
     background: rgba(0, 0, 0, 0.55);
 }
 
-.i3-modal,
 .shift-modal,
 .join-modal {
     position: fixed;
@@ -1504,10 +1495,7 @@ body.join-modal-open {
     min-width: 0;
 }
 
-.shift-modal__select.form-select {
-    width: 100%;
-}
-
+.shift-modal__select.form-select,
 .shift-modal__date {
     width: 100%;
 }
@@ -1768,6 +1756,19 @@ body.join-modal-open {
     margin: 0;
     cursor: pointer;
     color: #fff;
+}
+
+.join-modal__project-name {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+}
+
+.join-modal__empty {
+    margin: 0;
+    padding: 0.35rem 0;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .join-modal__item .i3-check__box {

@@ -35,9 +35,12 @@
                 </a>
                 @auth
                     @if (Auth::user()->isAdmin() && !request()->routeIs('admin.users.dashboard'))
+                        @php
+                            $navbarView = request()->query('view') === 'admin' ? 'admin' : 'user';
+                        @endphp
                         <div class="dashboard-segment navbar-view-toggle" id="navbarViewToggle" role="group" aria-label="Switch between user and admin view">
-                            <button type="button" class="dashboard-segment__btn active" data-view="user" aria-pressed="true">User</button>
-                            <button type="button" class="dashboard-segment__btn" data-view="admin" aria-pressed="false">Admin</button>
+                            <button type="button" class="dashboard-segment__btn{{ $navbarView === 'user' ? ' active' : '' }}" data-view="user" aria-pressed="{{ $navbarView === 'user' ? 'true' : 'false' }}">User</button>
+                            <button type="button" class="dashboard-segment__btn{{ $navbarView === 'admin' ? ' active' : '' }}" data-view="admin" aria-pressed="{{ $navbarView === 'admin' ? 'true' : 'false' }}">Admin</button>
                         </div>
                     @endif
                 @endauth
@@ -134,6 +137,32 @@
             const buttons = viewToggle.querySelectorAll('.dashboard-segment__btn');
             const storageKey = 'navbarViewMode';
 
+            const syncViewToUrl = (view) => {
+                const url = new URL(window.location.href);
+                if (view === 'admin') {
+                    url.searchParams.set('view', 'admin');
+                } else {
+                    url.searchParams.delete('view');
+                }
+                const next = url.pathname + url.search + url.hash;
+                const current = window.location.pathname + window.location.search + window.location.hash;
+                if (next !== current) {
+                    history.replaceState(null, '', next);
+                }
+            };
+
+            const resolveView = () => {
+                const urlView = new URLSearchParams(window.location.search).get('view');
+                if (urlView === 'admin' || urlView === 'user') {
+                    return urlView;
+                }
+                const stored = localStorage.getItem(storageKey);
+                if (stored === 'admin' || stored === 'user') {
+                    return stored;
+                }
+                return 'user';
+            };
+
             const setView = (view) => {
                 buttons.forEach((btn) => {
                     const active = btn.dataset.view === view;
@@ -141,18 +170,14 @@
                     btn.setAttribute('aria-pressed', active ? 'true' : 'false');
                 });
                 localStorage.setItem(storageKey, view);
+                syncViewToUrl(view);
                 document.dispatchEvent(new CustomEvent('navbar-view-change', { detail: { view } }));
             };
 
-            const urlView = new URLSearchParams(window.location.search).get('view');
-            if (urlView === 'admin' || urlView === 'user') {
-                setView(urlView);
-            } else {
-                const stored = localStorage.getItem(storageKey);
-                if (stored === 'admin' || stored === 'user') {
-                    setView(stored);
-                }
-            }
+            window.navbarResolveView = resolveView;
+            window.navbarSetView = setView;
+
+            setView(resolveView());
 
             buttons.forEach((btn) => {
                 btn.addEventListener('click', () => setView(btn.dataset.view));

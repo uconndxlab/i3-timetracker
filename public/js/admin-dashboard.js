@@ -330,10 +330,10 @@
         handleNavbarView(event.detail?.view || 'user');
     });
 
-    const storedView = localStorage.getItem('navbarViewMode');
-    if (storedView === 'admin' || storedView === 'user') {
-        handleNavbarView(storedView);
-    }
+    const initialView = typeof window.navbarResolveView === 'function'
+        ? window.navbarResolveView()
+        : (new URLSearchParams(window.location.search).get('view') === 'admin' ? 'admin' : 'user');
+    handleNavbarView(initialView);
 
     renderPeriodMenu();
     setTableView('shift');

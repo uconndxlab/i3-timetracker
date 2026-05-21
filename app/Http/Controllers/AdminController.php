@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Projects\AssignUserProject;
-use App\Models\Project;
-use App\Models\User;
-use App\Models\Shift;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Actions\Admin\BuildAdminDashboard;
+use App\Actions\Projects\AssignUserProject;
 use App\Actions\Shifts\BuildAllTimeStatistics;
 use App\Actions\Shifts\BuildHoursTimeline;
 use App\Actions\Shifts\BuildWeeklyChart;
+use App\Models\Project;
+use App\Models\Shift;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -61,7 +61,7 @@ class AdminController extends Controller
             ])
             ->values();
 
-        if ($viewerIsAdmin && !$dashboardReadOnly) {
+        if ($viewerIsAdmin && ! $dashboardReadOnly) {
             $logShiftProjects = Project::where('active', true)->orderBy('name')->get();
         } else {
             $logShiftProjects = Project::where('projects.active', true)
@@ -109,126 +109,72 @@ class AdminController extends Controller
         );
     }
 
-    public function login()
-    {
-        return redirect()->route('landing');
-    }
-
     public function logout()
     {
         Auth::logout();
         session()->invalidate();
         session()->regenerateToken();
         $logoutUrl = cas()->logout(url('/'));
+
         return redirect()->away($logoutUrl);
-        
-    }
-
-
-    // public function showProjectUnbilledUsers(Project $project)
-    // {
-    //     $usersWithUnbilledShifts = User::whereHas('shifts', function($query) use ($project) {
-    //         $query->where('proj_id', $project->id)
-    //             ->where('billed', false);
-    //     })->with(['shifts' => function($query) use ($project) {
-    //         $query->where('proj_id', $project->id)
-    //             ->where('billed', false)
-    //             ->with('project');
-    //     }])->get();
-
-    //     return view('admin.project_unbilled_users', compact('project', 'usersWithUnbilledShifts'));
-    // }
-
-
-    
-    public function markShiftBilled(Shift $shift)
-    {
-        $shift->update(['billed' => true]);
-        return redirect()->back()->with('success', 'Shift marked as billed successfully');
     }
 
     public function markProjectRemainingBilled(Project $project)
     {
         $unbilledShifts = $project->shifts()->where('billed', false)->get();
         $shiftCount = $unbilledShifts->count();
-        
+
         if ($shiftCount > 0) {
             $project->shifts()->where('billed', false)->update(['billed' => true]);
+
             return redirect()->back()->with('success', "{$shiftCount} shift(s) marked as billed successfully.");
         }
-        
+
         return redirect()->back()->with('info', 'No unbilled shifts to mark.');
     }
 
     public function batchUpdateShifts(Request $request, Project $project)
     {
         $updates = $request->input('updates', []);
-        
+
         if (empty($updates)) {
             return response()->json(['success' => false, 'message' => 'No updates provided']);
         }
-        
+
         $updatedCount = 0;
-        
+
         foreach ($updates as $shiftId => $changes) {
             $shift = Shift::where('id', $shiftId)
-                ->whereHas('project', function($query) use ($project) {
+                ->whereHas('project', function ($query) use ($project) {
                     $query->where('id', $project->id);
                 })
                 ->first();
-            
+
             if ($shift) {
                 $updateData = [];
-                
+
                 if (isset($changes['billed'])) {
                     $updateData['billed'] = (bool) $changes['billed'];
                 }
-                
+
                 if (isset($changes['entered'])) {
                     $updateData['entered'] = (bool) $changes['entered'];
                 }
-                
-                if (!empty($updateData)) {
+
+                if (! empty($updateData)) {
                     $shift->update($updateData);
                     $updatedCount++;
                 }
             }
         }
-        
+
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'message' => "{$updatedCount} shift(s) updated successfully",
-            'updated_count' => $updatedCount
+            'updated_count' => $updatedCount,
         ]);
     }
 
-
-
-    // public function showProjectUsers(Project $project)
-    // {
-    //     $project = Project::findOrFail($project->id);
-        
-    //     $assignedUsers = User::join('project_user', 'users.netid', '=', 'project_user.user_netid')
-    //         ->where('project_user.project_id', $project->id)
-    //         ->select('users.*', 'project_user.active as is_active')
-    //         ->get();
-        
-    //         //using active column to help with UI state
-    //     $assignedUsers->transform(function ($user) {
-    //         $user->pivot = (object)['active' => $user->is_active];
-    //         return $user;
-    //     });
-        
-    //     $assignedNetids = $assignedUsers->pluck('netid')->toArray();
-    //     $unassignedUsers = User::whereNotIn('netid', $assignedNetids)->get();
-        
-    //     return view('admin.project_users', compact('project', 'assignedUsers', 'unassignedUsers'));
-    // }
-
-
-    /**
-     * Assign users to a project.
-     */
     public function assignUsers(Request $request, Project $project)
     {
         $validated = $request->validate([
@@ -239,17 +185,13 @@ class AdminController extends Controller
 
         if ($result['assigned_count'] > 0) {
             return redirect()->route('landing', ['view' => 'admin'])
-                ->with('success', $result['assigned_count'] . ' user(s) successfully assigned to project.');
+                ->with('success', $result['assigned_count'].' user(s) successfully assigned to project.');
         }
 
         return redirect()->route('landing', ['view' => 'admin'])
             ->with('info', 'All selected users were already assigned to this project.');
     }
 
-
-    /**
-     * Remove a user from a project.
-     */
     public function removeUser(Project $project, $netid)
     {
         $project->users()->detach($netid);
@@ -258,26 +200,17 @@ class AdminController extends Controller
             ->with('success', 'User successfully removed from project.');
     }
 
-    public function manageProject(Project $project)
-    {
-        return redirect()->route('landing', ['view' => 'admin']);
-    }
-
-    public function viewAllUsers(Request $request)
-    {
-        return redirect()->route('landing', ['view' => 'admin']);
-    }
-
     public function toggleAdmin(User $user)
     {
         if ($user->netid === auth()->user()->netid) {
             return redirect()->back()->with('error', 'You cannot change your own admin status.');
         }
-        
-        $user->is_admin = !$user->is_admin;
+
+        $user->is_admin = ! $user->is_admin;
         $user->save();
-        
+
         $status = $user->is_admin ? 'granted' : 'revoked';
+
         return redirect()->route('landing', ['view' => 'admin'])
             ->with('message', "Admin privileges {$status} for {$user->name}.");
     }

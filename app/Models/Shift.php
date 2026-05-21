@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use \Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\User;
-use App\Models\Project;
 
 class Shift extends Model
 {
@@ -20,15 +18,6 @@ class Shift extends Model
         'entered',
     ];
 
-    // protected function casts(): array 
-    // {
-    //     return [
-    //         'start_time' => 'datetime',
-    //         'end_time' => 'datetime',
-    //         'billed' => 'boolean',
-    //         'entered' => 'boolean',
-    //     ];
-    // }
     protected $casts = [
         'date' => 'datetime',
         'billed' => 'boolean',
@@ -53,6 +42,6 @@ class Shift extends Model
 
     public function getUnbilledHoursAttribute(): float
     {
-        return !$this->billed ? ($this->duration / 60) : 0;
+        return ! $this->billed ? ($this->duration / 60) : 0;
     }
 }

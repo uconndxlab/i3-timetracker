@@ -3,15 +3,11 @@
 namespace App\Models;
 
 use App\Actions\Projects\ProjectHours;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Shift;
-use App\Models\User;
-
+use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    #public $timestamps = false;
     use HasFactory;
 
     protected $fillable = [
@@ -20,23 +16,9 @@ class Project extends Model
         'active',
     ];
 
-    // protected function casts(): array 
-    // {
-    //     return [
-    //         'start_time' => 'datetime',
-    //         'end_time' => 'datetime',
-    //         'billed' => 'boolean',
-    //         'entered' => 'boolean',
-    //     ];
-    // }
     protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
-        'billed' => 'boolean',
-        'entered' => 'boolean',
-        'active' => 'boolean', 
+        'active' => 'boolean',
     ];
-
 
     public function users()
     {
@@ -48,57 +30,23 @@ class Project extends Model
         return $this->hasMany(Shift::class, 'proj_id');
     }
 
-    public function project()
-    {
-        return $this->belongsTo(Project::class, 'proj_id');
-    }
-    
-    public function getDate()
-    {
-        return $this->start_time->format('M j, Y');
-    }
-    
-    public function getRange()
-    {
-        return $this->start_time->format('g A') . ' - ' . $this->end_time->format('g A');
-    }
-    
-    public function getDuration()
-    {
-        return round($this->start_time->diffInMinutes($this->end_time) / 60, 1);
-    }
-
-    public function getHoursForUser($netid)
+    public function getHoursForUser(string $netid): array
     {
         $userShifts = $this->shifts()->where('netid', $netid)->get();
 
         return app(ProjectHours::class)($userShifts);
     }
 
-    public function getAllHours()
+    public function getAllHours(): array
     {
-        $allShifts = $this->shifts()->get();
-
-        return app(ProjectHours::class)($allShifts);
+        return app(ProjectHours::class)($this->shifts()->get());
     }
 
-    public function scopeAssignedToUser($query, $netid)
+    public function scopeAssignedToUser($query, string $netid)
     {
         return $query->join('project_user', 'projects.id', '=', 'project_user.project_id')
             ->where('project_user.user_netid', $netid)
             ->select('projects.*')
             ->distinct();
-    }
-
-    public function scopeSearch($query, ?string $searchTerm)
-    {
-        if (!$searchTerm) {
-            return $query;
-        }
-
-        return $query->where(function ($q) use ($searchTerm) {
-            $q->where('name', 'like', '%' . $searchTerm . '%')
-              ->orWhere('description', 'like', '%' . $searchTerm . '%');
-        });
     }
 }

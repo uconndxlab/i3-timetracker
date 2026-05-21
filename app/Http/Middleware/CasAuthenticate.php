@@ -2,12 +2,11 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-
+use Symfony\Component\HttpFoundation\Response;
 
 class CasAuthenticate
 {
@@ -18,7 +17,7 @@ class CasAuthenticate
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!cas()->isAuthenticated()) {
+        if (! cas()->isAuthenticated()) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
@@ -27,13 +26,17 @@ class CasAuthenticate
         }
 
         $netid = cas()->user();
-        if (!User::where('netid', $netid)->exists()) {
+
+        if (! User::where('netid', $netid)->exists()) {
+            if ($request->routeIs('users.create', 'users.store')) {
+                return $next($request);
+            }
+
             return redirect()->route('users.create');
         }
 
-        $user = User::where('netid', $netid)->first();
-        Auth::login($user);
-        
+        Auth::login(User::where('netid', $netid)->first());
+
         return $next($request);
     }
 }

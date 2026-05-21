@@ -1,17 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\User;
+
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    public function create()
-    {
-        return redirect()->route('landing', ['view' => 'admin']);
-    }
-
     public function update(Request $request, Project $project)
     {
         $validatedData = $request->validate([
@@ -21,32 +17,12 @@ class ProjectController extends Controller
         ]);
 
         $project->update($validatedData);
+
         return redirect()->route('landing')->with('message', 'Project updated successfully!');
-    }
-
-    public function show(Project $project, Request $request)
-    {
-        return redirect()->route('landing');
-    }
-
-    // public function delete(Project $project) 
-    // {
-    //     #$project->shifts()->delete(); do we need to delete shifts associated with the project?
-    //     $project->delete();
-    //     return redirect()->route('projects.index')->with('message', 'Project deleted successfully!');
-    // }
-
-    public function index(Request $request)
-    {
-        return redirect()->route('landing');
     }
 
     public function store(Request $request)
     {
-        if (!$request->user()->isAdmin()) {
-            abort(403);
-        }
-
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
@@ -61,13 +37,10 @@ class ProjectController extends Controller
         ]);
 
         if ($request->input('assign_all_users') == '1') {
-            $allUsers = User::all();
-            $syncData = [];
-            
-            foreach ($allUsers as $user) {
-                $syncData[$user->netid] = ['active' => true];
-            }
-        
+            $syncData = User::query()->pluck('netid')->mapWithKeys(
+                fn (string $netid) => [$netid => ['active' => true]]
+            )->all();
+
             $project->users()->sync($syncData);
         }
 
@@ -84,16 +57,6 @@ class ProjectController extends Controller
         }
 
         return redirect()->route('landing', ['view' => 'admin'])->with('message', 'Project created successfully!');
-    }
-
-    // public function edit(Project $project)
-    // {
-    //     return view('projects.edit', compact('project'));
-    // }
-
-    public function manage(Request $request)
-    {
-        return redirect()->route('landing');
     }
 
     public function syncMemberships(Request $request)
@@ -142,32 +105,26 @@ class ProjectController extends Controller
     public function join(Request $request, Project $project)
     {
         $user = auth()->user();
-        
-        if (!$user->projects->contains($project->id)) {
+
+        if (! $user->projects->contains($project->id)) {
             $project->users()->attach($user->netid, ['active' => true]);
-            return $this->redirectManage($request, 'Successfully joined ' . $project->name);
+
+            return redirect()->route('landing')->with('message', 'Successfully joined '.$project->name);
         }
 
-        return $this->redirectManage($request, 'You are already a member of ' . $project->name);
+        return redirect()->route('landing')->with('message', 'You are already a member of '.$project->name);
     }
 
     public function leave(Request $request, Project $project)
     {
         $user = auth()->user();
-        
+
         if ($user->projects->contains($project->id)) {
             $project->users()->detach($user->netid);
-            return $this->redirectManage($request, 'Successfully left ' . $project->name);
+
+            return redirect()->route('landing')->with('message', 'Successfully left '.$project->name);
         }
 
-        return $this->redirectManage($request, 'You are not a member of ' . $project->name);
+        return redirect()->route('landing')->with('message', 'You are not a member of '.$project->name);
     }
-
-    private function redirectManage(Request $request, string $message)
-    {
-        return redirect()
-            ->route('landing')
-            ->with('message', $message);
-    }
-
 }

@@ -1,9 +1,10 @@
 @php
     $orgProjects = $adminDashboard['org_projects'] ?? [];
     $orgStats = $adminDashboard['org_stats'] ?? [];
+    $navbarView = $navbarView ?? 'user';
 @endphp
 
-<div class="dashboard d-none" id="adminDashboard">
+<div class="dashboard {{ $navbarView === 'admin' ? '' : 'd-none' }}" id="adminDashboard">
     <div class="dashboard-actions d-flex flex-wrap justify-content-end gap-2 mb-3">
         <button type="button" class="dashboard-btn dashboard-btn--primary" id="openCreateProjectModalBtn">
             <i class="bi bi-plus-lg me-2"></i>New Project

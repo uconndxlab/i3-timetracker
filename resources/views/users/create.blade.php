@@ -4,26 +4,26 @@
 <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow">
-                
+
                 <div class="card-body">
                     <p class="text-muted mb-4">Please fill in the details below to register a new user.</p>
 
                     <form method="POST" action="{{ route('users.store') }}">
                         @csrf
-                        
+
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                <input id="name" class="form-control @error('name') is-invalid @enderror" 
+                                <input id="name" class="form-control @error('name') is-invalid @enderror"
                                     type="text" name="name" value="{{ old('name') }}" required autofocus />
                                 @error('name')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
-                        
-                        <input type="hidden" name="netid" value="{{ $netid }}">
+
+                        <p class="text-muted small mb-3">Registering as <strong>{{ $netid }}</strong></p>
 
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary">

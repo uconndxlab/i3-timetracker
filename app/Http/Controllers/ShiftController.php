@@ -1,37 +1,32 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Actions\Admin\BuildAdminDashboard;
-use App\Models\User;
 use App\Models\Project;
 use App\Models\Shift;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ShiftController extends Controller
 {
-    public function create(Request $request)
-    {
-        return redirect()->route('landing');
-    }
-
-    public function index(Request $request)
-    {
-        return redirect()->route('landing');
-    }
-
     public function store(Request $request)
     {
         $user = auth()->user();
-        $validatedData = $request->validate([
-            'netid' => 'required|exists:users,netid',
+
+        $rules = [
             'proj_id' => 'required|exists:projects,id',
             'date' => 'required|date',
             'duration' => 'required|integer|min:1',
             'entered' => 'required|boolean',
             'billed' => 'nullable|boolean',
-            'start_time' => 'nullable|date_format:H:i', // while in transition
-            'end_time' => 'nullable|date_format:H:i', // while in transition
-        ], [], [
+        ];
+
+        if ($user->isAdmin()) {
+            $rules['netid'] = 'required|exists:users,netid';
+        }
+
+        $validatedData = $request->validate($rules, [], [
             'netid' => 'Name',
             'proj_id' => 'Project',
             'date' => 'Date',
@@ -39,22 +34,26 @@ class ShiftController extends Controller
             'entered' => 'Entered in University System',
         ]);
 
-        if (!$user->isAdmin()) {
+        $validatedData['netid'] = $user->isAdmin()
+            ? $validatedData['netid']
+            : $user->netid;
+
+        if (! $user->isAdmin()) {
             $projectIds = $this->visibleProjects($user, true);
-                
-            if (!in_array($validatedData['proj_id'], $projectIds)) {
+
+            if (! in_array((int) $validatedData['proj_id'], $projectIds, true)) {
                 return back()->withErrors(['proj_id' => 'You are not authorized to log shifts for this project.']);
             }
-        }
 
-        if (!isset($validatedData['billed'])) {
+            $validatedData['billed'] = false;
+        } elseif (! isset($validatedData['billed'])) {
             $validatedData['billed'] = false;
         }
 
-        $user = User::where('netid', $validatedData['netid'])->first();
-        $project = Project::find($validatedData['proj_id']);
+        $shiftUser = User::where('netid', $validatedData['netid'])->firstOrFail();
+        $project = Project::findOrFail($validatedData['proj_id']);
 
-        $project->users()->syncWithoutDetaching([$user->netid]);
+        $project->users()->syncWithoutDetaching([$shiftUser->netid]);
 
         Shift::create($validatedData);
 
@@ -69,7 +68,7 @@ class ShiftController extends Controller
     {
         $user = auth()->user();
 
-        if (!$this->canEditShift($user, $shift)) {
+        if (! $this->canEditShift($user, $shift)) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'You cannot edit this shift.'], 403);
             }
@@ -84,8 +83,6 @@ class ShiftController extends Controller
             'duration' => 'sometimes|required|integer|min:1',
             'entered' => 'sometimes|boolean',
             'billed' => 'sometimes|boolean',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i',
         ], [], [
             'netid' => 'Name',
             'proj_id' => 'Project',
@@ -95,10 +92,14 @@ class ShiftController extends Controller
             'billed' => 'Billed in Cider',
         ]);
 
-        if (isset($validatedData['proj_id']) && !$user->isAdmin()) {
+        if (! $user->isAdmin()) {
+            unset($validatedData['netid'], $validatedData['billed']);
+        }
+
+        if (isset($validatedData['proj_id']) && ! $user->isAdmin()) {
             $projectIds = $this->visibleProjects($user, true);
 
-            if (!in_array((int) $validatedData['proj_id'], $projectIds, true)) {
+            if (! in_array((int) $validatedData['proj_id'], $projectIds, true)) {
                 if ($request->expectsJson()) {
                     return response()->json(['message' => 'You are not authorized to use this project.'], 403);
                 }
@@ -138,7 +139,7 @@ class ShiftController extends Controller
             'entered' => 'required',
         ]);
 
-        if (!$request->has('entered')) {
+        if (! $request->has('entered')) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Entered status is required.'], 422);
             }
@@ -159,7 +160,7 @@ class ShiftController extends Controller
         }
 
         foreach ($shifts as $shift) {
-            if (!$user->isAdmin() && ($shift->netid !== $user->netid || $shift->billed)) {
+            if (! $user->isAdmin() && ($shift->netid !== $user->netid || $shift->billed)) {
                 if ($request->expectsJson()) {
                     return response()->json(['message' => 'You cannot update one or more of these shifts.'], 403);
                 }
@@ -190,35 +191,26 @@ class ShiftController extends Controller
         return $this->bulkUpdateEntered($request);
     }
 
-    public function edit(Shift $shift)
-    {
-        return redirect()->route('landing');
-    }
-        
     public function destroy(Shift $shift)
     {
         $user = auth()->user();
-        
-        if (!$user->isAdmin() && 
+
+        if (! $user->isAdmin() &&
             ($shift->netid !== $user->netid || $shift->entered || $shift->billed)) {
             abort(403, 'You cannot delete this shift.');
         }
-        
+
+        $shiftId = $shift->id;
         $shift->delete();
 
         if (request()->expectsJson()) {
             return response()->json([
-                'shift_id' => $shift->id,
+                'shift_id' => $shiftId,
                 'csrf_token' => csrf_token(),
             ]);
         }
 
         return redirect()->route('landing')->with('message', 'Shift deleted successfully.');
-    }
-
-    public function viewAllShifts(Request $request)
-    {
-        return redirect()->route('landing', ['view' => 'admin']);
     }
 
     private function canEditShift(User $user, Shift $shift): bool
@@ -227,7 +219,7 @@ class ShiftController extends Controller
             return true;
         }
 
-        return $shift->netid === $user->netid && !$shift->entered && !$shift->billed;
+        return $shift->netid === $user->netid && ! $shift->entered && ! $shift->billed;
     }
 
     private function visibleProjects(User $user, bool $activeOnly): array

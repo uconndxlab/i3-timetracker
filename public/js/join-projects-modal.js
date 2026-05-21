@@ -89,7 +89,7 @@
                            value="${id}"
                            ${checked}>
                     <span class="i3-check__box"><i class="bi bi-check-lg"></i></span>
-                    <span class="join-modal__project-name"><span class="join-modal__hash">#</span> ${escapeHtml(project.name)}</span>
+                    <span class="join-modal__project-name"><span class="i3-hash">#</span> ${escapeHtml(project.name)}</span>
                 </label>
             `;
         }).join('');

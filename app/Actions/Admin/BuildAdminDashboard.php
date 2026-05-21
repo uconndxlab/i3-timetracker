@@ -20,18 +20,26 @@ class BuildAdminDashboard
 
     public function __invoke(int $weekCount = 20): array
     {
-        $allShifts = Shift::query()->with(['user', 'project'])->get();
-
         $startOfWeek = Carbon::now()->startOfWeek(self::WEEK_START);
         $endOfWeek = Carbon::now()->endOfWeek(self::WEEK_END);
         $firstWeekStart = $startOfWeek->copy()->subWeeks($weekCount - 1);
+
+        $allShifts = Shift::query()->with(['user', 'project'])->get();
+
+        $periodRangeShifts = Shift::query()
+            ->with(['user', 'project'])
+            ->whereBetween('date', [
+                $firstWeekStart->format('Y-m-d'),
+                $endOfWeek->format('Y-m-d'),
+            ])
+            ->get();
 
         $weeklyPeriods = [];
 
         for ($weekOffset = 0; $weekOffset < $weekCount; $weekOffset++) {
             $weekStart = $firstWeekStart->copy()->addWeeks($weekOffset);
             $weekEnd = $weekStart->copy()->endOfWeek(self::WEEK_END);
-            $periodShifts = $this->filterShiftsBetween($allShifts, $weekStart, $weekEnd);
+            $periodShifts = $this->filterShiftsBetween($periodRangeShifts, $weekStart, $weekEnd);
 
             $weeklyPeriods[] = [
                 'label' => $this->formatPeriodLabel($weekStart, $weekEnd),
@@ -99,7 +107,7 @@ class BuildAdminDashboard
                     ? $shift->date
                     : Carbon::parse($shift->date);
 
-                return $date->format('Y-m-d') . str_pad((string) $shift->id, 8, '0', STR_PAD_LEFT);
+                return $date->format('Y-m-d').str_pad((string) $shift->id, 8, '0', STR_PAD_LEFT);
             })
             ->values()
             ->map(fn (Shift $shift) => $this->formatShiftRow($shift))
@@ -303,6 +311,6 @@ class BuildAdminDashboard
 
     private function formatPeriodLabel(Carbon $start, Carbon $end): string
     {
-        return $start->format('M jS, Y') . ' - ' . $end->format('M jS, Y');
+        return $start->format('M jS, Y').' - '.$end->format('M jS, Y');
     }
 }
