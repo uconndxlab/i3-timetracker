@@ -194,8 +194,6 @@
     };
 
     const bootLandingCharts = () => {
-        const config = window.dashboardChartConfig || {};
-
         const bootChart = (chartConfig, retries = 0) => {
             if (typeof window.initDashboardChart !== 'function') {
                 if (retries < 40) {
@@ -207,16 +205,17 @@
             window.initDashboardChart(chartConfig);
         };
 
-        if (config.user) {
+        const userConfig = window.userDashboardConfig || {};
+        if (document.getElementById('weeklyHoursChart')) {
             bootChart({
                 rootId: 'userDashboard',
                 canvasId: 'weeklyHoursChart',
                 totalId: 'statsChartTotal',
-                hoursTimeline: config.user.hoursTimeline || [],
+                hoursTimeline: userConfig.hoursTimeline || {},
                 defaultRange: 'month',
                 maxTicksLimit: 4,
                 getPeriodSeries: () => {
-                    const week = config.user.weeklyChartData?.[window.dashboardWeekIndex ?? 0];
+                    const week = userConfig.weeklyChartData?.[window.dashboardWeekIndex ?? 0];
                     if (!week?.days?.length) {
                         return { labels: [], data: [], total: 0 };
                     }
@@ -237,20 +236,21 @@
             };
         }
 
-        if (config.admin) {
+        const adminConfig = window.adminDashboardConfig || {};
+        if (document.getElementById('adminHoursChart') && adminConfig.hoursTimeline) {
             bootChart({
                 rootId: 'adminDashboard',
                 canvasId: 'adminHoursChart',
                 totalId: 'adminStatsChartTotal',
-                hoursTimeline: config.admin.hoursTimeline || [],
+                hoursTimeline: adminConfig.hoursTimeline || {},
                 defaultRange: 'period',
                 maxTicksLimit: 7,
                 getPeriodSeries: () => {
-                    const period = config.admin.activePeriod || {};
+                    const period = adminConfig.activePeriod || {};
                     const days = period.days || [];
 
                     return {
-                        labels: days.map((day) => day.label || day.key || ''),
+                        labels: days.map((day) => day.key || window.I3.formatChartDayLabel(day)),
                         data: days.map((day) => day.hours ?? 0),
                         total: period.hours_this_period ?? 0,
                     };
@@ -261,7 +261,7 @@
 
     window.bootLandingCharts = bootLandingCharts;
 
-    if (window.dashboardChartConfig) {
+    if (document.getElementById('weeklyHoursChart') || document.getElementById('adminHoursChart')) {
         bootLandingCharts();
     }
 })();

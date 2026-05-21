@@ -35,14 +35,24 @@ class Shift extends Model
         return $this->belongsTo(Project::class, 'proj_id');
     }
 
-    public function getTotalHoursAttribute(): float
+    public function toUserRow(bool $isAdmin = false): array
     {
-        return $this->duration / 60;
-    }
+        $date = $this->date instanceof \Carbon\Carbon
+            ? $this->date
+            : \Carbon\Carbon::parse($this->date);
+        $hours = round(($this->duration ?? 0) / 60, 2);
 
-    public function getUnbilledHoursAttribute(): float
-    {
-        return ! $this->billed ? ($this->duration / 60) : 0;
+        return [
+            'id' => $this->id,
+            'proj_id' => $this->proj_id,
+            'date' => $date->format('Y-m-d'),
+            'duration_minutes' => $this->duration ?? 0,
+            'duration_hours' => $hours,
+            'entered' => (bool) $this->entered,
+            'billed' => (bool) $this->billed,
+            'can_edit' => $isAdmin || (! $this->entered && ! $this->billed),
+            'project_name' => $this->project?->name ?? 'Unknown project',
+        ];
     }
 
     public function toAdminRow(): array

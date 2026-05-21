@@ -34,29 +34,20 @@ class BuildWeeklyChart
             });
 
             $days = $this->buildDays($weekStart, $weekShifts, $isAdmin);
-            $totalMinutesForWeek = $weekShifts->sum(fn ($shift) => $shift->duration ?? 0);
 
             $weeklyChartData[] = [
                 'label' => $week['label'],
                 'start_date' => $week['start_date'],
                 'end_date' => $week['end_date'],
-                'hours_this_week' => round($totalMinutesForWeek / 60, 2),
+                'hours_this_week' => round($weekShifts->sum(fn ($shift) => $shift->duration ?? 0) / 60, 2),
                 'days' => $days,
-                'daily_hours' => collect($days)->mapWithKeys(fn ($day) => [$day['key'] => $day['hours']])->all(),
-                'shifts' => $this->buildShiftCards($weekShifts, $isAdmin),
                 'is_current_week' => $week['is_current_week'],
             ];
         }
 
-        $currentWeek = collect($weeklyChartData)->firstWhere('is_current_week')
-            ?? $weeklyChartData[array_key_last($weeklyChartData)];
-
-        $currentWeekIndex = PayPeriod::resolveActiveIndex($weeklyChartData, null);
-
         return [
-            'hoursThisWeek' => $currentWeek['hours_this_week'] ?? 0,
             'weeklyChartData' => $weeklyChartData,
-            'currentWeekIndex' => $currentWeekIndex,
+            'currentWeekIndex' => PayPeriod::resolveActiveIndex($weeklyChartData, null),
         ];
     }
 
@@ -75,8 +66,6 @@ class BuildWeeklyChart
 
                 return $shiftDate === $dateString;
             })->sortBy('project.name')->values();
-
-            $dayMinutes = $dayShifts->sum(fn ($shift) => $shift->duration ?? 0);
 
             $projectHours = $dayShifts
                 ->groupBy('proj_id')
@@ -97,51 +86,15 @@ class BuildWeeklyChart
 
             $days[] = [
                 'key' => $date->format('D'),
-                'label' => $date->format('l'),
                 'date' => $dateString,
-                'date_display' => $date->format('M j'),
                 'date_badge' => strtoupper($date->format('M j')),
                 'weekday' => strtoupper($date->format('l')),
-                'hours' => round($dayMinutes / 60, 2),
+                'hours' => round($dayShifts->sum(fn ($shift) => $shift->duration ?? 0) / 60, 2),
                 'project_hours' => $projectHours,
-                'shifts' => $dayShifts->map(fn ($shift) => $this->formatShift($shift, $isAdmin))->all(),
+                'shifts' => $dayShifts->map(fn ($shift) => $shift->toUserRow($isAdmin))->all(),
             ];
         }
 
         return $days;
-    }
-
-    private function buildShiftCards($weekShifts, bool $isAdmin = false): array
-    {
-        return $weekShifts
-            ->sortByDesc(fn ($shift) => $shift->date)
-            ->values()
-            ->map(fn ($shift) => $this->formatShift($shift, $isAdmin))
-            ->all();
-    }
-
-    private function formatShift($shift, bool $isAdmin): array
-    {
-        $date = $shift->date instanceof Carbon
-            ? $shift->date
-            : Carbon::parse($shift->date);
-
-        $hours = round(($shift->duration ?? 0) / 60, 2);
-
-        return [
-            'id' => $shift->id,
-            'proj_id' => $shift->proj_id,
-            'date' => $date->format('Y-m-d'),
-            'date_badge' => strtoupper($date->format('M j')),
-            'weekday' => strtoupper($date->format('l')),
-            'duration_minutes' => $shift->duration ?? 0,
-            'duration_hours' => $hours,
-            'duration_display' => number_format($hours, 2) . ' hr',
-            'entered' => (bool) $shift->entered,
-            'billed' => (bool) $shift->billed,
-            'can_edit' => $isAdmin || (!(bool) $shift->entered && !(bool) $shift->billed),
-            'project_name' => $shift->project?->name ?? 'Unknown project',
-            'project_description' => $shift->project?->description ?? '',
-        ];
     }
 }

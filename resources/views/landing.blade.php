@@ -108,6 +108,7 @@
     window.userDashboardConfig = {
         dashboardReadOnly: @json($dashboardReadOnly ?? false),
         weeklyChartData: @json($weeklyChartData ?? []),
+        hoursTimeline: @json($hoursTimeline ?? []),
         currentWeekIndex: {{ $currentWeekIndex ?? 0 }},
         editShiftBaseUrl: @json(url('/shifts')),
         destroyShiftBaseUrl: @json(url('/shifts')),
@@ -124,18 +125,6 @@
         defaultShiftDate: @json($defaultShiftDate),
         storeUrl: @json(route('shifts.store')),
         shiftBaseUrl: @json(url('/shifts')),
-    };
-    window.dashboardChartConfig = {
-        user: {
-            weeklyChartData: @json($weeklyChartData ?? []),
-            hoursTimeline: @json($hoursTimeline ?? []),
-        },
-        @if($adminDashboard ?? null)
-        admin: {
-            hoursTimeline: @json($adminDashboard['hours_timeline'] ?? []),
-            activePeriod: @json($adminDashboard['active_period'] ?? []),
-        },
-        @endif
     };
     @if($isAdminViewer ?? false)
     window.adminDashboardConfig = {

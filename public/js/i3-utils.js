@@ -8,17 +8,9 @@ I3.escapeHtml = (value) => String(value)
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-I3.isStatusOn = (value) => value === true || value === 1 || value === '1';
-
-I3.renderStatusIcon = (value) => (
-    `<span class="i3-check ${I3.isStatusOn(value) ? 'is-checked' : ''}" aria-hidden="true">
-        <i class="bi bi-check-lg"></i>
-    </span>`
-);
-
 I3.formatChartDayLabel = (day) => {
     if (!day?.date) {
-        return day?.key || day?.label || '';
+        return day?.key || '';
     }
 
     const parts = day.date.split('-');

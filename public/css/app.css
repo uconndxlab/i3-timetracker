@@ -28,7 +28,8 @@
     --select-border: rgba(255, 255, 255, 0.35);
 }
 
-.i3-check__box {
+.i3-check__box,
+button.i3-check {
     width: 0.95rem;
     height: 0.95rem;
     border-radius: 0.2rem;
@@ -44,18 +45,6 @@
 }
 
 button.i3-check {
-    width: 0.95rem;
-    height: 0.95rem;
-    border-radius: 0.2rem;
-    border: 1px solid var(--uconn-blue);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.6rem;
-    flex-shrink: 0;
-    line-height: 1;
-    background: transparent;
-    color: inherit;
     padding: 0;
     cursor: pointer;
 }
@@ -1367,6 +1356,49 @@ body {
         width: 100%;
         max-height: calc(100dvh - 1rem);
     }
+
+    .shift-modal__duration {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .shift-modal__duration-col,
+    .shift-modal__duration-col--right {
+        justify-self: center;
+        width: min(100%, 10.5rem);
+    }
+
+    .shift-modal__footer {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .shift-modal__footer-checks {
+        width: 100%;
+        gap: 0.65rem;
+    }
+
+    .shift-modal__footer-checks .i3-check {
+        align-items: flex-start;
+        gap: 0.55rem;
+        padding: 0.15rem 0;
+    }
+
+    .shift-modal__footer-checks .i3-check__box {
+        margin-top: 0.1rem;
+    }
+
+    .shift-modal__submit {
+        width: 100%;
+        justify-self: stretch;
+    }
+
+    .shift-modal__body {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
 }
 
 body.shift-modal-open,
@@ -1624,51 +1656,6 @@ body.join-modal-open {
 
 .shift-modal__submit:hover {
     filter: brightness(1.06);
-}
-
-@media (max-width: 575.98px) {
-    .shift-modal__duration {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-    }
-
-    .shift-modal__duration-col,
-    .shift-modal__duration-col--right {
-        justify-self: center;
-        width: min(100%, 10.5rem);
-    }
-
-    .shift-modal__footer {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-
-    .shift-modal__footer-checks {
-        width: 100%;
-        gap: 0.65rem;
-    }
-
-    .shift-modal__footer-checks .i3-check {
-        align-items: flex-start;
-        gap: 0.55rem;
-        padding: 0.15rem 0;
-    }
-
-    .shift-modal__footer-checks .i3-check__box {
-        margin-top: 0.1rem;
-    }
-
-    .shift-modal__submit {
-        width: 100%;
-        justify-self: stretch;
-    }
-
-    .shift-modal__body {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
 }
 
 .join-modal__dialog {
