@@ -890,6 +890,7 @@ body {
     margin: 0;
     padding: 0;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .i3-data-table__body--sm {
@@ -939,20 +940,17 @@ body {
     --i3-row-py: 0.5rem;
 }
 
-.i3-data-table--5col,
-.i3-data-table--7col {
+.i3-data-table__scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
 }
 
-.i3-data-table--5col .i3-data-table__head,
-.i3-data-table--5col .i3-data-table__row {
+.i3-data-table--5col .i3-data-table__scroll-inner {
     min-width: 34rem;
 }
 
-.i3-data-table--7col .i3-data-table__head,
-.i3-data-table--7col .i3-data-table__row {
+.i3-data-table--7col .i3-data-table__scroll-inner {
     min-width: 40rem;
 }
 
@@ -1320,15 +1318,18 @@ body {
         font-size: 1.35rem;
     }
 
-    .i3-data-table--5col .i3-data-table__head,
-    .i3-data-table--5col .i3-data-table__row {
+    .i3-data-table--5col .i3-data-table__scroll-inner {
         min-width: 30rem;
-        font-size: 0.72rem;
     }
 
+    .i3-data-table--7col .i3-data-table__scroll-inner {
+        min-width: 36rem;
+    }
+
+    .i3-data-table--5col .i3-data-table__head,
+    .i3-data-table--5col .i3-data-table__row,
     .i3-data-table--7col .i3-data-table__head,
     .i3-data-table--7col .i3-data-table__row {
-        min-width: 36rem;
         font-size: 0.72rem;
     }
 

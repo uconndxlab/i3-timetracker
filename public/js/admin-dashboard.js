@@ -71,13 +71,13 @@
 
             return `
             <li class="i3-data-table__row" data-search="${escapeHtml((row.name + ' ' + row.top_project).toLowerCase())}">
-                <span class="i3-data-table__label">
+                <span class="i3-data-table__label" data-label="Employee">
                     <span class="i3-hash">#</span> ${nameHtml}
                 </span>
-                <span>${formatHours(row.unbilled_hours)}</span>
-                <span>${formatHours(row.total_hours)}</span>
-                <span><span class="i3-hash">#</span> ${escapeHtml(row.top_project)}</span>
-                <span>${escapeHtml(row.last_shift_date || '—')}</span>
+                <span data-label="Unbilled Hrs">${formatHours(row.unbilled_hours)}</span>
+                <span data-label="Total Hrs">${formatHours(row.total_hours)}</span>
+                <span data-label="Top Project"><span class="i3-hash">#</span> ${escapeHtml(row.top_project)}</span>
+                <span data-label="Last Shift">${escapeHtml(row.last_shift_date || '—')}</span>
             </li>
         `;
         }).join('');
@@ -95,13 +95,13 @@
 
         projectList.innerHTML = projects.map((row) => `
             <li class="i3-data-table__row" data-search="${escapeHtml((row.name + ' ' + row.top_employee).toLowerCase())}">
-                <span class="i3-data-table__label">
+                <span class="i3-data-table__label" data-label="Project">
                     <span class="i3-hash">#</span> ${escapeHtml(row.name)}
                 </span>
-                <span>${formatHours(row.hours_last_period)}</span>
-                <span>${formatHours(row.total_hours)}</span>
-                <span>${escapeHtml(row.top_employee)}</span>
-                <span>${escapeHtml(row.last_shift_date || '—')}</span>
+                <span data-label="Hrs Last Period">${formatHours(row.hours_last_period)}</span>
+                <span data-label="Total Hrs">${formatHours(row.total_hours)}</span>
+                <span data-label="Top Employee">${escapeHtml(row.top_employee)}</span>
+                <span data-label="Last Shift">${escapeHtml(row.last_shift_date || '—')}</span>
             </li>
         `).join('');
     };
@@ -119,15 +119,15 @@
         shiftList.innerHTML = shifts.map((row) => `
             <li class="i3-data-table__row"
                 data-search="${escapeHtml((row.employee_name + ' ' + row.project_name + ' ' + row.date_display).toLowerCase())}">
-                <span class="i3-data-table__label">
+                <span class="i3-data-table__label" data-label="Employee">
                     <span class="i3-hash">#</span> ${escapeHtml(row.employee_name)}
                 </span>
-                <span><span class="i3-hash">#</span> ${escapeHtml(row.project_name)}</span>
-                <span>${escapeHtml(row.date_display)}</span>
-                <span>${formatHours(row.hours)}</span>
-                <span>${renderStatusIcon(row.entered)}</span>
-                <span>${renderStatusIcon(row.billed)}</span>
-                <span class="i3-data-table__actions">
+                <span data-label="Project"><span class="i3-hash">#</span> ${escapeHtml(row.project_name)}</span>
+                <span data-label="Date">${escapeHtml(row.date_display)}</span>
+                <span data-label="Hours">${formatHours(row.hours)}</span>
+                <span data-label="Timecard">${renderStatusIcon(row.entered)}</span>
+                <span data-label="Honeycrisp">${renderStatusIcon(row.billed)}</span>
+                <span class="i3-data-table__actions" data-label="Actions">
                     <button type="button"
                             class="btn btn-sm btn-outline-secondary admin-shift-edit-btn"
                             data-shift-id="${row.id}"

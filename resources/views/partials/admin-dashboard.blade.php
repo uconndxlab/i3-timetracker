@@ -48,38 +48,50 @@
     </div>
 
     <div class="i3-data-table i3-data-table--7col" id="adminShiftPanel">
-        <div class="i3-data-table__head">
-            <span>Employee</span>
-            <span>Project</span>
-            <span>Date</span>
-            <span>Hours</span>
-            <span>Timecard</span>
-            <span>Honeycrisp</span>
-            <span></span>
+        <div class="i3-data-table__scroll">
+            <div class="i3-data-table__scroll-inner">
+                <div class="i3-data-table__head">
+                    <span>Employee</span>
+                    <span>Project</span>
+                    <span>Date</span>
+                    <span>Hours</span>
+                    <span>Timecard</span>
+                    <span>Honeycrisp</span>
+                    <span></span>
+                </div>
+                <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminShiftList"></ul>
+            </div>
         </div>
-        <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminShiftList"></ul>
     </div>
 
     <div class="i3-data-table i3-data-table--5col d-none" id="adminEmployeePanel">
-        <div class="i3-data-table__head">
-            <span>Employee Name</span>
-            <span>Unbilled Hours</span>
-            <span>Total Hours</span>
-            <span>Top Project</span>
-            <span>Last Shift Date</span>
+        <div class="i3-data-table__scroll">
+            <div class="i3-data-table__scroll-inner">
+                <div class="i3-data-table__head">
+                    <span>Employee Name</span>
+                    <span>Unbilled Hours</span>
+                    <span>Total Hours</span>
+                    <span>Top Project</span>
+                    <span>Last Shift Date</span>
+                </div>
+                <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminEmployeeList"></ul>
+            </div>
         </div>
-        <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminEmployeeList"></ul>
     </div>
 
     <div class="i3-data-table i3-data-table--5col d-none" id="adminProjectPanel">
-        <div class="i3-data-table__head">
-            <span>Project Name</span>
-            <span>Hours Last Period</span>
-            <span>Total Hours</span>
-            <span>Top Employee</span>
-            <span>Last Shift Date</span>
+        <div class="i3-data-table__scroll">
+            <div class="i3-data-table__scroll-inner">
+                <div class="i3-data-table__head">
+                    <span>Project Name</span>
+                    <span>Hours Last Period</span>
+                    <span>Total Hours</span>
+                    <span>Top Employee</span>
+                    <span>Last Shift Date</span>
+                </div>
+                <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminProjectList"></ul>
+            </div>
         </div>
-        <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminProjectList"></ul>
     </div>
 
     @include('partials.admin-shift-modal')
