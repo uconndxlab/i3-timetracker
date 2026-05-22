@@ -30,12 +30,7 @@ class BuildHoursTimeline
     {
         $start = $now->copy()->startOfMonth()->format('Y-m-d');
         $end = $now->copy()->endOfMonth()->format('Y-m-d');
-
-        $minutesByDate = $this->baseQuery($netid)
-            ->whereBetween('date', [$start, $end])
-            ->selectRaw('date, SUM(duration) as minutes')
-            ->groupBy('date')
-            ->pluck('minutes', 'date');
+        $minutesByDate = $this->loadMinutesByDate($netid, $start, $end);
 
         $points = [];
 
@@ -52,20 +47,15 @@ class BuildHoursTimeline
 
     private function buildCalendarWeekSeries(?string $netid, Carbon $now): array
     {
-        $sunday = $now->copy()->startOfWeek(Carbon::SUNDAY);
-        $start = $sunday->format('Y-m-d');
-        $end = $sunday->copy()->addDays(6)->format('Y-m-d');
-
-        $minutesByDate = $this->baseQuery($netid)
-            ->whereBetween('date', [$start, $end])
-            ->selectRaw('date, SUM(duration) as minutes')
-            ->groupBy('date')
-            ->pluck('minutes', 'date');
+        $weekStart = $now->copy()->startOfWeek(Carbon::SUNDAY);
+        $start = $weekStart->format('Y-m-d');
+        $end = $weekStart->copy()->addDays(6)->format('Y-m-d');
+        $minutesByDate = $this->loadMinutesByDate($netid, $start, $end);
 
         $points = [];
 
         for ($i = 0; $i < 7; $i++) {
-            $date = $sunday->copy()->addDays($i);
+            $date = $weekStart->copy()->addDays($i);
             $dateString = $date->format('Y-m-d');
             $points[] = [
                 'label' => strtoupper($date->format('D')),
@@ -108,12 +98,7 @@ class BuildHoursTimeline
     {
         $start = $periodStart->format('Y-m-d');
         $end = $periodEnd->format('Y-m-d');
-
-        $minutesByDate = $this->baseQuery($netid)
-            ->whereBetween('date', [$start, $end])
-            ->selectRaw('date, SUM(duration) as minutes')
-            ->groupBy('date')
-            ->pluck('minutes', 'date');
+        $minutesByDate = $this->loadMinutesByDate($netid, $start, $end);
 
         $days = PayPeriod::buildDailySeries($minutesByDate, $periodStart->copy()->startOfWeek(PayPeriod::WEEK_START));
 
@@ -130,5 +115,25 @@ class BuildHoursTimeline
             'data' => array_column($points, 'hours'),
             'total' => round(array_sum(array_column($points, 'hours')), 2),
         ];
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function loadMinutesByDate(?string $netid, string $start, string $end): array
+    {
+        $minutesByDate = [];
+
+        $this->baseQuery($netid)
+            ->whereBetween('date', [$start, $end])
+            ->selectRaw('date, SUM(duration) as minutes')
+            ->groupBy('date')
+            ->get()
+            ->each(function ($row) use (&$minutesByDate) {
+                $dateKey = Carbon::parse($row->date)->format('Y-m-d');
+                $minutesByDate[$dateKey] = ($minutesByDate[$dateKey] ?? 0) + (int) $row->minutes;
+            });
+
+        return $minutesByDate;
     }
 }
