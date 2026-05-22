@@ -65,7 +65,8 @@
                     @forelse($activePeriod['shifts'] ?? [] as $row)
                     <li class="i3-data-table__row" data-search="{{ strtolower($row['employee_name'].' '.$row['project_name'].' '.$row['date_display']) }}">
                         <span class="i3-data-table__label" data-label="Employee">
-                            <span class="i3-hash">#</span> {{ $row['employee_name'] }}
+                            <span class="i3-hash">#</span>
+                            <a href="{{ route('admin.users.dashboard', ['user' => $row['netid']]) }}" class="i3-link">{{ $row['employee_name'] }}</a>
                         </span>
                         <span data-label="Project"><span class="i3-hash">#</span> {{ $row['project_name'] }}</span>
                         <span data-label="Date">{{ $row['date_display'] }}</span>
@@ -112,11 +113,7 @@
                     <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_project']) }}">
                         <span class="i3-data-table__label" data-label="Employee">
                             <span class="i3-hash">#</span>
-                            @if(!empty($row['netid']))
-                                <a href="{{ route('admin.users.dashboard', ['user' => $row['netid']]) }}" class="i3-link">{{ $row['name'] }}</a>
-                            @else
-                                {{ $row['name'] }}
-                            @endif
+                            <a href="{{ route('admin.users.dashboard', ['user' => $row['netid']]) }}" class="i3-link">{{ $row['name'] }}</a>
                         </span>
                         <span data-label="Unbilled Hrs">{{ number_format($row['unbilled_hours'], 2) }}</span>
                         <span data-label="Total Hrs">{{ number_format($row['total_hours'], 2) }}</span>
