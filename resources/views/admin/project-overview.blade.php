@@ -5,7 +5,7 @@
     $allTime = $overview['all_time'];
     $employees = $overview['employees'] ?? [];
     $shifts = $overview['shifts'] ?? [];
-    $backUrl = route('landing', ['view' => 'admin']);
+    $backUrl = route('landing', ['view' => 'admin', 'admin_table' => 'project']);
 @endphp
 
 @section('content')
@@ -18,7 +18,7 @@
                 <span class="project-overview__status">Inactive</span>
             @endif
             <span class="dashboard-viewing-user__sep" aria-hidden="true">/</span>
-            <a href="{{ $backUrl }}" class="i3-link">Back To Admin</a>
+            <a href="{{ $backUrl }}" class="i3-link" data-admin-back>Back To Admin</a>
         </span>
     </div>
 
@@ -179,6 +179,18 @@
 <script src="{{ asset('js/i3-utils.js') }}"></script>
 <script>
     (function () {
+        const back = document.querySelector('[data-admin-back]');
+        if (back && sessionStorage.getItem('admin_return') === '1') {
+            back.addEventListener('click', (event) => {
+                event.preventDefault();
+                sessionStorage.removeItem('admin_return');
+                history.back();
+            });
+        }
+    })();
+</script>
+<script>
+    (function () {
         const shiftBaseUrl = @json(url('/shifts'));
         let csrfToken = @json(csrf_token());
         const shiftList = document.getElementById('projectShiftList');
@@ -237,17 +249,18 @@
                 return;
             }
 
-            toggleBtn.disabled = true;
+        toggleBtn.disabled = true;
+        toggleBtn.classList.add('is-checked');
+        toggleBtn.setAttribute('aria-pressed', 'true');
 
-            try {
-                await markShiftBilled(shiftId);
-                toggleBtn.classList.add('is-checked');
-                toggleBtn.setAttribute('aria-pressed', 'true');
-                toggleBtn.disabled = true;
-            } catch (error) {
-                alert(error.message || 'Could not mark shift as billed. Please try again.');
-                toggleBtn.disabled = false;
-            }
+        try {
+            await markShiftBilled(shiftId);
+        } catch (error) {
+            toggleBtn.classList.remove('is-checked');
+            toggleBtn.setAttribute('aria-pressed', 'false');
+            toggleBtn.disabled = false;
+            alert(error.message || 'Could not mark shift as billed. Please try again.');
+        }
         });
     })();
     window.shiftModalConfig = {

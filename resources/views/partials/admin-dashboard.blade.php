@@ -3,6 +3,10 @@
     $orgStats = $adminDashboard['org_stats'] ?? [];
     $activePeriod = $adminDashboard['active_period'] ?? [];
     $navbarView = $navbarView ?? 'user';
+    $adminTable = request()->query('admin_table', 'shift');
+    if (! in_array($adminTable, ['shift', 'employee', 'project'], true)) {
+        $adminTable = 'shift';
+    }
 @endphp
 
 <div class="dashboard {{ $navbarView === 'admin' ? '' : 'd-none' }}" id="adminDashboard">
@@ -17,9 +21,9 @@
             <div class="dashboard-toolbar-sort">
                 <div class="dashboard-toolbar-label">View Table By:</div>
                 <div class="dashboard-segment" id="adminTableViewToggle" role="group" aria-label="View table by">
-                    <button type="button" class="dashboard-segment__btn active" data-admin-table="shift">Shift</button>
-                    <button type="button" class="dashboard-segment__btn" data-admin-table="employee">Employee</button>
-                    <button type="button" class="dashboard-segment__btn" data-admin-table="project">Project</button>
+                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'shift' ? ' active' : '' }}" data-admin-table="shift">Shift</button>
+                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'employee' ? ' active' : '' }}" data-admin-table="employee">Employee</button>
+                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'project' ? ' active' : '' }}" data-admin-table="project">Project</button>
                 </div>
             </div>
 
@@ -49,7 +53,7 @@
         </div>
     </div>
 
-    <div class="i3-data-table i3-data-table--7col" id="adminShiftPanel">
+    <div class="i3-data-table i3-data-table--7col{{ $adminTable === 'shift' ? '' : ' d-none' }}" id="adminShiftPanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
                 <div class="i3-data-table__head">
@@ -103,7 +107,7 @@
         </div>
     </div>
 
-    <div class="i3-data-table i3-data-table--5col d-none" id="adminEmployeePanel">
+    <div class="i3-data-table i3-data-table--5col{{ $adminTable === 'employee' ? '' : ' d-none' }}" id="adminEmployeePanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
                 <div class="i3-data-table__head">
@@ -133,7 +137,7 @@
         </div>
     </div>
 
-    <div class="i3-data-table i3-data-table--5col d-none" id="adminProjectPanel">
+    <div class="i3-data-table i3-data-table--5col{{ $adminTable === 'project' ? '' : ' d-none' }}" id="adminProjectPanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
                 <div class="i3-data-table__head">
@@ -148,7 +152,7 @@
                     <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_employee']) }}">
                         <span class="i3-data-table__label" data-label="Project">
                             <span class="i3-hash">#</span>
-                            <a href="{{ route('admin.projects.show', ['project' => $row['id']]) }}" class="i3-link">
+                            <a href="{{ route('admin.projects.show', ['project' => $row['id']]) }}" class="i3-link admin-project-link">
                                 {{ $row['name'] }}
                             </a>
                         </span>

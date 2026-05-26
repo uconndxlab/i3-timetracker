@@ -20,37 +20,25 @@
     const periodMenuEl = document.getElementById('adminPeriodMenu');
     const periodToggleEl = document.getElementById('adminPeriodToggle');
 
-    let tableView = 'shift';
+    const urlTableView = new URLSearchParams(window.location.search).get('admin_table');
+    let tableView = ['shift', 'employee', 'project'].includes(urlTableView) ? urlTableView : 'shift';
 
-    const periodUrlFor = (startDate) => {
-        const url = new URL(adminLandingUrl, window.location.origin);
-        url.searchParams.set('period_start', startDate);
-        return url.pathname + url.search;
-    };
-
-    I3.initPeriodPicker({
-        toggleEl: periodToggleEl,
-        menuEl: periodMenuEl,
-        periods: weeklyPeriods,
-        activeIndex: adminWeekIndex,
-        onSelect: (index) => {
-            if (index === adminWeekIndex) {
-                return;
-            }
-
-            const period = weeklyPeriods[index];
-            if (!period) {
-                return;
-            }
-
-            window.location.assign(periodUrlFor(period.start_date));
-        },
-    });
+    let csrfToken = config.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const shiftBaseUrl = config.shiftBaseUrl || '/shifts';
 
     const searchPlaceholders = {
         employee: 'Search through employees . . .',
         project: 'Search through projects . . .',
         shift: 'Search through shifts . . .',
+    };
+
+    const periodUrlFor = (startDate) => {
+        const url = new URL(adminLandingUrl, window.location.origin);
+        url.searchParams.set('period_start', startDate);
+        if (tableView !== 'shift') {
+            url.searchParams.set('admin_table', tableView);
+        }
+        return url.pathname + url.search;
     };
 
     const setTableView = (view) => {
@@ -90,9 +78,6 @@
         });
     };
 
-    const shiftBaseUrl = config.shiftBaseUrl || '/shifts';
-    let csrfToken = config.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content || '';
-
     const markShiftBilled = async (shiftId) => {
         const formData = new FormData();
         formData.append('_token', csrfToken);
@@ -121,42 +106,73 @@
         return data;
     };
 
-    shiftList?.querySelectorAll('.admin-shift-edit-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
+    I3.initPeriodPicker({
+        toggleEl: periodToggleEl,
+        menuEl: periodMenuEl,
+        periods: weeklyPeriods,
+        activeIndex: adminWeekIndex,
+        onSelect: (index) => {
+            if (index === adminWeekIndex) {
+                return;
+            }
+
+            const period = weeklyPeriods[index];
+            if (!period) {
+                return;
+            }
+
+            window.location.assign(periodUrlFor(period.start_date));
+        },
+    });
+
+    adminDashboard.addEventListener('click', (event) => {
+        const editBtn = event.target.closest('.admin-shift-edit-btn');
+        if (editBtn) {
             try {
-                const shift = JSON.parse(btn.dataset.shift || '{}');
+                const shift = JSON.parse(editBtn.dataset.shift || '{}');
                 if (shift.id && typeof window.openShiftModal === 'function') {
                     window.openShiftModal(shift);
                 }
             } catch {
                 // ignore malformed shift payload
             }
-        });
-    });
-
-    shiftList?.addEventListener('click', async (event) => {
-        const toggleBtn = event.target.closest('.admin-shift-billed-toggle');
-        if (!toggleBtn || toggleBtn.disabled) {
             return;
         }
 
-        event.preventDefault();
+        const billedBtn = event.target.closest('.admin-shift-billed-toggle');
+        if (!billedBtn || billedBtn.disabled) {
+            return;
+        }
 
-        const shiftId = toggleBtn.dataset.shiftId;
+        const shiftId = billedBtn.dataset.shiftId;
         if (!shiftId) {
             return;
         }
 
-        toggleBtn.disabled = true;
+        event.preventDefault();
+        billedBtn.disabled = true;
+        billedBtn.classList.add('is-checked');
+        billedBtn.setAttribute('aria-pressed', 'true');
 
-        try {
-            await markShiftBilled(shiftId);
-            toggleBtn.classList.add('is-checked');
-            toggleBtn.setAttribute('aria-pressed', 'true');
-            toggleBtn.disabled = true;
-        } catch (error) {
+        markShiftBilled(shiftId).catch((error) => {
+            billedBtn.classList.remove('is-checked');
+            billedBtn.setAttribute('aria-pressed', 'false');
+            billedBtn.disabled = false;
             alert(error.message || 'Could not mark shift as billed. Please try again.');
-            toggleBtn.disabled = false;
+        });
+    });
+
+    projectList?.addEventListener('click', (event) => {
+        if (!event.target.closest('.admin-project-link')) {
+            return;
+        }
+
+        sessionStorage.setItem('admin_return', '1');
+        sessionStorage.setItem('admin_table', 'project');
+
+        const period = weeklyPeriods[adminWeekIndex];
+        if (period?.start_date) {
+            sessionStorage.setItem('admin_period_start', period.start_date);
         }
     });
 
@@ -166,5 +182,5 @@
 
     searchInput?.addEventListener('input', filterRows);
 
-    setTableView('shift');
+    setTableView(tableView);
 })();
