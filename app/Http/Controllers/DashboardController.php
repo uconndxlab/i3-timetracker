@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Admin\BuildAdminDashboard;
+use App\Actions\Admin\BuildProjectOverview;
 use App\Actions\Shifts\BuildAllTimeStatistics;
 use App\Actions\Shifts\BuildHoursTimeline;
 use App\Actions\Shifts\BuildWeeklyChart;
@@ -31,6 +32,34 @@ class DashboardController extends Controller
             auth()->user(),
             includeAdminDashboard: false,
             dashboardReadOnly: true,
+        ));
+    }
+
+    public function viewProjectOverview(Project $project)
+    {
+        $overview = app(BuildProjectOverview::class)(
+            $project,
+            request()->query('period_start'),
+        );
+
+        $logShiftProjects = Project::where('active', true)->orderBy('name')->get();
+        $nextShiftNumber = Shift::count() + 1;
+        $defaultShiftDate = now()->setTimezone('America/New_York')->format('Y-m-d');
+        $isAdminViewer = true;
+        $adminDashboard = [
+            'projects' => $logShiftProjects
+                ->map(fn (Project $p) => ['id' => $p->id, 'name' => $p->name])
+                ->values()
+                ->all(),
+        ];
+
+        return view('admin.project-overview', compact(
+            'overview',
+            'logShiftProjects',
+            'nextShiftNumber',
+            'defaultShiftDate',
+            'isAdminViewer',
+            'adminDashboard',
         ));
     }
 

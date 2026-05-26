@@ -1801,3 +1801,119 @@ body.join-modal-open {
     color: rgba(255, 255, 255, 0.45);
     text-transform: uppercase;
 }
+
+.dashboard-btn--sm {
+    padding: 0.3rem 1rem;
+    font-size: 0.75rem;
+}
+
+.project-overview__status {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    background: rgba(0, 14, 47, 0.08);
+    border-radius: 50rem;
+    padding: 0.2rem 0.65rem;
+}
+
+[data-bs-theme="dark"] .project-overview__status {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.project-overview__flash {
+    font-size: 0.78rem;
+    margin: 0 0 1rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.4rem;
+    background: rgba(0, 14, 47, 0.06);
+    color: var(--text-primary);
+}
+
+.project-overview__flash--success {
+    background: rgba(72, 105, 253, 0.12);
+    color: var(--uconn-navy);
+}
+
+[data-bs-theme="dark"] .project-overview__flash {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme="dark"] .project-overview__flash--success {
+    color: var(--uconn-blue);
+}
+
+.project-overview-billing {
+    text-align: center;
+}
+
+.project-overview-billing__metrics {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.project-overview-billing__metrics .dashboard-stats__metric dd {
+    font-size: 1.45rem;
+}
+
+.project-overview-billing__action {
+    margin-top: 1rem;
+}
+
+.project-overview-period__row > span {
+    justify-self: end;
+    width: 100%;
+    text-align: right;
+    font-weight: 600;
+}
+
+.project-overview-panels {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 2rem 2.5rem;
+    align-items: start;
+    margin-bottom: 0.5rem;
+}
+
+.project-overview-panel--members {
+    padding-top: 0.15rem;
+}
+
+.project-overview-members__item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.35rem 0;
+    border-bottom: 1px dotted rgba(0, 14, 47, 0.18);
+}
+
+.project-overview-members__item:last-child {
+    border-bottom: none;
+}
+
+[data-bs-theme="dark"] .project-overview-members__item {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.i3-data-table__actions .dashboard-shift-card__edit-btn {
+    margin-top: 0;
+    width: auto;
+    min-width: 3.5rem;
+}
+
+@media (max-width: 991.98px) {
+    .project-overview-panels {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .project-overview-billing__metrics .dashboard-stats__metric dd {
+        font-size: 1.25rem;
+    }
+}

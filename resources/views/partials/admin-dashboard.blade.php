@@ -142,7 +142,10 @@
                     @forelse($activePeriod['project_rows'] ?? [] as $row)
                     <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_employee']) }}">
                         <span class="i3-data-table__label" data-label="Project">
-                            <span class="i3-hash">#</span> {{ $row['name'] }}
+                            <span class="i3-hash">#</span>
+                            <a href="{{ route('admin.projects.show', ['project' => $row['id']]) }}" class="i3-link">
+                                {{ $row['name'] }}
+                            </a>
                         </span>
                         <span data-label="Hrs Last Period">{{ number_format($row['hours_last_period'], 2) }}</span>
                         <span data-label="Total Hrs">{{ number_format($row['total_hours'], 2) }}</span>

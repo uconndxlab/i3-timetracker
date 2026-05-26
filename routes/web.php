@@ -19,6 +19,7 @@ Route::middleware('cas.auth')->group(function () {
         Route::delete('/projects/{project}/users/{netid}', [AdminController::class, 'removeUser'])->name('projects.remove-user');
         Route::post('/projects/{project}/mark-remaining-billed', [AdminController::class, 'markProjectRemainingBilled'])->name('projects.mark-remaining-billed');
         Route::post('/projects/{project}/batch-update-shifts', [AdminController::class, 'batchUpdateShifts'])->name('projects.batch-update-shifts');
+        Route::get('/projects/{project}', [DashboardController::class, 'viewProjectOverview'])->name('projects.show');
         Route::get('/users/{user:netid}', [DashboardController::class, 'viewUserLanding'])->name('users.dashboard');
         Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');
     });

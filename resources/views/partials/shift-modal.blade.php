@@ -1,5 +1,9 @@
 @php
-    $shiftModalMode = ($isAdminViewer ?? false) && request()->query('view') === 'admin' ? 'admin' : 'user';
+    $shiftModalMode = $shiftModalMode ?? (
+        ($isAdminViewer ?? false) && (request()->query('view') === 'admin' || request()->routeIs('admin.projects.show'))
+            ? 'admin'
+            : 'user'
+    );
     $shiftModalProjects = $shiftModalMode === 'admin'
         ? ($adminDashboard['projects'] ?? [])
         : $logShiftProjects->map(fn ($project) => ['id' => $project->id, 'name' => $project->name])->values()->all();

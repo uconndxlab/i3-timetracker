@@ -34,7 +34,7 @@
                     <img src="{{ asset('i3.svg') }}" alt="i3" class="navbar-logo" width="48" height="48">
                 </a>
                 @auth
-                    @if (Auth::user()->isAdmin() && !request()->routeIs('admin.users.dashboard'))
+                    @if (Auth::user()->isAdmin() && !request()->routeIs('admin.users.dashboard', 'admin.projects.show'))
                         @php
                             $navbarView = request()->query('view') === 'admin' ? 'admin' : 'user';
                         @endphp
