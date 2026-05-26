@@ -57,8 +57,8 @@
                     <span>Project</span>
                     <span>Date</span>
                     <span>Hours</span>
-                    <span>Timecard</span>
-                    <span>Honeycrisp</span>
+                    <span class="i3-data-table__check-col">Timecard</span>
+                    <span class="i3-data-table__check-col">Honeycrisp</span>
                     <span></span>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminShiftList">
@@ -71,15 +71,20 @@
                         <span data-label="Project"><span class="i3-hash">#</span> {{ $row['project_name'] }}</span>
                         <span data-label="Date">{{ $row['date_display'] }}</span>
                         <span data-label="Hours">{{ number_format($row['hours'], 2) }}</span>
-                        <span data-label="Timecard">
+                        <span class="i3-data-table__check-col" data-label="Timecard">
                             <span class="i3-check {{ $row['entered'] ? 'is-checked' : '' }}" aria-hidden="true">
                                 <i class="bi bi-check-lg"></i>
                             </span>
                         </span>
-                        <span data-label="Honeycrisp">
-                            <span class="i3-check {{ $row['billed'] ? 'is-checked' : '' }}" aria-hidden="true">
+                        <span class="i3-data-table__check-col" data-label="Honeycrisp">
+                            <button type="button"
+                                    class="i3-check admin-shift-billed-toggle {{ $row['billed'] ? 'is-checked' : '' }}"
+                                    data-shift-id="{{ $row['id'] }}"
+                                    aria-pressed="{{ $row['billed'] ? 'true' : 'false' }}"
+                                    @disabled($row['billed'])
+                                    aria-label="Mark shift as billed for {{ $row['employee_name'] }}">
                                 <i class="bi bi-check-lg"></i>
-                            </span>
+                            </button>
                         </span>
                         <span class="i3-data-table__actions" data-label="Actions">
                             <button type="button"

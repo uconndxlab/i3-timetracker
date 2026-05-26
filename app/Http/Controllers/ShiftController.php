@@ -190,6 +190,26 @@ class ShiftController extends Controller
         return $this->bulkUpdateEntered($request);
     }
 
+    public function updateBilled(Request $request, Shift $shift)
+    {
+        if (! auth()->user()->isAdmin()) {
+            abort(403, 'Only admins can update billed status.');
+        }
+
+        $billed = $request->boolean('billed', true);
+        $shift->update(['billed' => $billed]);
+        $shift->load(['project', 'user']);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'shift' => $shift->toAdminRow(),
+                'csrf_token' => csrf_token(),
+            ]);
+        }
+
+        return redirect()->back()->with('message', 'Shift updated successfully.');
+    }
+
     public function destroy(Shift $shift)
     {
         $user = auth()->user();

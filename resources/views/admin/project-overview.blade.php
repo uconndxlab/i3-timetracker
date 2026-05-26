@@ -122,8 +122,8 @@
                         <span>Employee</span>
                         <span>Date</span>
                         <span>Hours</span>
-                        <span>Timecard</span>
-                        <span>Honeycrisp</span>
+                        <span class="i3-data-table__check-col">Timecard</span>
+                        <span class="i3-data-table__check-col">Honeycrisp</span>
                         <span></span>
                         <span></span>
                     </div>
@@ -136,15 +136,20 @@
                             </span>
                             <span data-label="Date">{{ $row['date_display'] }}</span>
                             <span data-label="Hours">{{ number_format($row['hours'], 2) }}</span>
-                            <span data-label="Timecard">
+                            <span class="i3-data-table__check-col" data-label="Timecard">
                                 <span class="i3-check {{ $row['entered'] ? 'is-checked' : '' }}" aria-hidden="true">
                                     <i class="bi bi-check-lg"></i>
                                 </span>
                             </span>
-                            <span data-label="Honeycrisp">
-                                <span class="i3-check {{ $row['billed'] ? 'is-checked' : '' }}" aria-hidden="true">
+                            <span class="i3-data-table__check-col" data-label="Honeycrisp">
+                                <button type="button"
+                                        class="i3-check admin-shift-billed-toggle {{ $row['billed'] ? 'is-checked' : '' }}"
+                                        data-shift-id="{{ $row['id'] }}"
+                                        aria-pressed="{{ $row['billed'] ? 'true' : 'false' }}"
+                                        @disabled($row['billed'])
+                                        aria-label="Mark shift as billed for {{ $row['employee_name'] }}">
                                     <i class="bi bi-check-lg"></i>
-                                </span>
+                                </button>
                             </span>
                             <span aria-hidden="true"></span>
                             <span class="i3-data-table__actions" data-label="Actions">
@@ -174,7 +179,38 @@
 <script src="{{ asset('js/i3-utils.js') }}"></script>
 <script>
     (function () {
-        // Wire up shift editing buttons for this page.
+        const shiftBaseUrl = @json(url('/shifts'));
+        let csrfToken = @json(csrf_token());
+        const shiftList = document.getElementById('projectShiftList');
+
+        const markShiftBilled = async (shiftId) => {
+            const formData = new FormData();
+            formData.append('_token', csrfToken);
+            formData.append('billed', '1');
+
+            const response = await fetch(`${shiftBaseUrl}/${shiftId}/billed`, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.message || `Request failed (${response.status})`);
+            }
+
+            if (data.csrf_token) {
+                csrfToken = data.csrf_token;
+            }
+
+            return data;
+        };
+
         document.querySelectorAll('.project-shift-edit-btn').forEach((btn) => {
             btn.addEventListener('click', () => {
                 try {
@@ -186,6 +222,32 @@
                     // ignore malformed shift payload
                 }
             });
+        });
+
+        shiftList?.addEventListener('click', async (event) => {
+            const toggleBtn = event.target.closest('.admin-shift-billed-toggle');
+            if (!toggleBtn || toggleBtn.disabled) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const shiftId = toggleBtn.dataset.shiftId;
+            if (!shiftId) {
+                return;
+            }
+
+            toggleBtn.disabled = true;
+
+            try {
+                await markShiftBilled(shiftId);
+                toggleBtn.classList.add('is-checked');
+                toggleBtn.setAttribute('aria-pressed', 'true');
+                toggleBtn.disabled = true;
+            } catch (error) {
+                alert(error.message || 'Could not mark shift as billed. Please try again.');
+                toggleBtn.disabled = false;
+            }
         });
     })();
     window.shiftModalConfig = {

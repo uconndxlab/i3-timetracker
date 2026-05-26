@@ -33,24 +33,22 @@ const sortButtons = document.querySelectorAll('[data-sort]');
 
 const formatHours = I3.formatHours;
 
-const renderEnteredCheck = (isChecked, shiftIds, extraAttrs = '') => {
+const renderEnteredCheck = (isChecked, shiftIds) => {
     if (dashboardReadOnly) {
-        return `<span class="i3-check ${isChecked ? 'is-checked' : ''}" aria-hidden="true">
-                    <i class="bi bi-check-lg"></i>
-                </span>`;
+        return I3.renderCheck({ checked: isChecked, interactive: false });
     }
 
     const ids = (Array.isArray(shiftIds) ? shiftIds : [shiftIds]).filter(Boolean).join(',');
-    return `<button type="button"
-                class="i3-check ${isChecked ? 'is-checked' : ''}"
-                data-toggle-entered
-                data-stop-card-toggle
-                data-shift-ids="${ids}"
-                aria-pressed="${isChecked ? 'true' : 'false'}"
-                aria-label="Toggle entered in timecard"
-                ${extraAttrs}>
-            <i class="bi bi-check-lg"></i>
-        </button>`;
+
+    return I3.renderCheck({
+        checked: isChecked,
+        attrs: {
+            'data-toggle-entered': '',
+            'data-stop-card-toggle': '',
+            'data-shift-ids': ids,
+            'aria-label': 'Toggle entered in timecard',
+        },
+    });
 };
 
 const getShiftsInDisplayOrder = (day) => {

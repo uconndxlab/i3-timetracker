@@ -36,6 +36,7 @@ Route::middleware('cas.auth')->group(function () {
         Route::post('/', 'store')->name('store');
         Route::post('/bulk-entered', 'bulkUpdateEntered')->name('bulk-update-entered');
         Route::post('/{shift}/entered', 'updateEntered')->name('update-entered');
+        Route::post('/{shift}/billed', 'updateBilled')->name('update-billed')->middleware('admin');
         Route::put('/{shift}', 'update')->name('update');
         Route::delete('/{shift}', 'destroy')->name('destroy');
     });

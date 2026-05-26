@@ -130,6 +130,8 @@
     window.adminDashboardConfig = {
         landingUrl: @json(route('landing', ['view' => 'admin'])),
         projectsStoreUrl: @json(route('projects.store')),
+        shiftBaseUrl: @json(url('/shifts')),
+        csrfToken: @json(csrf_token()),
         @if($adminDashboard ?? null)
         weeklyPeriods: @json($adminDashboard['weekly_periods'] ?? []),
         weekIndex: {{ $adminDashboard['current_week_index'] ?? 0 }},

@@ -80,7 +80,7 @@
             const checked = selected.has(id) ? 'checked' : '';
 
             return `
-                <label class="join-modal__item">
+                <label class="i3-check join-modal__item">
                     <input type="checkbox"
                            class="i3-check__input"
                            value="${id}"
