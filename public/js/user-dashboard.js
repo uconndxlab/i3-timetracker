@@ -138,13 +138,60 @@ const findShiftById = (shiftId) => {
     return null;
 };
 
+const rebuildProjectHours = (day) => {
+    const byProject = {};
+
+    (day.shifts || []).forEach((shift) => {
+        const key = String(shift.proj_id);
+        if (!byProject[key]) {
+            byProject[key] = {
+                proj_id: shift.proj_id,
+                project_name: shift.project_name,
+                minutes: 0,
+                shift_ids: [],
+                entered: true,
+            };
+        }
+
+        byProject[key].minutes += Number(shift.duration_minutes) || 0;
+        byProject[key].shift_ids.push(shift.id);
+        byProject[key].entered = byProject[key].entered && Boolean(shift.entered);
+    });
+
+    day.project_hours = Object.values(byProject)
+        .map((row) => ({
+            proj_id: row.proj_id,
+            project_name: row.project_name,
+            hours: Math.round((row.minutes / 60) * 100) / 100,
+            entered: row.entered,
+            shift_ids: row.shift_ids,
+        }))
+        .sort((a, b) => b.hours - a.hours);
+
+    const dayMinutes = (day.shifts || []).reduce((sum, shift) => sum + (Number(shift.duration_minutes) || 0), 0);
+    day.hours = Math.round((dayMinutes / 60) * 100) / 100;
+};
+
 const applyShiftUpdateToData = (updatedShift) => {
     const match = findShiftById(updatedShift.id);
     if (!match) {
         return;
     }
 
-    Object.assign(match.shift, updatedShift);
+    const minutes = Number(updatedShift.duration_minutes ?? match.shift.duration_minutes) || 0;
+    const project = editableProjects.find((p) => String(p.id) === String(updatedShift.proj_id ?? match.shift.proj_id));
+
+    Object.assign(match.shift, updatedShift, {
+        duration_minutes: minutes,
+        duration_hours: Math.round((minutes / 60) * 100) / 100,
+        project_name: updatedShift.project_name || project?.name || match.shift.project_name,
+    });
+
+    rebuildProjectHours(match.day);
+
+    match.week.hours_this_week = Math.round(
+        (match.week.days || []).reduce((sum, day) => sum + (Number(day.hours) || 0), 0) * 100,
+    ) / 100;
 };
 
 const persistShiftUpdate = async (shiftId, fields) => {
