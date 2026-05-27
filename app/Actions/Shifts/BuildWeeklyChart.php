@@ -52,6 +52,38 @@ class BuildWeeklyChart
         ];
     }
 
+    public function buildDay(string $netid, string $dateString, bool $isAdmin = false): array
+    {
+        $dayShifts = Shift::query()
+            ->where('netid', $netid)
+            ->with('project')
+            ->whereDate('date', $dateString)
+            ->get()
+            ->sortBy('project.name')
+            ->values();
+
+        return $this->formatDay(Carbon::parse($dateString), $dayShifts, $isAdmin);
+    }
+
+    /**
+     * @return array{start_date: string, hours_this_week: float}
+     */
+    public function buildWeekSummary(string $netid, string $dateString): array
+    {
+        $weekStart = Carbon::parse($dateString)->startOfWeek(PayPeriod::WEEK_START);
+        $weekEnd = $weekStart->copy()->endOfWeek(PayPeriod::WEEK_END);
+        $totalMinutes = (int) Shift::query()
+            ->where('netid', $netid)
+            ->whereDate('date', '>=', $weekStart->format('Y-m-d'))
+            ->whereDate('date', '<=', $weekEnd->format('Y-m-d'))
+            ->sum('duration');
+
+        return [
+            'start_date' => $weekStart->format('Y-m-d'),
+            'hours_this_week' => round($totalMinutes / 60, 2),
+        ];
+    }
+
     private function buildDays(Carbon $weekStart, $weekShifts, bool $isAdmin = false): array
     {
         $days = [];
@@ -68,34 +100,41 @@ class BuildWeeklyChart
                 return $shiftDate === $dateString;
             })->sortBy('project.name')->values();
 
-            $projectHours = $dayShifts
-                ->groupBy('proj_id')
-                ->map(function ($projectShifts, $projId) {
-                    $minutes = $projectShifts->sum(fn ($shift) => $shift->duration ?? 0);
-
-                    return [
-                        'proj_id' => $projId,
-                        'project_name' => $projectShifts->first()->project?->name ?? 'Unknown project',
-                        'hours' => round($minutes / 60, 2),
-                        'entered' => $projectShifts->every(fn ($shift) => (bool) $shift->entered),
-                        'shift_ids' => $projectShifts->pluck('id')->values()->all(),
-                    ];
-                })
-                ->sortByDesc('hours')
-                ->values()
-                ->all();
-
-            $days[] = [
-                'key' => $date->format('D'),
-                'date' => $dateString,
-                'date_badge' => strtoupper($date->format('M j')),
-                'weekday' => strtoupper($date->format('l')),
-                'hours' => round($dayShifts->sum(fn ($shift) => $shift->duration ?? 0) / 60, 2),
-                'project_hours' => $projectHours,
-                'shifts' => $dayShifts->map(fn ($shift) => $shift->toUserRow($isAdmin))->all(),
-            ];
+            $days[] = $this->formatDay($date, $dayShifts, $isAdmin);
         }
 
         return $days;
+    }
+
+    private function formatDay(Carbon $date, $dayShifts, bool $isAdmin = false): array
+    {
+        $dateString = $date->format('Y-m-d');
+
+        $projectHours = $dayShifts
+            ->groupBy('proj_id')
+            ->map(function ($projectShifts, $projId) {
+                $minutes = $projectShifts->sum(fn ($shift) => $shift->duration ?? 0);
+
+                return [
+                    'proj_id' => $projId,
+                    'project_name' => $projectShifts->first()->project?->name ?? 'Unknown project',
+                    'hours' => round($minutes / 60, 2),
+                    'entered' => $projectShifts->every(fn ($shift) => (bool) $shift->entered),
+                    'shift_ids' => $projectShifts->pluck('id')->values()->all(),
+                ];
+            })
+            ->sortByDesc('hours')
+            ->values()
+            ->all();
+
+        return [
+            'key' => $date->format('D'),
+            'date' => $dateString,
+            'date_badge' => strtoupper($date->format('M j')),
+            'weekday' => strtoupper($date->format('l')),
+            'hours' => round($dayShifts->sum(fn ($shift) => $shift->duration ?? 0) / 60, 2),
+            'project_hours' => $projectHours,
+            'shifts' => $dayShifts->map(fn ($shift) => $shift->toUserRow($isAdmin))->all(),
+        ];
     }
 }

@@ -74,20 +74,6 @@ const getShiftsInDisplayOrder = (day) => {
     return orderedShifts;
 };
 
-const setShiftsEnteredInData = (shiftIds, entered) => {
-    const idSet = new Set(shiftIds.map(String));
-
-    weeklyChartData.forEach((week) => {
-        (week.days || []).forEach((day) => {
-            (day.shifts || []).forEach((shift) => {
-                if (idSet.has(String(shift.id))) {
-                    shift.entered = entered;
-                }
-            });
-        });
-    });
-};
-
 const getShiftEntered = (shiftId) => {
     for (const week of weeklyChartData) {
         for (const day of week.days || []) {
@@ -138,60 +124,41 @@ const findShiftById = (shiftId) => {
     return null;
 };
 
-const rebuildProjectHours = (day) => {
-    const byProject = {};
-
-    (day.shifts || []).forEach((shift) => {
-        const key = String(shift.proj_id);
-        if (!byProject[key]) {
-            byProject[key] = {
-                proj_id: shift.proj_id,
-                project_name: shift.project_name,
-                minutes: 0,
-                shift_ids: [],
-                entered: true,
-            };
-        }
-
-        byProject[key].minutes += Number(shift.duration_minutes) || 0;
-        byProject[key].shift_ids.push(shift.id);
-        byProject[key].entered = byProject[key].entered && Boolean(shift.entered);
-    });
-
-    day.project_hours = Object.values(byProject)
-        .map((row) => ({
-            proj_id: row.proj_id,
-            project_name: row.project_name,
-            hours: Math.round((row.minutes / 60) * 100) / 100,
-            entered: row.entered,
-            shift_ids: row.shift_ids,
-        }))
-        .sort((a, b) => b.hours - a.hours);
-
-    const dayMinutes = (day.shifts || []).reduce((sum, shift) => sum + (Number(shift.duration_minutes) || 0), 0);
-    day.hours = Math.round((dayMinutes / 60) * 100) / 100;
-};
-
-const applyShiftUpdateToData = (updatedShift) => {
-    const match = findShiftById(updatedShift.id);
-    if (!match) {
+const applyDayUpdate = (day) => {
+    if (!day?.date) {
         return;
     }
 
-    const minutes = Number(updatedShift.duration_minutes ?? match.shift.duration_minutes) || 0;
-    const project = editableProjects.find((p) => String(p.id) === String(updatedShift.proj_id ?? match.shift.proj_id));
-
-    Object.assign(match.shift, updatedShift, {
-        duration_minutes: minutes,
-        duration_hours: Math.round((minutes / 60) * 100) / 100,
-        project_name: updatedShift.project_name || project?.name || match.shift.project_name,
+    weeklyChartData.forEach((week) => {
+        const index = (week.days || []).findIndex((entry) => entry.date === day.date);
+        if (index !== -1) {
+            week.days[index] = day;
+        }
     });
+};
 
-    rebuildProjectHours(match.day);
+const applyWeekUpdate = (weekSummary) => {
+    if (!weekSummary?.start_date) {
+        return;
+    }
 
-    match.week.hours_this_week = Math.round(
-        (match.week.days || []).reduce((sum, day) => sum + (Number(day.hours) || 0), 0) * 100,
-    ) / 100;
+    const week = weeklyChartData.find((entry) => entry.start_date === weekSummary.start_date);
+    if (week) {
+        week.hours_this_week = weekSummary.hours_this_week;
+    }
+};
+
+const applyDashboardPayload = (payload) => {
+    if (payload?.day) {
+        applyDayUpdate(payload.day);
+    }
+
+    if (payload?.week) {
+        applyWeekUpdate(payload.week);
+    }
+
+    (payload?.days || []).forEach(applyDayUpdate);
+    (payload?.weeks || []).forEach(applyWeekUpdate);
 };
 
 const persistShiftUpdate = async (shiftId, fields) => {
@@ -228,9 +195,7 @@ const persistShiftUpdate = async (shiftId, fields) => {
         document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', data.csrf_token);
     }
 
-    if (data.shift) {
-        applyShiftUpdateToData(data.shift);
-    }
+    applyDashboardPayload(data);
 
     return data;
 };
@@ -308,7 +273,7 @@ const persistShiftsEntered = async (shiftIds, entered) => {
     }
 
     refreshCsrfToken(data.csrf_token);
-    setShiftsEnteredInData(uniqueIds, entered);
+    applyDashboardPayload(data);
     syncEnteredCheckboxes();
 
     return data;

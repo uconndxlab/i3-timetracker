@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Shifts\BuildWeeklyChart;
 use App\Models\Project;
 use App\Models\Shift;
 use App\Models\User;
@@ -119,8 +120,13 @@ class ShiftController extends Controller
         $shift->load(['project', 'user']);
 
         if ($request->expectsJson()) {
+            $chartBuilder = app(BuildWeeklyChart::class);
+            $shiftDate = $shift->date->format('Y-m-d');
+
             return response()->json([
                 'shift' => $shift->toAdminRow(),
+                'day' => $chartBuilder->buildDay($shift->netid, $shiftDate, $user->isAdmin()),
+                'week' => $chartBuilder->buildWeekSummary($shift->netid, $shiftDate),
                 'csrf_token' => csrf_token(),
             ]);
         }
@@ -171,9 +177,38 @@ class ShiftController extends Controller
         Shift::whereIn('id', $shiftIds)->update(['entered' => $entered]);
 
         if ($request->expectsJson()) {
+            $chartBuilder = app(BuildWeeklyChart::class);
+            $isAdmin = $user->isAdmin();
+            $updatedShifts = Shift::query()
+                ->whereIn('id', $shiftIds)
+                ->get(['id', 'netid', 'date']);
+
+            $days = $updatedShifts
+                ->map(fn (Shift $shift) => [
+                    'netid' => $shift->netid,
+                    'date' => $shift->date->format('Y-m-d'),
+                ])
+                ->unique(fn (array $row) => $row['netid'].'|'.$row['date'])
+                ->map(fn (array $row) => $chartBuilder->buildDay($row['netid'], $row['date'], $isAdmin))
+                ->values()
+                ->all();
+
+            $weeks = $updatedShifts
+                ->map(fn (Shift $shift) => [
+                    'netid' => $shift->netid,
+                    'date' => $shift->date->format('Y-m-d'),
+                ])
+                ->unique(fn (array $row) => $row['netid'].'|'.$row['date'])
+                ->map(fn (array $row) => $chartBuilder->buildWeekSummary($row['netid'], $row['date']))
+                ->unique('start_date')
+                ->values()
+                ->all();
+
             return response()->json([
                 'shift_ids' => $shiftIds,
                 'entered' => $entered,
+                'days' => $days,
+                'weeks' => $weeks,
                 'csrf_token' => csrf_token(),
             ]);
         }
