@@ -49,7 +49,8 @@ class BuildProjectOverview
         $query = DB::table('shifts')->where('proj_id', $projectId);
 
         if ($rangeStart !== null && $rangeEnd !== null) {
-            $query->whereBetween('date', [$rangeStart, $rangeEnd]);
+            $query->whereDate('date', '>=', $rangeStart)
+                ->whereDate('date', '<=', $rangeEnd);
         }
 
         $row = $query
@@ -76,7 +77,8 @@ class BuildProjectOverview
         return DB::table('shifts')
             ->join('users', 'shifts.netid', '=', 'users.netid')
             ->where('shifts.proj_id', $projectId)
-            ->whereBetween('shifts.date', [$rangeStart, $rangeEnd])
+            ->whereDate('shifts.date', '>=', $rangeStart)
+            ->whereDate('shifts.date', '<=', $rangeEnd)
             ->select([
                 'shifts.id',
                 'shifts.netid',

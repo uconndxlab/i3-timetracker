@@ -16,7 +16,8 @@ class BuildWeeklyChart
 
         $shiftsInRange = Shift::where('netid', $netid)
             ->with('project')
-            ->whereBetween('date', [$firstWeekStart->format('Y-m-d'), $endOfWeek->format('Y-m-d')])
+            ->whereDate('date', '>=', $firstWeekStart->format('Y-m-d'))
+            ->whereDate('date', '<=', $endOfWeek->format('Y-m-d'))
             ->get();
 
         $weeklyChartData = [];

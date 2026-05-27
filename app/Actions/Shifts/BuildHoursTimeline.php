@@ -72,7 +72,8 @@ class BuildHoursTimeline
         $end = $now->copy()->endOfMonth()->format('Y-m-d');
 
         $minutesByMonth = $this->baseQuery($netid)
-            ->whereBetween('date', [$start, $end])
+            ->whereDate('date', '>=', $start)
+            ->whereDate('date', '<=', $end)
             ->selectRaw('SUBSTR(date, 1, 4) as year, SUBSTR(date, 6, 2) as month, SUM(duration) as minutes')
             ->groupBy('year', 'month')
             ->get()
@@ -125,7 +126,8 @@ class BuildHoursTimeline
         $minutesByDate = [];
 
         $this->baseQuery($netid)
-            ->whereBetween('date', [$start, $end])
+            ->whereDate('date', '>=', $start)
+            ->whereDate('date', '<=', $end)
             ->selectRaw('date, SUM(duration) as minutes')
             ->groupBy('date')
             ->get()

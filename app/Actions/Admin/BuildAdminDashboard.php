@@ -91,7 +91,8 @@ class BuildAdminDashboard
         $rangeEnd = PayPeriod::currentWeekEnd()->format('Y-m-d');
 
         $minutesByDate = DB::table('shifts')
-            ->whereBetween('date', [$rangeStart, $rangeEnd])
+            ->whereDate('date', '>=', $rangeStart)
+            ->whereDate('date', '<=', $rangeEnd)
             ->selectRaw('date, SUM(duration) as minutes')
             ->groupBy('date')
             ->pluck('minutes', 'date');
@@ -141,7 +142,8 @@ class BuildAdminDashboard
         return DB::table('shifts')
             ->join('users', 'shifts.netid', '=', 'users.netid')
             ->join('projects', 'shifts.proj_id', '=', 'projects.id')
-            ->whereBetween('shifts.date', [$rangeStart, $rangeEnd])
+            ->whereDate('shifts.date', '>=', $rangeStart)
+            ->whereDate('shifts.date', '<=', $rangeEnd)
             ->select([
                 'shifts.id',
                 'shifts.netid',
