@@ -434,8 +434,15 @@ body {
     margin-bottom: 0.25rem;
 }
 
+.dashboard-toolbar-period {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
 .dashboard-period-select {
     position: relative;
+    width: fit-content;
+    max-width: 100%;
 }
 
 .dashboard-period-toggle {
@@ -451,9 +458,8 @@ body {
 .dashboard-period-menu {
     position: absolute;
     top: calc(100% + 0.35rem);
-    left: 50%;
-    transform: translateX(-50%);
-    min-width: 16rem;
+    left: 0;
+    box-sizing: border-box;
     margin: 0;
     padding: 0.35rem 0;
     list-style: none;
@@ -471,19 +477,83 @@ body {
     border-color: rgba(255, 255, 255, 0.12);
 }
 
+.dashboard-period-menu li {
+    padding: 0 0.35rem;
+}
+
 .dashboard-period-menu button {
     width: 100%;
     border: none;
     background: transparent;
     text-align: left;
-    padding: 0.4rem 0.85rem;
+    padding: 0.45rem 0.6rem;
     font-family: inherit;
     font-size: 0.75rem;
     color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    border-radius: 0.35rem;
 }
 
-.dashboard-period-menu button:hover {
+.dashboard-period-menu button:hover:not(.is-selected) {
     background: rgba(72, 105, 253, 0.15);
+}
+
+.dashboard-period-menu__check,
+.dashboard-period-menu__check-spacer {
+    width: 1rem;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 0.85rem;
+    line-height: 1;
+}
+
+.dashboard-period-menu__label {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.7rem;
+    line-height: 1.3;
+}
+
+.dashboard-period-menu button.is-selected {
+    background-color: var(--uconn-blue);
+    color: #fff;
+    font-weight: 700;
+}
+
+.dashboard-period-menu button.is-selected:hover {
+    filter: brightness(1.08);
+}
+
+.dashboard-period-menu button.is-current-period:not(.is-selected) {
+    color: var(--uconn-blue);
+}
+
+.dashboard-period-menu__current {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-left: 0.35rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 50rem;
+    vertical-align: middle;
+}
+
+.dashboard-period-menu button:not(.is-selected) .dashboard-period-menu__current {
+    background: rgba(72, 105, 253, 0.12);
+    color: var(--uconn-blue);
+}
+
+.dashboard-period-menu button.is-selected .dashboard-period-menu__current {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .dashboard-period-menu button:not(.is-selected) .dashboard-period-menu__current {
+    background: rgba(72, 105, 253, 0.25);
 }
 
 .dashboard-select.form-select,
@@ -512,6 +582,8 @@ body {
 .dashboard-toolbar-total {
     font-size: 0.95rem;
     font-weight: 700;
+    flex: 0 0 auto;
+    white-space: nowrap;
 }
 
 .dashboard-total-value {
@@ -1238,8 +1310,6 @@ body {
 
     .dashboard-period-menu {
         left: 0;
-        transform: none;
-        min-width: min(16rem, 100%);
     }
 
     .dashboard-segment {

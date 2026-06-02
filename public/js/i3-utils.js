@@ -47,34 +47,72 @@ I3.initPeriodPicker = ({
     activeIndex = 0,
     onSelect,
     labelKey = 'label',
+    newestFirst = true,
 }) => {
     if (!toggleEl || !menuEl || !periods?.length) {
         return;
     }
 
+    const menuIndices = periods.map((_, index) => index);
+    if (newestFirst) {
+        menuIndices.reverse();
+    }
+
+    let selectedIndex = activeIndex;
+
+    const syncMenuWidth = () => {
+        menuEl.style.width = `${toggleEl.offsetWidth}px`;
+    };
+
     const renderMenu = () => {
-        menuEl.innerHTML = periods.map((period, index) => `
+        menuEl.innerHTML = menuIndices.map((index) => {
+            const period = periods[index];
+            const isSelected = index === selectedIndex;
+            const isCurrent = period.is_current_week === true;
+            const classes = [
+                isSelected ? 'is-selected' : '',
+                isCurrent ? 'is-current-period' : '',
+            ].filter(Boolean).join(' ');
+
+            const checkIcon = isSelected
+                ? '<i class="bi bi-check-lg dashboard-period-menu__check" aria-hidden="true"></i>'
+                : '<span class="dashboard-period-menu__check-spacer" aria-hidden="true"></span>';
+
+            return `
             <li>
-                <button type="button" role="option" data-period-index="${index}" ${index === activeIndex ? 'aria-selected="true"' : ''}>
-                    ${period[labelKey]}
+                <button type="button" role="option" class="${classes}" data-period-index="${index}" ${isSelected ? 'aria-selected="true"' : ''}>
+                    ${checkIcon}
+                    <span class="dashboard-period-menu__label">${period[labelKey]}${isCurrent ? ' <span class="dashboard-period-menu__current">Current</span>' : ''}</span>
                 </button>
             </li>
-        `).join('');
+        `;
+        }).join('');
 
         menuEl.querySelectorAll('[data-period-index]').forEach((btn) => {
             btn.addEventListener('click', () => {
                 menuEl.classList.add('d-none');
                 toggleEl.setAttribute('aria-expanded', 'false');
-                onSelect(parseInt(btn.dataset.periodIndex, 10), periods[parseInt(btn.dataset.periodIndex, 10)]);
+                selectedIndex = parseInt(btn.dataset.periodIndex, 10);
+                onSelect(selectedIndex, periods[selectedIndex]);
+                renderMenu();
             });
         });
     };
 
     toggleEl.addEventListener('click', () => {
         const isOpen = !menuEl.classList.contains('d-none');
+        if (!isOpen) {
+            syncMenuWidth();
+        }
         menuEl.classList.toggle('d-none', isOpen);
         toggleEl.setAttribute('aria-expanded', String(!isOpen));
     });
+
+    if (typeof ResizeObserver !== 'undefined') {
+        new ResizeObserver(syncMenuWidth).observe(toggleEl);
+    } else {
+        window.addEventListener('resize', syncMenuWidth);
+    }
 
     document.addEventListener('click', (event) => {
         if (!event.target.closest('.dashboard-period-select')) {
@@ -84,6 +122,7 @@ I3.initPeriodPicker = ({
     });
 
     renderMenu();
+    syncMenuWidth();
 
-    return { renderMenu };
+    return { renderMenu, syncMenuWidth };
 };
