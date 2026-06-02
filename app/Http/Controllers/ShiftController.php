@@ -17,7 +17,7 @@ class ShiftController extends Controller
         $rules = [
             'proj_id' => 'required|exists:projects,id',
             'date' => 'required|date',
-            'duration' => 'required|integer|min:1',
+            'duration' => $this->durationRules(),
             'entered' => 'required|boolean',
             'billed' => 'nullable|boolean',
         ];
@@ -80,7 +80,7 @@ class ShiftController extends Controller
             'netid' => 'sometimes|required|exists:users,netid',
             'proj_id' => 'sometimes|required|exists:projects,id',
             'date' => 'sometimes|required|date',
-            'duration' => 'sometimes|required|integer|min:1',
+            'duration' => $this->durationRules(required: false),
             'entered' => 'sometimes|boolean',
             'billed' => 'sometimes|boolean',
         ], [], [
@@ -265,6 +265,24 @@ class ShiftController extends Controller
         }
 
         return redirect()->route('landing')->with('message', 'Shift deleted successfully.');
+    }
+
+    /**
+     * @return list<\Closure|string>
+     */
+    private function durationRules(bool $required = true): array
+    {
+        $rules = $required
+            ? ['required', 'integer', 'min:15']
+            : ['sometimes', 'required', 'integer', 'min:15'];
+
+        $rules[] = function (string $attribute, mixed $value, \Closure $fail): void {
+            if ((int) $value % 15 !== 0) {
+                $fail('Duration must be in 15-minute increments.');
+            }
+        };
+
+        return $rules;
     }
 
     private function canEditShift(User $user, Shift $shift): bool

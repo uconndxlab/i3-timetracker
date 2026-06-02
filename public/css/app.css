@@ -683,6 +683,15 @@ body {
     font-size: 0.9rem;
 }
 
+.dashboard-shift-card .dropdown-menu {
+    font-size: 0.65rem;
+}
+
+.dashboard-shift-card .dropdown-menu .dropdown-item {
+    font-size: inherit;
+    padding: 0.3rem 0.75rem;
+}
+
 .dashboard-shift-card__hours {
     font-size: 1.35rem;
     font-weight: 700;

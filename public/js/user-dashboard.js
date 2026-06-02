@@ -234,9 +234,11 @@ const renderShiftEditorRow = (shift) => {
                            class="dashboard-shift-card__inline-hours"
                            data-shift-id="${shift.id}"
                            data-shift-field="duration_hours"
-                           value="${formatHours(shift.duration_hours)}"
+                           value="${formatHours(I3.snapHoursToQuarter(shift.duration_hours))}"
                            min="0.25"
                            step="0.25"
+                           inputmode="decimal"
+                           title="15-minute increments (0.25 hr minimum)"
                            ${disabled}
                            aria-label="Hours for shift ${shift.id}">
                     <span class="dashboard-shift-card__inline-hours-suffix">hr</span>
@@ -378,26 +380,23 @@ const renderDayCard = (day) => {
         </div>
     `;
 
-    const menuHtml = day.is_empty || dashboardReadOnly
+    const deletableShifts = (day.shifts || []).filter((shift) => shift.can_edit);
+    const menuHtml = day.is_empty || dashboardReadOnly || deletableShifts.length === 0
         ? ''
         : `<div class="dropdown">
-                <button class="dashboard-shift-card__menu" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="dashboard-shift-card__menu" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-stop-card-toggle>
                     <i class="bi bi-three-dots-vertical"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    ${day.shifts.map((shift, index) => `
+                    ${deletableShifts.map((shift, index) => `
                         ${index > 0 ? '<li><hr class="dropdown-divider"></li>' : ''}
-                        <li>
-                            <div class="dashboard-shift-menu-item dropdown-item-text">
-                                <span class="dashboard-shift-menu-item__label">${shift.project_name}</span>
-                                ${renderEnteredCheck(shift.entered, [shift.id])}
-                            </div>
-                        </li>
                         <li>
                             <form method="POST" action="${destroyShiftBaseUrl}/${shift.id}" onsubmit="return confirm('Delete this shift?');">
                                 <input type="hidden" name="_token" value="${csrfToken}">
                                 <input type="hidden" name="_method" value="DELETE">
-                                <button type="submit" class="dropdown-item text-danger">Delete ${shift.project_name}</button>
+                                <button type="submit" class="dropdown-item text-danger">
+                                    ${I3.escapeHtml(shift.project_name)} - (${formatHours(shift.duration_hours)})
+                                </button>
                             </form>
                         </li>
                     `).join('')}
@@ -509,12 +508,12 @@ const saveDayShifts = async (dayDate) => {
         }
 
         const hours = parseFloat(input.value);
-        if (Number.isNaN(hours) || hours < 0.25) {
-            throw new Error('Each shift must be at least 0.25 hours.');
+        if (!I3.isQuarterHourHours(hours)) {
+            throw new Error('Each shift must be in 15-minute increments (0.25 hr minimum).');
         }
 
         const fields = {};
-        const minutes = Math.round(hours * 60);
+        const minutes = I3.snapMinutesToQuarter(Math.round(hours * 60));
 
         if (String(select.value) !== String(match.shift.proj_id)) {
             fields.proj_id = select.value;
@@ -632,6 +631,18 @@ projectFilterEl?.addEventListener('change', () => {
     editingDayDate = null;
     render();
 });
+
+shiftGridEl?.addEventListener('blur', (event) => {
+    const input = event.target.closest('.dashboard-shift-card__inline-hours');
+    if (!input) {
+        return;
+    }
+
+    const hours = parseFloat(input.value);
+    if (!Number.isNaN(hours)) {
+        input.value = formatHours(I3.snapHoursToQuarter(hours));
+    }
+}, true);
 
 shiftGridEl?.addEventListener('click', async (event) => {
     const toggleBtn = event.target.closest('[data-toggle-entered]');

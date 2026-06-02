@@ -31,7 +31,7 @@
     const isEditMode = () => Boolean(activeShift?.id);
 
     const setDurationMinutes = (minutes) => {
-        const safeMinutes = Math.max(1, minutes);
+        const safeMinutes = I3.snapMinutesToQuarter(minutes);
         durationInput.value = safeMinutes;
         hoursDisplay.textContent = (safeMinutes / 60).toFixed(2);
     };
@@ -167,8 +167,9 @@
         event.preventDefault();
         showErrors([]);
 
-        if (getDurationMinutes() < 1) {
-            showErrors(['Duration must be at least 1 minute.']);
+        const durationMinutes = getDurationMinutes();
+        if (!I3.isQuarterHourMinutes(durationMinutes)) {
+            showErrors(['Duration must be in 15-minute increments.']);
             return;
         }
 

@@ -2,6 +2,43 @@ window.I3 = window.I3 || {};
 
 I3.formatHours = (hours) => Number(hours || 0).toFixed(2);
 
+I3.QUARTER_HOUR_MINUTES = 15;
+
+I3.snapHoursToQuarter = (hours) => {
+    if (Number.isNaN(hours)) {
+        return 0.25;
+    }
+
+    const quarters = Math.round(hours * 4);
+
+    return Math.max(0.25, quarters / 4);
+};
+
+I3.snapMinutesToQuarter = (minutes) => {
+    const parsed = parseInt(minutes, 10);
+    if (Number.isNaN(parsed)) {
+        return I3.QUARTER_HOUR_MINUTES;
+    }
+
+    return Math.max(I3.QUARTER_HOUR_MINUTES, Math.round(parsed / I3.QUARTER_HOUR_MINUTES) * I3.QUARTER_HOUR_MINUTES);
+};
+
+I3.isQuarterHourHours = (hours) => {
+    if (Number.isNaN(hours) || hours < 0.25) {
+        return false;
+    }
+
+    return Math.abs((hours * 4) - Math.round(hours * 4)) < 0.001;
+};
+
+I3.isQuarterHourMinutes = (minutes) => {
+    const parsed = parseInt(minutes, 10);
+
+    return !Number.isNaN(parsed)
+        && parsed >= I3.QUARTER_HOUR_MINUTES
+        && parsed % I3.QUARTER_HOUR_MINUTES === 0;
+};
+
 I3.escapeHtml = (value) => String(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
