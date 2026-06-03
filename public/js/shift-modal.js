@@ -32,11 +32,28 @@
 
     const setDurationMinutes = (minutes) => {
         const safeMinutes = I3.snapMinutesToQuarter(minutes);
-        durationInput.value = safeMinutes;
-        hoursDisplay.textContent = (safeMinutes / 60).toFixed(2);
+        durationInput.value = String(safeMinutes);
+        hoursDisplay.textContent = I3.formatHours(safeMinutes / 60);
     };
 
-    const getDurationMinutes = () => parseInt(durationInput.value, 10) || 0;
+    const getDurationMinutes = () => {
+        const raw = String(durationInput.value ?? '').trim();
+        if (!raw) {
+            return 0;
+        }
+
+        const numeric = Number(raw);
+        if (Number.isNaN(numeric)) {
+            return 0;
+        }
+
+        // Hidden field must store whole minutes; decimal values are hours (e.g. "1.00").
+        if (raw.includes('.')) {
+            return Math.round(numeric * 60);
+        }
+
+        return Math.round(numeric);
+    };
 
     const showErrors = (messages) => {
         if (!errorsEl) {
@@ -158,7 +175,11 @@
 
     adjustButtons.forEach((button) => {
         button.addEventListener('click', () => {
-            const adjust = parseInt(button.dataset.adjust, 10);
+            const adjust = Number.parseInt(button.dataset.adjust, 10);
+            if (Number.isNaN(adjust)) {
+                return;
+            }
+
             setDurationMinutes(getDurationMinutes() + adjust);
         });
     });
