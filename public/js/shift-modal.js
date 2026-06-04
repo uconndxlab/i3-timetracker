@@ -230,13 +230,11 @@
 
             closeModal();
 
-            if (
-                isEditMode()
-                && config.mode !== 'admin'
-                && typeof window.applyUserDashboardPayload === 'function'
-            ) {
+            if (config.mode !== 'admin' && typeof window.applyUserDashboardPayload === 'function') {
                 window.applyUserDashboardPayload(data);
-                window.refreshUserDashboard?.();
+                window.refreshUserDashboard?.({
+                    dayDate: data.day?.date,
+                });
                 return;
             }
 

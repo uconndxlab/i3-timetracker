@@ -55,10 +55,19 @@ class ShiftController extends Controller
 
         $project->users()->syncWithoutDetaching([$shiftUser->netid]);
 
-        Shift::create($validatedData);
+        $shift = Shift::create($validatedData);
+        $shift->load(['project', 'user']);
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Shift logged successfully!']);
+            $chartBuilder = app(BuildWeeklyChart::class);
+            $shiftDate = $shift->date->format('Y-m-d');
+
+            return response()->json([
+                'message' => 'Shift logged successfully!',
+                'day' => $chartBuilder->buildDay($shift->netid, $shiftDate, $user->isAdmin()),
+                'week' => $chartBuilder->buildWeekSummary($shift->netid, $shiftDate),
+                'csrf_token' => csrf_token(),
+            ]);
         }
 
         return redirect()->route('landing')->with('message', 'Shift logged successfully!');

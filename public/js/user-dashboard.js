@@ -217,9 +217,95 @@ const applyDashboardPayload = (payload) => {
     (payload?.weeks || []).forEach(applyWeekUpdate);
 };
 
-const refreshDashboardViews = () => {
+const updatePeriodChrome = () => {
+    const week = getCurrentWeek();
+    const days = getFilteredDays();
+
+    if (periodLabelEl) {
+        periodLabelEl.textContent = week?.label || '';
+    }
+    if (periodTotalEl) {
+        const total = days.reduce((sum, day) => sum + (day.duration_hours || 0), 0);
+        periodTotalEl.textContent = formatHours(total);
+    }
+    if (currentPeriodBadgeEl) {
+        currentPeriodBadgeEl.classList.toggle('d-none', !(week?.is_current_week));
+    }
+};
+
+const createDayCardElement = (day) => {
+    const template = document.createElement('template');
+    template.innerHTML = renderDayCard(day).trim();
+    return template.content.firstElementChild;
+};
+
+const restoreExpandedCard = (card, collapseId) => {
+    if (!card || !collapseId || typeof bootstrap === 'undefined') {
+        return;
+    }
+
+    const collapseEl = document.getElementById(collapseId);
+    if (!collapseEl) {
+        return;
+    }
+
+    const collapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
+    collapse.show();
+    card.classList.add('is-expanded');
+    card.setAttribute('aria-expanded', 'true');
+};
+
+const refreshDayCard = (dayDate) => {
+    if (!shiftGridEl || !dayDate) {
+        return;
+    }
+
+    const days = getFilteredDays();
+    const dayIndex = days.findIndex((entry) => entry.date === dayDate);
+    const day = dayIndex === -1 ? null : days[dayIndex];
+    const existingCard = shiftGridEl.querySelector(`.dashboard-shift-card[data-day-date="${dayDate}"]`);
+
+    if (!day) {
+        existingCard?.remove();
+        return;
+    }
+
+    const wasExpanded = Boolean(existingCard?.classList.contains('is-expanded'));
+    const collapseId = existingCard?.getAttribute('aria-controls') || `day-shifts-${dayDate}`;
+    const newCard = createDayCardElement(day);
+
+    if (existingCard) {
+        existingCard.replaceWith(newCard);
+    } else {
+        const cards = shiftGridEl.querySelectorAll('.dashboard-shift-card');
+        if (dayIndex >= cards.length) {
+            shiftGridEl.appendChild(newCard);
+        } else {
+            cards[dayIndex].before(newCard);
+        }
+    }
+
+    if (wasExpanded) {
+        restoreExpandedCard(newCard, collapseId);
+    }
+
+    bindDayCardExpand(newCard);
+    bindEditSaveButtons(newCard);
+};
+
+const refreshDashboardViews = (options = {}) => {
+    updatePeriodChrome();
+
+    const dayDates = options.dayDates
+        || (options.dayDate ? [options.dayDate] : null);
+
+    if (dayDates?.length && shiftGridEl) {
+        dayDates.forEach((date) => refreshDayCard(date));
+        window.updateWeeklyChart?.();
+        return;
+    }
+
     render();
-    window.updateWeeklyChart?.();
 };
 
 window.applyUserDashboardPayload = applyDashboardPayload;
@@ -260,7 +346,6 @@ const persistShiftUpdate = async (shiftId, fields) => {
     }
 
     applyDashboardPayload(data);
-    window.updateWeeklyChart?.();
 
     return data;
 };
@@ -505,19 +590,9 @@ const renderDayCard = (day) => {
 };
 
 const render = () => {
-    const week = getCurrentWeek();
     const days = getFilteredDays();
 
-    if (periodLabelEl) {
-        periodLabelEl.textContent = week?.label || '';
-    }
-    if (periodTotalEl) {
-        const total = days.reduce((sum, day) => sum + (day.duration_hours || 0), 0);
-        periodTotalEl.textContent = formatHours(total);
-    }
-    if (currentPeriodBadgeEl) {
-        currentPeriodBadgeEl.classList.toggle('d-none', !(week?.is_current_week));
-    }
+    updatePeriodChrome();
 
     if (!shiftGridEl) {
         return;
@@ -595,15 +670,15 @@ const saveDayShifts = async (dayDate) => {
 
     await Promise.all(updates);
     editingDayDate = null;
-    render();
+    refreshDashboardViews({ dayDate });
 };
 
-const bindEditSaveButtons = () => {
-    if (!shiftGridEl) {
+const bindEditSaveButtons = (root = shiftGridEl) => {
+    if (!root) {
         return;
     }
 
-    shiftGridEl.querySelectorAll('.dashboard-shift-card__edit-btn').forEach((btn) => {
+    root.querySelectorAll('.dashboard-shift-card__edit-btn').forEach((btn) => {
         btn.addEventListener('click', async (event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -627,17 +702,17 @@ const bindEditSaveButtons = () => {
             }
 
             editingDayDate = dayDate;
-            render();
+            refreshDashboardViews({ dayDate });
         });
     });
 };
 
-const bindDayCardExpand = () => {
-    if (!shiftGridEl || typeof bootstrap === 'undefined') {
+const bindDayCardExpand = (root = shiftGridEl) => {
+    if (!root || typeof bootstrap === 'undefined') {
         return;
     }
 
-    shiftGridEl.querySelectorAll('[data-day-expandable]').forEach((card) => {
+    root.querySelectorAll('[data-day-expandable]').forEach((card) => {
         const collapseEl = card.querySelector('.dashboard-shift-card__expand');
         if (!collapseEl) {
             return;
