@@ -186,7 +186,7 @@
 
     window.refreshDashboardChart = (canvasId) => {
         const instance = instances[canvasId];
-        if (!instance || instance.chartRange !== 'period') {
+        if (!instance?.chart) {
             return;
         }
 

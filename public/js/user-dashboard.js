@@ -124,17 +124,73 @@ const findShiftById = (shiftId) => {
     return null;
 };
 
+const recalcTimelineTotal = (series) => {
+    if (!series?.data) {
+        return;
+    }
+
+    series.total = Math.round(
+        series.data.reduce((sum, value) => sum + Number(value || 0), 0) * 100,
+    ) / 100;
+};
+
+const patchHoursTimelineForDay = (dateString, hours, previousHours = 0) => {
+    const timeline = config.hoursTimeline;
+    if (!timeline || !dateString) {
+        return;
+    }
+
+    const date = new Date(`${dateString}T12:00:00`);
+    if (Number.isNaN(date.getTime())) {
+        return;
+    }
+
+    const hoursNum = Number(hours) || 0;
+    const prevNum = Number(previousHours) || 0;
+    const monthLabel = `${date.getMonth() + 1}/${date.getDate()}`;
+    const monthIdx = timeline.month?.labels?.indexOf(monthLabel) ?? -1;
+
+    if (monthIdx !== -1 && timeline.month?.data) {
+        timeline.month.data[monthIdx] = hoursNum;
+        recalcTimelineTotal(timeline.month);
+    }
+
+    const weekDayLabels = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const weekLabel = weekDayLabels[date.getDay()];
+    const weekIdx = timeline.week?.labels?.indexOf(weekLabel) ?? -1;
+
+    if (weekIdx !== -1 && timeline.week?.data) {
+        timeline.week.data[weekIdx] = hoursNum;
+        recalcTimelineTotal(timeline.week);
+    }
+
+    const yearLabel = date.toLocaleString('en-US', { month: 'short' });
+    const yearIdx = timeline.year?.labels?.indexOf(yearLabel) ?? -1;
+
+    if (yearIdx !== -1 && timeline.year?.data) {
+        timeline.year.data[yearIdx] = Math.round(
+            (Number(timeline.year.data[yearIdx] || 0) - prevNum + hoursNum) * 100,
+        ) / 100;
+        recalcTimelineTotal(timeline.year);
+    }
+};
+
 const applyDayUpdate = (day) => {
     if (!day?.date) {
         return;
     }
 
+    let previousHours = 0;
+
     weeklyChartData.forEach((week) => {
         const index = (week.days || []).findIndex((entry) => entry.date === day.date);
         if (index !== -1) {
+            previousHours = week.days[index].hours ?? 0;
             week.days[index] = day;
         }
     });
+
+    patchHoursTimelineForDay(day.date, day.hours, previousHours);
 };
 
 const applyWeekUpdate = (weekSummary) => {
@@ -160,6 +216,14 @@ const applyDashboardPayload = (payload) => {
     (payload?.days || []).forEach(applyDayUpdate);
     (payload?.weeks || []).forEach(applyWeekUpdate);
 };
+
+const refreshDashboardViews = () => {
+    render();
+    window.updateWeeklyChart?.();
+};
+
+window.applyUserDashboardPayload = applyDashboardPayload;
+window.refreshUserDashboard = refreshDashboardViews;
 
 const persistShiftUpdate = async (shiftId, fields) => {
     const token = document.querySelector('meta[name="csrf-token"]')?.content || csrfToken;
@@ -196,6 +260,7 @@ const persistShiftUpdate = async (shiftId, fields) => {
     }
 
     applyDashboardPayload(data);
+    window.updateWeeklyChart?.();
 
     return data;
 };

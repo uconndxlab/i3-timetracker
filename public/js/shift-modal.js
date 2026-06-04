@@ -229,6 +229,17 @@
             }
 
             closeModal();
+
+            if (
+                isEditMode()
+                && config.mode !== 'admin'
+                && typeof window.applyUserDashboardPayload === 'function'
+            ) {
+                window.applyUserDashboardPayload(data);
+                window.refreshUserDashboard?.();
+                return;
+            }
+
             window.location.reload();
         } catch {
             showErrors(['Could not save shift. Please try again.']);
