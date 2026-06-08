@@ -270,7 +270,12 @@ const refreshDayCard = (dayDate) => {
         return;
     }
 
-    const wasExpanded = Boolean(existingCard?.classList.contains('is-expanded'));
+    const existingCollapseEl = existingCard?.querySelector('.dashboard-shift-card__expand');
+    const wasExpanded = Boolean(
+        existingCard?.classList.contains('is-expanded')
+        || existingCollapseEl?.classList.contains('show'),
+    );
+    const isEditing = editingDayDate === dayDate;
     const collapseId = existingCard?.getAttribute('aria-controls') || `day-shifts-${dayDate}`;
     const newCard = createDayCardElement(day);
 
@@ -285,12 +290,9 @@ const refreshDayCard = (dayDate) => {
         }
     }
 
-    if (wasExpanded) {
+    if (wasExpanded || isEditing) {
         restoreExpandedCard(newCard, collapseId);
     }
-
-    bindDayCardExpand(newCard);
-    bindEditSaveButtons(newCard);
 };
 
 const refreshDashboardViews = (options = {}) => {
@@ -521,7 +523,7 @@ const renderDayCard = (day) => {
     `).join('');
 
     const innerExpandHtml = day.is_empty ? '' : `
-        <div class="collapse dashboard-shift-card__expand" id="${collapseId}">
+        <div class="collapse dashboard-shift-card__expand${isEditing ? ' show' : ''}" id="${collapseId}">
             <hr class="dashboard-shift-card__divider">
             <ul class="dashboard-shift-card__shift-list">
                 ${shiftsListHtml}
@@ -576,9 +578,9 @@ const renderDayCard = (day) => {
     `;
 
     return `
-        <article class="dashboard-shift-card ${day.is_empty ? 'is-empty' : ''}"
+        <article class="dashboard-shift-card ${day.is_empty ? 'is-empty' : ''}${isEditing ? ' is-expanded' : ''}"
                  data-day-date="${day.date}"
-                 ${day.is_empty ? '' : `data-day-expandable data-collapse-id="${collapseId}" role="button" tabindex="0" aria-expanded="false" aria-controls="${collapseId}"`}>
+                 ${day.is_empty ? '' : `data-day-expandable data-collapse-id="${collapseId}" role="button" tabindex="0" aria-expanded="${isEditing ? 'true' : 'false'}" aria-controls="${collapseId}"`}>
             <div class="dashboard-shift-card__header">
                 <span class="dashboard-shift-card__date-badge">${day.date_badge}</span>
                 <span class="dashboard-shift-card__weekday wavy-underline">${day.weekday}</span>
@@ -605,8 +607,6 @@ const render = () => {
 
     shiftGridEl.innerHTML = days.map(renderDayCard).join('');
     editingDayDate = activeEditingDayDate;
-    bindDayCardExpand();
-    bindEditSaveButtons();
 
     if (typeof bootstrap !== 'undefined') {
         expandedCollapseIds.forEach((collapseId) => {
@@ -673,29 +673,62 @@ const saveDayShifts = async (dayDate) => {
     refreshDashboardViews({ dayDate });
 };
 
-const bindEditSaveButtons = (root = shiftGridEl) => {
-    if (!root) {
+const toggleDayCard = (card) => {
+    const collapseEl = card?.querySelector('.dashboard-shift-card__expand');
+    if (!collapseEl || typeof bootstrap === 'undefined') {
         return;
     }
 
-    root.querySelectorAll('.dashboard-shift-card__edit-btn').forEach((btn) => {
-        btn.addEventListener('click', async (event) => {
+    const collapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
+    collapse.toggle();
+};
+
+const bindShiftGridEvents = () => {
+    if (!shiftGridEl) {
+        return;
+    }
+
+    shiftGridEl.addEventListener('shown.bs.collapse', (event) => {
+        const collapseEl = event.target;
+        if (!collapseEl?.classList.contains('dashboard-shift-card__expand')) {
+            return;
+        }
+
+        const card = collapseEl.closest('[data-day-expandable]');
+        card?.classList.add('is-expanded');
+        card?.setAttribute('aria-expanded', 'true');
+    });
+
+    shiftGridEl.addEventListener('hidden.bs.collapse', (event) => {
+        const collapseEl = event.target;
+        if (!collapseEl?.classList.contains('dashboard-shift-card__expand')) {
+            return;
+        }
+
+        const card = collapseEl.closest('[data-day-expandable]');
+        card?.classList.remove('is-expanded');
+        card?.setAttribute('aria-expanded', 'false');
+    });
+
+    shiftGridEl.addEventListener('click', async (event) => {
+        const editBtn = event.target.closest('.dashboard-shift-card__edit-btn');
+        if (editBtn) {
             event.preventDefault();
             event.stopPropagation();
 
-            const dayDate = btn.dataset.dayDate;
+            const dayDate = editBtn.dataset.dayDate;
             if (!dayDate) {
                 return;
             }
 
-            if (btn.dataset.editMode === 'save') {
-                btn.disabled = true;
+            if (editBtn.dataset.editMode === 'save') {
+                editBtn.disabled = true;
 
                 try {
                     await saveDayShifts(dayDate);
                 } catch (error) {
                     alert(error.message || 'Could not save shifts. Please try again.');
-                    btn.disabled = false;
+                    editBtn.disabled = false;
                 }
 
                 return;
@@ -703,50 +736,31 @@ const bindEditSaveButtons = (root = shiftGridEl) => {
 
             editingDayDate = dayDate;
             refreshDashboardViews({ dayDate });
-        });
-    });
-};
-
-const bindDayCardExpand = (root = shiftGridEl) => {
-    if (!root || typeof bootstrap === 'undefined') {
-        return;
-    }
-
-    root.querySelectorAll('[data-day-expandable]').forEach((card) => {
-        const collapseEl = card.querySelector('.dashboard-shift-card__expand');
-        if (!collapseEl) {
             return;
         }
 
-        const collapse = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
+        const card = event.target.closest('[data-day-expandable]');
+        if (!card || !shiftGridEl.contains(card)) {
+            return;
+        }
 
-        collapseEl.addEventListener('shown.bs.collapse', () => {
-            card.classList.add('is-expanded');
-            card.setAttribute('aria-expanded', 'true');
-        });
+        if (event.target.closest('[data-stop-card-toggle], [data-toggle-entered], .dropdown, .dropdown-menu')) {
+            return;
+        }
 
-        collapseEl.addEventListener('hidden.bs.collapse', () => {
-            card.classList.remove('is-expanded');
-            card.setAttribute('aria-expanded', 'false');
-        });
+        toggleDayCard(card);
+    });
 
-        const toggleCard = () => {
-            collapse.toggle();
-        };
+    shiftGridEl.addEventListener('keydown', (event) => {
+        const card = event.target.closest('[data-day-expandable]');
+        if (!card || event.target !== card) {
+            return;
+        }
 
-        card.addEventListener('click', (event) => {
-            if (event.target.closest('[data-stop-card-toggle], [data-toggle-entered], .dropdown, .dropdown-menu')) {
-                return;
-            }
-            toggleCard();
-        });
-
-        card.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                toggleCard();
-            }
-        });
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            toggleDayCard(card);
+        }
     });
 };
 
@@ -811,6 +825,7 @@ shiftGridEl?.addEventListener('click', async (event) => {
     }
 });
 
+bindShiftGridEvents();
 renderPeriodMenu();
 render();
 

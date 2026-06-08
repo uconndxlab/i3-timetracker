@@ -608,6 +608,10 @@ body {
     gap: 0.5rem;
 }
 
+.dashboard-shift-card[data-day-expandable] {
+    cursor: pointer;
+}
+
 [data-bs-theme="dark"] .dashboard-shift-card {
     background-color: #1e2a38;
 }
