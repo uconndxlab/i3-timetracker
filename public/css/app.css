@@ -83,7 +83,10 @@ label.i3-check {
 }
 
 label.i3-check.join-modal__item {
+    display: flex;
     width: 100%;
+    flex-shrink: 0;
+    min-height: auto;
     gap: 0.55rem;
     padding: 0.35rem 0.15rem;
     color: #fff;
@@ -1845,6 +1848,8 @@ body.join-modal-open {
 .join-modal__item {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+    min-height: auto;
     gap: 0.55rem;
     padding: 0.35rem 0.15rem;
     margin: 0;
@@ -1856,6 +1861,7 @@ body.join-modal-open {
     flex: 1;
     min-width: 0;
     font-weight: 600;
+    overflow-wrap: break-word;
 }
 
 .join-modal__empty {
