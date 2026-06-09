@@ -10,7 +10,7 @@
         "apereo/phpcas": "^1.6",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "uconndxlab/laravel-cas": "dev-master"
+        "uconndxlab/laravel-cas": "^1.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -72,6 +72,9 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "platform": {
+            "php": "8.3"
         }
     },
     "minimum-stability": "stable",
