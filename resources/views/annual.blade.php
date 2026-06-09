@@ -224,6 +224,14 @@
                                 <span class="annual-badge annual-badge--billed">Billed</span>
                             @endif
                         </span>
+                        @if(! $dashboardReadOnly && $shift['can_edit'])
+                            <button type="button"
+                                class="annual-selected-day__edit"
+                                data-shift-id="{{ $shift['id'] }}"
+                                aria-label="Edit shift for {{ $shift['project_name'] }}">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
+                            </button>
+                        @endif
                     </li>
                 @endforeach
             </ul>
@@ -249,6 +257,9 @@
             storeUrl: @json(route('shifts.store')),
             shiftBaseUrl: @json(url('/shifts')),
         };
+        window.annualDayShifts = @json(
+            collect($selectedDayShifts)->keyBy('id')->all()
+        );
     </script>
     <script defer src="{{ asset('js/shift-modal.js') }}"></script>
     @endpush
@@ -257,6 +268,16 @@
 @push('scripts')
 <script>
 (function () {
+    // ── Shift edit buttons ───────────────────────────────────────────
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.annual-selected-day__edit[data-shift-id]');
+        if (!btn) return;
+        var shift = (window.annualDayShifts || {})[btn.dataset.shiftId];
+        if (shift && typeof window.openShiftModal === 'function') {
+            window.openShiftModal(shift);
+        }
+    });
+
     // ── Compact day tooltip ──────────────────────────────────────────
     var tooltip = document.getElementById('calTooltip');
     if (!tooltip) return;
