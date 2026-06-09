@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('cas.auth')->group(function () {
     Route::get('/', [DashboardController::class, 'landing'])->name('landing');
+    Route::get('/annual', [DashboardController::class, 'annual'])->name('annual');
+    Route::post('/annual/view-preference', [DashboardController::class, 'updateAnnualCalView'])->name('annual.view-preference');
     Route::get('/logout', [AdminController::class, 'logout'])->name('logout');
 
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -21,6 +23,7 @@ Route::middleware('cas.auth')->group(function () {
         Route::post('/projects/{project}/batch-update-shifts', [AdminController::class, 'batchUpdateShifts'])->name('projects.batch-update-shifts');
         Route::get('/projects/{project}', [DashboardController::class, 'viewProjectOverview'])->name('projects.show');
         Route::get('/users/{user:netid}', [DashboardController::class, 'viewUserLanding'])->name('users.dashboard');
+        Route::get('/users/{user:netid}/annual', [DashboardController::class, 'viewUserAnnual'])->name('users.annual');
         Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');
     });
 

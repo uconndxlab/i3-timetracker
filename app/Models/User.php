@@ -15,6 +15,7 @@ class User extends Authenticatable
         'netid',
         'email',
         'active',
+        'annual_cal_view',
     ];
 
     protected $guarded = [
