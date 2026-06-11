@@ -102,6 +102,8 @@ const syncEnteredCheckboxes = () => {
     });
 };
 
+const getCsrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content || csrfToken;
+
 const refreshCsrfToken = (token) => {
     if (!token) {
         return;
@@ -314,7 +316,7 @@ window.applyUserDashboardPayload = applyDashboardPayload;
 window.refreshUserDashboard = refreshDashboardViews;
 
 const persistShiftUpdate = async (shiftId, fields) => {
-    const token = document.querySelector('meta[name="csrf-token"]')?.content || csrfToken;
+    const token = getCsrfToken();
     const formData = new FormData();
     formData.append('_token', token);
     formData.append('_method', 'PUT');
@@ -343,9 +345,7 @@ const persistShiftUpdate = async (shiftId, fields) => {
         throw new Error(data.message || `Request failed (${response.status})`);
     }
 
-    if (data.csrf_token) {
-        document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', data.csrf_token);
-    }
+    refreshCsrfToken(data.csrf_token);
 
     applyDashboardPayload(data);
 
@@ -403,7 +403,7 @@ const renderShiftEditorRow = (shift) => {
 
 const persistShiftsEntered = async (shiftIds, entered) => {
     const uniqueIds = [...new Set(shiftIds.map(String))];
-    const token = document.querySelector('meta[name="csrf-token"]')?.content || csrfToken;
+    const token = getCsrfToken();
     const formData = new FormData();
 
     formData.append('_token', token);
@@ -544,7 +544,7 @@ const renderDayCard = (day) => {
                         ${index > 0 ? '<li><hr class="dropdown-divider"></li>' : ''}
                         <li>
                             <form method="POST" action="${destroyShiftBaseUrl}/${shift.id}" onsubmit="return confirm('Delete this shift?');">
-                                <input type="hidden" name="_token" value="${csrfToken}">
+                                <input type="hidden" name="_token" value="${getCsrfToken()}">
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="dropdown-item text-danger">
                                     ${I3.escapeHtml(shift.project_name)} - (${formatHours(shift.duration_hours)})
@@ -632,19 +632,17 @@ const saveDayShifts = async (dayDate) => {
         return;
     }
 
-    const updates = [];
-
-    card.querySelectorAll('[data-shift-id]').forEach((row) => {
+    for (const row of card.querySelectorAll('[data-shift-id]')) {
         const shiftId = row.dataset.shiftId;
         const match = findShiftById(shiftId);
         if (!match?.shift?.can_edit) {
-            return;
+            continue;
         }
 
         const select = row.querySelector('.dashboard-shift-card__inline-select');
         const input = row.querySelector('.dashboard-shift-card__inline-hours');
         if (!select || !input) {
-            return;
+            continue;
         }
 
         const hours = parseFloat(input.value);
@@ -664,11 +662,9 @@ const saveDayShifts = async (dayDate) => {
         }
 
         if (Object.keys(fields).length > 0) {
-            updates.push(persistShiftUpdate(shiftId, fields));
+            await persistShiftUpdate(shiftId, fields);
         }
-    });
-
-    await Promise.all(updates);
+    }
     editingDayDate = null;
     refreshDashboardViews({ dayDate });
 };

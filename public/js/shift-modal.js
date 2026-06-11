@@ -194,7 +194,9 @@
             return;
         }
 
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || csrfToken;
         const formData = new FormData(form);
+        formData.set('_token', token);
         let url = form.action;
         let method = 'POST';
 
@@ -207,10 +209,11 @@
             const response = await fetch(url, {
                 method,
                 body: formData,
+                credentials: 'same-origin',
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken,
+                    'X-CSRF-TOKEN': token,
                 },
             });
 
@@ -226,6 +229,8 @@
 
             if (data.csrf_token) {
                 csrfToken = data.csrf_token;
+                document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', data.csrf_token);
+                form.querySelector('input[name="_token"]')?.setAttribute('value', data.csrf_token);
             }
 
             closeModal();

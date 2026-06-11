@@ -35,7 +35,9 @@ class CasAuthenticate
             return redirect()->route('users.create');
         }
 
-        Auth::login(User::where('netid', $netid)->first());
+        if (! Auth::check() || Auth::user()->netid !== $netid) {
+            Auth::login(User::where('netid', $netid)->first());
+        }
 
         return $next($request);
     }
