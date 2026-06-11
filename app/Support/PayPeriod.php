@@ -9,18 +9,68 @@ use Illuminate\Support\Collection;
 
 class PayPeriod
 {
-    public const WEEK_START = Carbon::THURSDAY;
+    public const WEEK_START = Carbon::FRIDAY;
 
-    public const WEEK_END = Carbon::WEDNESDAY;
+    public const WEEK_END = Carbon::THURSDAY;
 
-    public static function currentWeekStart(): Carbon
+    public const WORK_WEEK_LENGTH_DAYS = 7;
+
+    public const PERIOD_LENGTH_DAYS = 14;
+
+    /** A known pay period end (Thursday) used to align bi-weekly boundaries. */
+    public const PERIOD_ANCHOR_END = '2026-06-11';
+
+    public static function currentWorkWeekStart(): Carbon
     {
         return Carbon::now()->startOfWeek(self::WEEK_START);
     }
 
-    public static function currentWeekEnd(): Carbon
+    public static function currentWorkWeekEnd(): Carbon
     {
         return Carbon::now()->endOfWeek(self::WEEK_END);
+    }
+
+    public static function currentWeekStart(): Carbon
+    {
+        return self::currentWorkWeekStart();
+    }
+
+    public static function currentWeekEnd(): Carbon
+    {
+        return self::currentWorkWeekEnd();
+    }
+
+    public static function currentPeriodEnd(): Carbon
+    {
+        return self::periodEndForDate(Carbon::now());
+    }
+
+    public static function currentPeriodStart(): Carbon
+    {
+        return self::periodStartForEnd(self::currentPeriodEnd());
+    }
+
+    public static function periodEndForDate(Carbon $date): Carbon
+    {
+        $anchor = Carbon::parse(self::PERIOD_ANCHOR_END)->startOfDay();
+        $target = $date->copy()->startOfDay();
+        $daysSinceAnchor = $anchor->diffInDays($target, false);
+        $periodNumber = (int) floor(($daysSinceAnchor + self::PERIOD_LENGTH_DAYS - 1) / self::PERIOD_LENGTH_DAYS);
+
+        return $anchor->copy()->addDays($periodNumber * self::PERIOD_LENGTH_DAYS);
+    }
+
+    public static function periodStartForEnd(Carbon $periodEnd): Carbon
+    {
+        return $periodEnd->copy()->subDays(self::PERIOD_LENGTH_DAYS - 1)->startOfDay();
+    }
+
+    public static function isInCurrentPayPeriod(Carbon $date): bool
+    {
+        return $date->copy()->startOfDay()->betweenIncluded(
+            self::currentPeriodStart(),
+            self::currentPeriodEnd(),
+        );
     }
 
     /**
@@ -28,7 +78,7 @@ class PayPeriod
      */
     public static function buildWeeks(int $count): array
     {
-        $startOfWeek = self::currentWeekStart();
+        $startOfWeek = self::currentWorkWeekStart();
         $firstWeekStart = $startOfWeek->copy()->subWeeks($count - 1);
         $weeks = [];
 
@@ -83,7 +133,7 @@ class PayPeriod
     {
         $days = [];
 
-        for ($i = 0; $i < 7; $i++) {
+        for ($i = 0; $i < self::WORK_WEEK_LENGTH_DAYS; $i++) {
             $date = $weekStart->copy()->addDays($i);
             $dateString = $date->format('Y-m-d');
 

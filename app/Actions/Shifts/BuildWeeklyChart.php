@@ -88,7 +88,7 @@ class BuildWeeklyChart
     {
         $days = [];
 
-        for ($i = 0; $i < 7; $i++) {
+        for ($i = 0; $i < PayPeriod::WORK_WEEK_LENGTH_DAYS; $i++) {
             $date = $weekStart->copy()->addDays($i);
             $dateString = $date->format('Y-m-d');
 

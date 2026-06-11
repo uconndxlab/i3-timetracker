@@ -101,7 +101,7 @@ class BuildHoursTimeline
         $end = $periodEnd->format('Y-m-d');
         $minutesByDate = $this->loadMinutesByDate($netid, $start, $end);
 
-        $days = PayPeriod::buildDailySeries($minutesByDate, $periodStart->copy()->startOfWeek(PayPeriod::WEEK_START));
+        $days = PayPeriod::buildDailySeries($minutesByDate, $periodStart->copy()->startOfDay());
 
         return $this->formatSeries(array_map(fn (array $day) => [
             'label' => $day['label'],

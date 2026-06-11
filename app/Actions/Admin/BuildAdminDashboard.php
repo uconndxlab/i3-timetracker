@@ -50,7 +50,7 @@ class BuildAdminDashboard
 
     public function buildPeriodDetail(string $startDate, string $endDate): array
     {
-        $weekStart = Carbon::parse($startDate)->startOfWeek(PayPeriod::WEEK_START);
+        $weekStart = Carbon::parse($startDate)->startOfDay();
         $periodShifts = $this->loadPeriodShifts($startDate, $endDate);
 
         $allTimeByUser = $this->loadAllTimeByUser();
