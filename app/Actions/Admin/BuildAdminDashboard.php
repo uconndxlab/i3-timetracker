@@ -172,21 +172,16 @@ class BuildAdminDashboard
         Collection $projectNames,
         Collection $userNames,
     ): array {
-        $periodUnbilledMinutes = $periodShifts
-            ->where('billed', false)
-            ->groupBy('netid')
-            ->map(fn (Collection $shifts) => $shifts->sum(fn ($shift) => $shift->duration ?? 0));
-
         $netids = $periodShifts->pluck('netid')
             ->merge($allTimeByUser->keys())
             ->unique();
 
         return $netids
-            ->map(function (string $netid) use ($periodUnbilledMinutes, $allTimeByUser, $topProjectByUser, $projectNames, $userNames) {
+            ->map(function (string $netid) use ($allTimeByUser, $topProjectByUser, $projectNames, $userNames) {
                 $allTime = $allTimeByUser->get($netid);
                 $topProject = $topProjectByUser->get($netid);
 
-                $unbilledHours = round(((int) ($periodUnbilledMinutes[$netid] ?? 0)) / 60, 2);
+                $unbilledHours = round(((int) ($allTime->unbilled_minutes ?? 0)) / 60, 2);
                 $totalHours = round(((int) ($allTime->total_minutes ?? 0)) / 60, 2);
 
                 return [
@@ -313,6 +308,7 @@ class BuildAdminDashboard
         return DB::table('shifts')
             ->select('netid')
             ->selectRaw('COALESCE(SUM(duration), 0) as total_minutes')
+            ->selectRaw('COALESCE(SUM(CASE WHEN billed = 0 THEN duration ELSE 0 END), 0) as unbilled_minutes')
             ->selectRaw('MAX(date) as last_date')
             ->groupBy('netid')
             ->get()
