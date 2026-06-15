@@ -12,6 +12,7 @@
     const projectSelect = document.getElementById('shiftModalProject');
     const employeeField = document.getElementById('shiftModalEmployeeField');
     const employeeEl = document.getElementById('shiftModalEmployee');
+    const netidInput = document.getElementById('shiftModalNetid');
     const numberPrefixEl = document.getElementById('shiftModalNumberPrefix');
     const numberValueEl = document.getElementById('shiftModalNumberValue');
     const titleEl = document.getElementById('shiftModalTitle');
@@ -126,6 +127,9 @@
 
         if (employeeEl) {
             employeeEl.textContent = shift.employee_name || shift.netid || '—';
+        }
+        if (netidInput && shift.netid) {
+            netidInput.value = shift.netid;
         }
         if (projectSelect) {
             projectSelect.value = String(shift.proj_id || '');

@@ -86,14 +86,12 @@ class ShiftController extends Controller
         }
 
         $validatedData = $request->validate([
-            'netid' => 'sometimes|required|exists:users,netid',
             'proj_id' => 'sometimes|required|exists:projects,id',
             'date' => 'sometimes|required|date',
             'duration' => $this->durationRules(required: false),
             'entered' => 'sometimes|boolean',
             'billed' => 'sometimes|boolean',
         ], [], [
-            'netid' => 'Name',
             'proj_id' => 'Project',
             'date' => 'Date',
             'duration' => 'Duration',
@@ -102,7 +100,7 @@ class ShiftController extends Controller
         ]);
 
         if (! $user->isAdmin()) {
-            unset($validatedData['netid'], $validatedData['billed']);
+            unset($validatedData['billed']);
         }
 
         if (isset($validatedData['proj_id']) && ! $user->isAdmin()) {
