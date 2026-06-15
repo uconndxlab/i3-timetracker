@@ -212,26 +212,22 @@ class BuildAdminDashboard
         Collection $topEmployeeByProject,
         Collection $projectNames,
     ): array {
-        $periodMinutes = $periodShifts
-            ->groupBy('proj_id')
-            ->map(fn (Collection $shifts) => $shifts->sum(fn ($shift) => $shift->duration ?? 0));
-
         $projectIds = $periodShifts->pluck('proj_id')
             ->merge($allTimeByProject->keys())
             ->unique();
 
         return $projectIds
-            ->map(function ($projectId) use ($periodMinutes, $allTimeByProject, $topEmployeeByProject, $projectNames) {
+            ->map(function ($projectId) use ($allTimeByProject, $topEmployeeByProject, $projectNames) {
                 $allTime = $allTimeByProject->get($projectId);
                 $topEmployee = $topEmployeeByProject->get($projectId);
 
-                $hoursLastPeriod = round(((int) ($periodMinutes[$projectId] ?? 0)) / 60, 2);
+                $unbilledHours = round(((int) ($allTime->unbilled_minutes ?? 0)) / 60, 2);
                 $totalHours = round(((int) ($allTime->total_minutes ?? 0)) / 60, 2);
 
                 return [
                     'id' => $projectId,
                     'name' => $projectNames->get($projectId, 'Unknown project'),
-                    'hours_last_period' => $hoursLastPeriod,
+                    'unbilled_hours' => $unbilledHours,
                     'total_hours' => $totalHours,
                     'top_employee' => $topEmployee->employee_name ?? '—',
                     'last_shift_date' => isset($allTime->last_date)
@@ -239,7 +235,7 @@ class BuildAdminDashboard
                         : null,
                 ];
             })
-            ->filter(fn (array $row) => $row['hours_last_period'] > 0 || $row['total_hours'] > 0)
+            ->filter(fn (array $row) => $row['unbilled_hours'] > 0 || $row['total_hours'] > 0)
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
             ->values()
             ->all();
@@ -333,6 +329,7 @@ class BuildAdminDashboard
         return DB::table('shifts')
             ->select('proj_id')
             ->selectRaw('COALESCE(SUM(duration), 0) as total_minutes')
+            ->selectRaw('COALESCE(SUM(CASE WHEN billed = 0 THEN duration ELSE 0 END), 0) as unbilled_minutes')
             ->selectRaw('MAX(date) as last_date')
             ->groupBy('proj_id')
             ->get()

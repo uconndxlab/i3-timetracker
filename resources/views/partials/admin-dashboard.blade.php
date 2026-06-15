@@ -141,7 +141,7 @@
             <div class="i3-data-table__scroll-inner">
                 <div class="i3-data-table__head">
                     <span>Project Name</span>
-                    <span>Hours Last Period</span>
+                    <span>Unbilled Hours</span>
                     <span>Total Hours</span>
                     <span>Top Employee</span>
                     <span>Last Shift Date</span>
@@ -155,7 +155,7 @@
                                 {{ $row['name'] }}
                             </a>
                         </span>
-                        <span data-label="Hrs Last Period">{{ number_format($row['hours_last_period'], 2) }}</span>
+                        <span data-label="Unbilled Hrs">{{ number_format($row['unbilled_hours'], 2) }}</span>
                         <span data-label="Total Hrs">{{ number_format($row['total_hours'], 2) }}</span>
                         <span data-label="Top Employee">{{ $row['top_employee'] }}</span>
                         <span data-label="Last Shift">{{ $row['last_shift_date'] ?? '—' }}</span>
