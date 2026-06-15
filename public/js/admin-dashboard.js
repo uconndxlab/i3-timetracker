@@ -78,10 +78,10 @@
         });
     };
 
-    const markShiftBilled = async (shiftId) => {
+    const setShiftBilled = async (shiftId, billed) => {
         const formData = new FormData();
         formData.append('_token', csrfToken);
-        formData.append('billed', '1');
+        formData.append('billed', billed ? '1' : '0');
 
         const response = await fetch(`${shiftBaseUrl}/${shiftId}/billed`, {
             method: 'POST',
@@ -150,15 +150,17 @@
         }
 
         event.preventDefault();
+        const nextBilled = !billedBtn.classList.contains('is-checked');
         billedBtn.disabled = true;
-        billedBtn.classList.add('is-checked');
-        billedBtn.setAttribute('aria-pressed', 'true');
+        billedBtn.classList.toggle('is-checked', nextBilled);
+        billedBtn.setAttribute('aria-pressed', nextBilled ? 'true' : 'false');
 
-        markShiftBilled(shiftId).catch((error) => {
-            billedBtn.classList.remove('is-checked');
-            billedBtn.setAttribute('aria-pressed', 'false');
+        setShiftBilled(shiftId, nextBilled).catch((error) => {
+            billedBtn.classList.toggle('is-checked', !nextBilled);
+            billedBtn.setAttribute('aria-pressed', nextBilled ? 'false' : 'true');
+            alert(error.message || 'Could not update billed status. Please try again.');
+        }).finally(() => {
             billedBtn.disabled = false;
-            alert(error.message || 'Could not mark shift as billed. Please try again.');
         });
     });
 

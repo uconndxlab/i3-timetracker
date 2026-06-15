@@ -85,8 +85,7 @@
                                     class="i3-check admin-shift-billed-toggle {{ $row['billed'] ? 'is-checked' : '' }}"
                                     data-shift-id="{{ $row['id'] }}"
                                     aria-pressed="{{ $row['billed'] ? 'true' : 'false' }}"
-                                    @disabled($row['billed'])
-                                    aria-label="Mark shift as billed for {{ $row['employee_name'] }}">
+                                    aria-label="Toggle billed status for {{ $row['employee_name'] }}">
                                 <i class="bi bi-check-lg"></i>
                             </button>
                         </span>
