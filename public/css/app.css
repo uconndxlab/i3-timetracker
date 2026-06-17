@@ -1027,6 +1027,12 @@ body {
     font-weight: 600;
 }
 
+.i3-data-table--2col {
+    --i3-cols: 1fr 4.5rem;
+    --i3-gap: 0.5rem;
+    --i3-row-py: 0.45rem;
+}
+
 .i3-data-table--3col {
     --i3-cols: 1fr 4.5rem 4.75rem;
     --i3-gap: 0.5rem;
@@ -1059,17 +1065,17 @@ body {
     min-width: 40rem;
 }
 
-:is(.i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__head,
-:is(.i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
+:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__head,
+:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
     grid-template-columns: var(--i3-cols);
     gap: var(--i3-gap);
 }
 
-:is(.i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
+:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
     padding: var(--i3-row-py) 0;
 }
 
-.i3-data-table--3col .i3-data-table__row > span:not(:first-child) {
+:is(.i3-data-table--2col, .i3-data-table--3col) .i3-data-table__row > span:not(:first-child) {
     white-space: nowrap;
 }
 

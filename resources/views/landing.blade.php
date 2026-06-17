@@ -78,6 +78,7 @@
     @include('partials.dashboard-stats', [
         'ariaLabel' => 'All-time statistics',
         'projects' => $allTimeStats['projects'] ?? [],
+        'projectHoursMode' => 'total',
         'projectsEmpty' => 'No shifts logged yet.',
         'metrics' => [
             ['label' => 'Total Shifts', 'value' => $allTimeStats['total_shifts'] ?? 0, 'decimals' => 0],
