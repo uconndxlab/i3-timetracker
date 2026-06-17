@@ -188,6 +188,7 @@ class BuildAdminDashboard
                     'last_shift_date' => isset($allTime->last_date)
                         ? Carbon::parse($allTime->last_date)->format('n/j/y')
                         : null,
+                    'last_shift_date_sort' => $allTime->last_date ?? '',
                 ];
             })
             ->filter(fn (array $row) => $row['unbilled_hours'] > 0 || $row['total_hours'] > 0)
@@ -227,6 +228,9 @@ class BuildAdminDashboard
                     'last_shift_date' => $lastDate
                         ? Carbon::parse($lastDate)->format('n/j/y')
                         : null,
+                    'last_shift_date_sort' => $lastDate
+                        ? Carbon::parse($lastDate)->format('Y-m-d')
+                        : '',
                 ];
             })
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
@@ -260,6 +264,7 @@ class BuildAdminDashboard
                     'last_shift_date' => isset($allTime->last_date)
                         ? Carbon::parse($allTime->last_date)->format('n/j/y')
                         : null,
+                    'last_shift_date_sort' => $allTime->last_date ?? '',
                 ];
             })
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
@@ -288,6 +293,7 @@ class BuildAdminDashboard
                         'total_hours' => 0.0,
                         'top_employee' => '—',
                         'last_shift_date' => null,
+                        'last_shift_date_sort' => '',
                     ];
                 }
 
@@ -316,6 +322,9 @@ class BuildAdminDashboard
                     'last_shift_date' => $lastDate
                         ? Carbon::parse($lastDate)->format('n/j/y')
                         : null,
+                    'last_shift_date_sort' => $lastDate
+                        ? Carbon::parse($lastDate)->format('Y-m-d')
+                        : '',
                 ];
             })
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)

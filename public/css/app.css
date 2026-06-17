@@ -990,6 +990,49 @@ body {
     text-align: right;
 }
 
+.i3-data-table__sort-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: inherit;
+    opacity: inherit;
+    cursor: pointer;
+    text-decoration: inherit;
+    text-underline-offset: inherit;
+}
+
+.i3-data-table__sort-btn:hover,
+.i3-data-table__sort-btn.is-sorted {
+    opacity: 1;
+    color: var(--uconn-blue);
+}
+
+.i3-data-table__head .i3-data-table__sort-btn:not(:first-child):not(.i3-data-table__check-col) {
+    text-align: right;
+    justify-self: end;
+    width: 100%;
+}
+
+.i3-data-table__head .i3-data-table__sort-btn.i3-data-table__check-col {
+    text-align: center;
+    justify-self: center;
+    width: 100%;
+}
+
+.i3-data-table__sort-btn.is-sorted[data-sort-dir="asc"]::after {
+    content: ' \2191';
+}
+
+.i3-data-table__sort-btn.is-sorted[data-sort-dir="desc"]::after {
+    content: ' \2193';
+}
+
 .i3-data-table__body {
     list-style: none;
     margin: 0;

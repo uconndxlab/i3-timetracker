@@ -44,7 +44,7 @@
                            class="form-control dashboard-date-input"
                            id="adminDateTo"
                            value="{{ $dateTo }}"
-                           aria-label="End date"
+                           aria-label="End date">
                     <button type="button" class="dashboard-btn dashboard-btn--sm dashboard-btn--dark" id="adminDateApply">Apply</button>
                     @if($hasDateFilter)
                         <button type="button" class="dashboard-btn dashboard-btn--sm dashboard-btn--dark" id="adminDateClear">Clear</button>
@@ -70,18 +70,25 @@
     <div class="i3-data-table i3-data-table--7col{{ $adminTable === 'shift' ? '' : ' d-none' }}" id="adminShiftPanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
-                <div class="i3-data-table__head">
-                    <span>Employee</span>
-                    <span>Project</span>
-                    <span>Date</span>
-                    <span>Hours</span>
-                    <span class="i3-data-table__check-col">Timecard</span>
-                    <span class="i3-data-table__check-col">Honeycrisp</span>
+                <div class="i3-data-table__head" data-admin-sort-panel="shift">
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="employee" data-sort-type="text">Employee</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="project" data-sort-type="text">Project</button>
+                    <button type="button" class="i3-data-table__sort-btn is-sorted" data-admin-sort="date" data-sort-type="date" data-sort-dir="desc">Date</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="hours" data-sort-type="number">Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn i3-data-table__check-col" data-admin-sort="entered" data-sort-type="boolean">Timecard</button>
+                    <button type="button" class="i3-data-table__sort-btn i3-data-table__check-col" data-admin-sort="billed" data-sort-type="boolean">Honeycrisp</button>
                     <span></span>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminShiftList">
                     @forelse($activeRange['shifts'] ?? [] as $row)
-                    <li class="i3-data-table__row" data-search="{{ strtolower($row['employee_name'].' '.$row['project_name'].' '.$row['date_display']) }}">
+                    <li class="i3-data-table__row"
+                        data-search="{{ strtolower($row['employee_name'].' '.$row['project_name'].' '.$row['date_display']) }}"
+                        data-sort-employee="{{ strtolower($row['employee_name']) }}"
+                        data-sort-project="{{ strtolower($row['project_name']) }}"
+                        data-sort-date="{{ $row['date'] }}"
+                        data-sort-hours="{{ $row['hours'] }}"
+                        data-sort-entered="{{ $row['entered'] ? '1' : '0' }}"
+                        data-sort-billed="{{ $row['billed'] ? '1' : '0' }}">
                         <span class="i3-data-table__label" data-label="Employee">
                             <span class="i3-hash">#</span>
                             <a href="{{ route('admin.users.dashboard', ['user' => $row['netid']]) }}" class="i3-link">{{ $row['employee_name'] }}</a>
@@ -123,16 +130,22 @@
     <div class="i3-data-table i3-data-table--5col{{ $adminTable === 'employee' ? '' : ' d-none' }}" id="adminEmployeePanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
-                <div class="i3-data-table__head">
-                    <span>Employee Name</span>
-                    <span>Unbilled Hours</span>
-                    <span>Total Hours</span>
-                    <span>Top Project</span>
-                    <span>Last Shift Date</span>
+                <div class="i3-data-table__head" data-admin-sort-panel="employee">
+                    <button type="button" class="i3-data-table__sort-btn is-sorted" data-admin-sort="name" data-sort-type="text" data-sort-dir="asc">Employee Name</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="unbilled" data-sort-type="number">Unbilled Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="total" data-sort-type="number">Total Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="top_project" data-sort-type="text">Top Project</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="last_shift" data-sort-type="date">Last Shift Date</button>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminEmployeeList">
                     @forelse($activeRange['employees'] ?? [] as $row)
-                    <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_project']) }}">
+                    <li class="i3-data-table__row"
+                        data-search="{{ strtolower($row['name'].' '.$row['top_project']) }}"
+                        data-sort-name="{{ strtolower($row['name']) }}"
+                        data-sort-unbilled="{{ $row['unbilled_hours'] }}"
+                        data-sort-total="{{ $row['total_hours'] }}"
+                        data-sort-top-project="{{ strtolower($row['top_project']) }}"
+                        data-sort-last-shift="{{ $row['last_shift_date_sort'] ?? '' }}">
                         <span class="i3-data-table__label" data-label="Employee">
                             <span class="i3-hash">#</span>
                             <a href="{{ route('admin.users.dashboard', ['user' => $row['netid']]) }}" class="i3-link">{{ $row['name'] }}</a>
@@ -153,16 +166,22 @@
     <div class="i3-data-table i3-data-table--5col{{ $adminTable === 'project' ? '' : ' d-none' }}" id="adminProjectPanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
-                <div class="i3-data-table__head">
-                    <span>Project Name</span>
-                    <span>Unbilled Hours</span>
-                    <span>Total Hours</span>
-                    <span>Top Employee</span>
-                    <span>Last Shift Date</span>
+                <div class="i3-data-table__head" data-admin-sort-panel="project">
+                    <button type="button" class="i3-data-table__sort-btn is-sorted" data-admin-sort="name" data-sort-type="text" data-sort-dir="asc">Project Name</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="unbilled" data-sort-type="number">Unbilled Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="total" data-sort-type="number">Total Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="top_employee" data-sort-type="text">Top Employee</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="last_shift" data-sort-type="date">Last Shift Date</button>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminProjectList">
                     @forelse($activeRange['project_rows'] ?? [] as $row)
-                    <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_employee']) }}">
+                    <li class="i3-data-table__row"
+                        data-search="{{ strtolower($row['name'].' '.$row['top_employee']) }}"
+                        data-sort-name="{{ strtolower($row['name']) }}"
+                        data-sort-unbilled="{{ $row['unbilled_hours'] }}"
+                        data-sort-total="{{ $row['total_hours'] }}"
+                        data-sort-top-employee="{{ strtolower($row['top_employee']) }}"
+                        data-sort-last-shift="{{ $row['last_shift_date_sort'] ?? '' }}">
                         <span class="i3-data-table__label" data-label="Project">
                             <span class="i3-hash">#</span>
                             <a href="{{ route('admin.projects.show', ['project' => $row['id']]) }}" class="i3-link admin-project-link">

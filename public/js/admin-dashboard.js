@@ -32,6 +32,91 @@
         shift: 'Search through shifts . . .',
     };
 
+    const sortState = {
+        project: { key: 'name', dir: 'asc', type: 'text' },
+        employee: { key: 'name', dir: 'asc', type: 'text' },
+        shift: { key: 'date', dir: 'desc', type: 'date' },
+    };
+
+    const getSortPanel = (view) => adminDashboard.querySelector(`[data-admin-sort-panel="${view}"]`);
+
+    const sortDatasetKey = (key) => `sort-${key.replace(/_/g, '-')}`.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+
+    const getSortValue = (row, key, type) => {
+        const raw = row.getAttribute(`data-sort-${key.replace(/_/g, '-')}`) ?? row.dataset[sortDatasetKey(key)] ?? '';
+
+        if (type === 'number' || type === 'boolean') {
+            return Number(raw) || 0;
+        }
+
+        return String(raw).toLowerCase();
+    };
+
+    const compareSortValues = (left, right, type) => {
+        if (type === 'number' || type === 'boolean') {
+            return left - right;
+        }
+
+        if (type === 'date') {
+            return String(left).localeCompare(String(right));
+        }
+
+        return String(left).localeCompare(String(right), undefined, { sensitivity: 'base' });
+    };
+
+    const syncSortHeaders = (view) => {
+        const panel = getSortPanel(view);
+        if (!panel) {
+            return;
+        }
+
+        const state = sortState[view];
+        panel.querySelectorAll('.i3-data-table__sort-btn').forEach((btn) => {
+            const isActive = btn.dataset.adminSort === state.key;
+            btn.classList.toggle('is-sorted', isActive);
+            btn.dataset.sortDir = isActive ? state.dir : '';
+            btn.setAttribute('aria-sort', isActive ? (state.dir === 'asc' ? 'ascending' : 'descending') : 'none');
+        });
+    };
+
+    const sortRows = (view) => {
+        const list = view === 'project' ? projectList : view === 'shift' ? shiftList : employeeList;
+        const state = sortState[view];
+        if (!list || !state?.key) {
+            return;
+        }
+
+        const rows = [...list.querySelectorAll('.i3-data-table__row')];
+        if (rows.length < 2) {
+            syncSortHeaders(view);
+            return;
+        }
+
+        const multiplier = state.dir === 'asc' ? 1 : -1;
+        rows.sort((rowA, rowB) => {
+            const left = getSortValue(rowA, state.key, state.type);
+            const right = getSortValue(rowB, state.key, state.type);
+            return compareSortValues(left, right, state.type) * multiplier;
+        });
+
+        rows.forEach((row) => list.appendChild(row));
+        syncSortHeaders(view);
+    };
+
+    const setSort = (view, key, type, dir = null) => {
+        const state = sortState[view];
+        if (state.key === key && dir === null) {
+            state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            state.key = key;
+            state.type = type;
+            state.dir = dir ?? (type === 'text' ? 'asc' : 'desc');
+        }
+
+        sortRows(view);
+        filterRows();
+    };
+
     const filterUrlFor = ({ dateFrom = null, dateTo = null, clearDates = false } = {}) => {
         const url = new URL(adminLandingUrl, window.location.origin);
 
@@ -72,6 +157,7 @@
         if (searchInput) {
             searchInput.placeholder = searchPlaceholders[view] || searchPlaceholders.project;
         }
+        sortRows(view);
         filterRows();
     };
 
@@ -160,6 +246,16 @@
     });
 
     adminDashboard.addEventListener('click', (event) => {
+        const sortBtn = event.target.closest('.i3-data-table__sort-btn');
+        if (sortBtn) {
+            const panel = sortBtn.closest('[data-admin-sort-panel]');
+            const view = panel?.dataset.adminSortPanel;
+            if (view && sortBtn.dataset.adminSort) {
+                setSort(view, sortBtn.dataset.adminSort, sortBtn.dataset.sortType || 'text');
+            }
+            return;
+        }
+
         const editBtn = event.target.closest('.admin-shift-edit-btn');
         if (editBtn) {
             try {
@@ -213,4 +309,5 @@
     searchInput?.addEventListener('input', filterRows);
 
     setTableView(tableView);
+    ['project', 'employee', 'shift'].forEach((view) => sortRows(view));
 })();
