@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class BuildProjectOverview
 {
-    public function __invoke(Project $project, ?string $periodStart = null): array
+    public function __invoke(Project $project): array
     {
         $allTime = $this->loadHoursSummary($project->id);
 
@@ -44,16 +44,10 @@ class BuildProjectOverview
         ];
     }
 
-    private function loadHoursSummary(int $projectId, ?string $rangeStart = null, ?string $rangeEnd = null): array
+    private function loadHoursSummary(int $projectId): array
     {
-        $query = DB::table('shifts')->where('proj_id', $projectId);
-
-        if ($rangeStart !== null && $rangeEnd !== null) {
-            $query->whereDate('date', '>=', $rangeStart)
-                ->whereDate('date', '<=', $rangeEnd);
-        }
-
-        $row = $query
+        $row = DB::table('shifts')
+            ->where('proj_id', $projectId)
             ->selectRaw('COALESCE(SUM(duration), 0) as total_minutes')
             ->selectRaw('COALESCE(SUM(CASE WHEN billed = 1 THEN duration ELSE 0 END), 0) as billed_minutes')
             ->selectRaw('COALESCE(SUM(CASE WHEN billed = 0 THEN duration ELSE 0 END), 0) as unbilled_minutes')
@@ -70,28 +64,6 @@ class BuildProjectOverview
             'unbilled_hours' => round($unbilledMinutes / 60, 2),
             'shift_count' => (int) ($row->shift_count ?? 0),
         ];
-    }
-
-    private function loadProjectShifts(int $projectId, string $rangeStart, string $rangeEnd): Collection
-    {
-        return DB::table('shifts')
-            ->join('users', 'shifts.netid', '=', 'users.netid')
-            ->where('shifts.proj_id', $projectId)
-            ->whereDate('shifts.date', '>=', $rangeStart)
-            ->whereDate('shifts.date', '<=', $rangeEnd)
-            ->select([
-                'shifts.id',
-                'shifts.netid',
-                'shifts.proj_id',
-                'shifts.date',
-                'shifts.duration',
-                'shifts.entered',
-                'shifts.billed',
-                'users.name as employee_name',
-            ])
-            ->orderByDesc('shifts.date')
-            ->orderByDesc('shifts.id')
-            ->get();
     }
 
     private function loadProjectShiftsAllTime(int $projectId, int $limit): Collection
@@ -155,60 +127,10 @@ class BuildProjectOverview
             ->all();
     }
 
-    private function buildShiftRows(Collection $periodShifts): array
+    private function buildShiftRows(Collection $shifts): array
     {
-        return $periodShifts
+        return $shifts
             ->map(fn ($shift) => Shift::formatAdminRow($shift))
-            ->all();
-    }
-
-    private function buildEmployeeRows(int $projectId, Collection $periodShifts): array
-    {
-        $periodByUser = $periodShifts
-            ->groupBy('netid')
-            ->map(function (Collection $shifts) {
-                $billedMinutes = $shifts->where('billed', true)->sum(fn ($s) => $s->duration ?? 0);
-                $unbilledMinutes = $shifts->where('billed', false)->sum(fn ($s) => $s->duration ?? 0);
-
-                return [
-                    'period_hours' => round($shifts->sum(fn ($s) => $s->duration ?? 0) / 60, 2),
-                    'period_billed_hours' => round($billedMinutes / 60, 2),
-                    'period_unbilled_hours' => round($unbilledMinutes / 60, 2),
-                ];
-            });
-
-        $allTimeByUser = DB::table('shifts')
-            ->join('users', 'shifts.netid', '=', 'users.netid')
-            ->where('shifts.proj_id', $projectId)
-            ->select('shifts.netid', 'users.name')
-            ->selectRaw('COALESCE(SUM(shifts.duration), 0) as total_minutes')
-            ->selectRaw('COALESCE(SUM(CASE WHEN shifts.billed = 1 THEN shifts.duration ELSE 0 END), 0) as billed_minutes')
-            ->selectRaw('COALESCE(SUM(CASE WHEN shifts.billed = 0 THEN shifts.duration ELSE 0 END), 0) as unbilled_minutes')
-            ->groupBy('shifts.netid', 'users.name')
-            ->orderBy('users.name')
-            ->get();
-
-        return $allTimeByUser
-            ->map(function ($row) use ($periodByUser) {
-                $period = $periodByUser->get($row->netid, [
-                    'period_hours' => 0.0,
-                    'period_billed_hours' => 0.0,
-                    'period_unbilled_hours' => 0.0,
-                ]);
-
-                return [
-                    'netid' => $row->netid,
-                    'name' => $row->name,
-                    'total_hours' => round(((int) $row->total_minutes) / 60, 2),
-                    'billed_hours' => round(((int) $row->billed_minutes) / 60, 2),
-                    'unbilled_hours' => round(((int) $row->unbilled_minutes) / 60, 2),
-                    'period_hours' => $period['period_hours'],
-                    'period_billed_hours' => $period['period_billed_hours'],
-                    'period_unbilled_hours' => $period['period_unbilled_hours'],
-                ];
-            })
-            ->filter(fn (array $row) => $row['total_hours'] > 0 || $row['period_hours'] > 0)
-            ->values()
             ->all();
     }
 }

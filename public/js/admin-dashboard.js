@@ -204,19 +204,6 @@
         }
 
         sessionStorage.setItem('admin_return', '1');
-        sessionStorage.setItem('admin_table', 'project');
-
-        if (config.dateFrom) {
-            sessionStorage.setItem('admin_date_from', config.dateFrom);
-        } else {
-            sessionStorage.removeItem('admin_date_from');
-        }
-
-        if (config.dateTo) {
-            sessionStorage.setItem('admin_date_to', config.dateTo);
-        } else {
-            sessionStorage.removeItem('admin_date_to');
-        }
     });
 
     tableToggle?.querySelectorAll('[data-admin-table]').forEach((btn) => {

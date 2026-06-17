@@ -44,7 +44,7 @@
                            class="form-control dashboard-date-input"
                            id="adminDateTo"
                            value="{{ $dateTo }}"
-                           aria-label="End date">
+                           aria-label="End date"
                     <button type="button" class="dashboard-btn dashboard-btn--sm dashboard-btn--dark" id="adminDateApply">Apply</button>
                     @if($hasDateFilter)
                         <button type="button" class="dashboard-btn dashboard-btn--sm dashboard-btn--dark" id="adminDateClear">Clear</button>

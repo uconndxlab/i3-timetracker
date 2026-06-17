@@ -38,10 +38,7 @@ class DashboardController extends Controller
 
     public function viewProjectOverview(Project $project)
     {
-        $overview = app(BuildProjectOverview::class)(
-            $project,
-            request()->query('period_start'),
-        );
+        $overview = app(BuildProjectOverview::class)($project);
 
         $logShiftProjects = Project::where('active', true)->orderBy('name')->get();
         $nextShiftNumber = Shift::count() + 1;

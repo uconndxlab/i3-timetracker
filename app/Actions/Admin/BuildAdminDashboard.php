@@ -49,7 +49,7 @@ class BuildAdminDashboard
         ];
     }
 
-    public function buildRangeDetail(?string $startDate, ?string $endDate, bool $hasDateFilter): array
+    private function buildRangeDetail(?string $startDate, ?string $endDate, bool $hasDateFilter): array
     {
         $shifts = $this->loadShifts($startDate, $endDate);
 
@@ -57,10 +57,6 @@ class BuildAdminDashboard
             $employees = $this->buildEmployeeRowsForRange($shifts);
             $projectRows = $this->buildProjectRowsForRange($shifts);
             $days = $this->buildDailySeriesForRange($shifts, $startDate, $endDate);
-            $label = PayPeriod::formatLabel(
-                Carbon::parse($startDate),
-                Carbon::parse($endDate),
-            );
         } else {
             $allTimeByUser = $this->loadAllTimeByUser();
             $topProjectByUser = $this->loadTopProjectByNetid();
@@ -84,13 +80,9 @@ class BuildAdminDashboard
                 $projectNames,
             );
             $days = [];
-            $label = 'All Time';
         }
 
         return [
-            'label' => $label,
-            'start_date' => $startDate,
-            'end_date' => $endDate,
             'hours_in_range' => $this->sumHours($shifts),
             'employees' => $employees,
             'project_rows' => $projectRows,

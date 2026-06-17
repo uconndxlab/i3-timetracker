@@ -48,7 +48,7 @@ class BuildWeeklyChart
 
         return [
             'weeklyChartData' => $weeklyChartData,
-            'currentWeekIndex' => PayPeriod::resolveActiveIndex($weeklyChartData, null),
+            'currentWeekIndex' => PayPeriod::resolveActiveIndex($weeklyChartData),
         ];
     }
 
