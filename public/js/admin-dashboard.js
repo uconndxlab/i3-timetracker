@@ -1,12 +1,10 @@
 (function () {
     const config = window.adminDashboardConfig || {};
     const adminDashboard = document.getElementById('adminDashboard');
-    if (!adminDashboard || !config.weeklyPeriods?.length) {
+    if (!adminDashboard) {
         return;
     }
 
-    const weeklyPeriods = config.weeklyPeriods;
-    const adminWeekIndex = config.weekIndex ?? 0;
     const adminLandingUrl = config.landingUrl || '/?view=admin';
 
     const tableToggle = document.getElementById('adminTableViewToggle');
@@ -17,11 +15,13 @@
     const employeeList = document.getElementById('adminEmployeeList');
     const projectList = document.getElementById('adminProjectList');
     const shiftList = document.getElementById('adminShiftList');
-    const periodMenuEl = document.getElementById('adminPeriodMenu');
-    const periodToggleEl = document.getElementById('adminPeriodToggle');
+    const dateFromInput = document.getElementById('adminDateFrom');
+    const dateToInput = document.getElementById('adminDateTo');
+    const dateApplyBtn = document.getElementById('adminDateApply');
+    const dateClearBtn = document.getElementById('adminDateClear');
 
     const urlTableView = new URLSearchParams(window.location.search).get('admin_table');
-    let tableView = ['shift', 'employee', 'project'].includes(urlTableView) ? urlTableView : 'shift';
+    let tableView = ['shift', 'employee', 'project'].includes(urlTableView) ? urlTableView : 'project';
 
     let csrfToken = config.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content || '';
     const shiftBaseUrl = config.shiftBaseUrl || '/shifts';
@@ -32,12 +32,32 @@
         shift: 'Search through shifts . . .',
     };
 
-    const periodUrlFor = (startDate) => {
+    const filterUrlFor = ({ dateFrom = null, dateTo = null, clearDates = false } = {}) => {
         const url = new URL(adminLandingUrl, window.location.origin);
-        url.searchParams.set('period_start', startDate);
-        if (tableView !== 'shift') {
-            url.searchParams.set('admin_table', tableView);
+
+        if (clearDates) {
+            url.searchParams.delete('date_from');
+            url.searchParams.delete('date_to');
+        } else {
+            if (dateFrom) {
+                url.searchParams.set('date_from', dateFrom);
+            } else {
+                url.searchParams.delete('date_from');
+            }
+
+            if (dateTo) {
+                url.searchParams.set('date_to', dateTo);
+            } else {
+                url.searchParams.delete('date_to');
+            }
         }
+
+        if (tableView !== 'project') {
+            url.searchParams.set('admin_table', tableView);
+        } else {
+            url.searchParams.delete('admin_table');
+        }
+
         return url.pathname + url.search;
     };
 
@@ -50,7 +70,7 @@
         projectPanel?.classList.toggle('d-none', view !== 'project');
         shiftPanel?.classList.toggle('d-none', view !== 'shift');
         if (searchInput) {
-            searchInput.placeholder = searchPlaceholders[view] || searchPlaceholders.shift;
+            searchInput.placeholder = searchPlaceholders[view] || searchPlaceholders.project;
         }
         filterRows();
     };
@@ -106,23 +126,37 @@
         return data;
     };
 
-    I3.initPeriodPicker({
-        toggleEl: periodToggleEl,
-        menuEl: periodMenuEl,
-        periods: weeklyPeriods,
-        activeIndex: adminWeekIndex,
-        onSelect: (index) => {
-            if (index === adminWeekIndex) {
-                return;
-            }
+    const applyDateFilter = () => {
+        const dateFrom = dateFromInput?.value || '';
+        const dateTo = dateToInput?.value || '';
 
-            const period = weeklyPeriods[index];
-            if (!period) {
-                return;
-            }
+        if (!dateFrom || !dateTo) {
+            alert('Please select both a start date and an end date.');
+            return;
+        }
 
-            window.location.assign(periodUrlFor(period.start_date));
-        },
+        if (dateFrom > dateTo) {
+            alert('Start date must be on or before the end date.');
+            return;
+        }
+
+        window.location.assign(filterUrlFor({ dateFrom, dateTo }));
+    };
+
+    const clearDateFilter = () => {
+        window.location.assign(filterUrlFor({ clearDates: true }));
+    };
+
+    dateApplyBtn?.addEventListener('click', applyDateFilter);
+    dateClearBtn?.addEventListener('click', clearDateFilter);
+
+    [dateFromInput, dateToInput].forEach((input) => {
+        input?.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                applyDateFilter();
+            }
+        });
     });
 
     adminDashboard.addEventListener('click', (event) => {
@@ -172,9 +206,16 @@
         sessionStorage.setItem('admin_return', '1');
         sessionStorage.setItem('admin_table', 'project');
 
-        const period = weeklyPeriods[adminWeekIndex];
-        if (period?.start_date) {
-            sessionStorage.setItem('admin_period_start', period.start_date);
+        if (config.dateFrom) {
+            sessionStorage.setItem('admin_date_from', config.dateFrom);
+        } else {
+            sessionStorage.removeItem('admin_date_from');
+        }
+
+        if (config.dateTo) {
+            sessionStorage.setItem('admin_date_to', config.dateTo);
+        } else {
+            sessionStorage.removeItem('admin_date_to');
         }
     });
 

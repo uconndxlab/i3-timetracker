@@ -243,16 +243,16 @@
                 canvasId: 'adminHoursChart',
                 totalId: 'adminStatsChartTotal',
                 hoursTimeline: adminConfig.hoursTimeline || {},
-                defaultRange: 'period',
+                defaultRange: adminConfig.hasDateFilter ? 'period' : 'month',
                 maxTicksLimit: 7,
                 getPeriodSeries: () => {
-                    const period = adminConfig.activePeriod || {};
-                    const days = period.days || [];
+                    const range = adminConfig.activeRange || {};
+                    const days = range.days || [];
 
                     return {
                         labels: days.map((day) => day.key || window.I3.formatChartDayLabel(day)),
                         data: days.map((day) => day.hours ?? 0),
-                        total: period.hours_this_period ?? 0,
+                        total: range.hours_in_range ?? 0,
                     };
                 },
             });

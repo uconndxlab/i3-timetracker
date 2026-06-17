@@ -136,10 +136,11 @@
         shiftBaseUrl: @json(url('/shifts')),
         csrfToken: @json(csrf_token()),
         @if($adminDashboard ?? null)
-        weeklyPeriods: @json($adminDashboard['weekly_periods'] ?? []),
-        weekIndex: {{ $adminDashboard['current_week_index'] ?? 0 }},
+        dateFrom: @json($adminDashboard['date_from'] ?? null),
+        dateTo: @json($adminDashboard['date_to'] ?? null),
+        hasDateFilter: @json($adminDashboard['has_date_filter'] ?? false),
         hoursTimeline: @json($adminDashboard['hours_timeline'] ?? []),
-        activePeriod: @json($adminDashboard['active_period'] ?? []),
+        activeRange: @json($adminDashboard['active_range'] ?? []),
         @endif
     };
     @endif

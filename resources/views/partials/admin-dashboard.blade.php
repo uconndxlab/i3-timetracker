@@ -1,11 +1,15 @@
 @php
+    $adminDashboard = $adminDashboard ?? [];
     $orgProjects = $adminDashboard['org_projects'] ?? [];
     $orgStats = $adminDashboard['org_stats'] ?? [];
-    $activePeriod = $adminDashboard['active_period'] ?? [];
+    $activeRange = $adminDashboard['active_range'] ?? [];
+    $hasDateFilter = $adminDashboard['has_date_filter'] ?? false;
+    $dateFrom = $adminDashboard['date_from'] ?? null;
+    $dateTo = $adminDashboard['date_to'] ?? null;
     $navbarView = $navbarView ?? 'user';
-    $adminTable = request()->query('admin_table', 'shift');
+    $adminTable = request()->query('admin_table', 'project');
     if (! in_array($adminTable, ['shift', 'employee', 'project'], true)) {
-        $adminTable = 'shift';
+        $adminTable = 'project';
     }
 @endphp
 
@@ -21,25 +25,35 @@
             <div class="dashboard-toolbar-sort">
                 <div class="dashboard-toolbar-label">View Table By:</div>
                 <div class="dashboard-segment" id="adminTableViewToggle" role="group" aria-label="View table by">
-                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'shift' ? ' active' : '' }}" data-admin-table="shift">Shift</button>
-                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'employee' ? ' active' : '' }}" data-admin-table="employee">Employee</button>
                     <button type="button" class="dashboard-segment__btn{{ $adminTable === 'project' ? ' active' : '' }}" data-admin-table="project">Project</button>
+                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'employee' ? ' active' : '' }}" data-admin-table="employee">Employee</button>
+                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'shift' ? ' active' : '' }}" data-admin-table="shift">Shift</button>
                 </div>
             </div>
 
-            <div class="dashboard-toolbar-period text-center">
-                <span class="dashboard-period-badge {{ ($activePeriod['is_current_week'] ?? false) ? '' : 'd-none' }}" id="adminCurrentPeriodBadge">Current Period</span>
-                <div class="dashboard-period-select">
-                    <button type="button" class="dashboard-period-toggle" id="adminPeriodToggle" aria-haspopup="listbox" aria-expanded="false">
-                        View Period: <span id="adminPeriodLabel">{{ $activePeriod['label'] ?? '' }}</span>
-                        <i class="bi bi-chevron-down ms-1"></i>
-                    </button>
-                    <ul class="dashboard-period-menu d-none" id="adminPeriodMenu" role="listbox"></ul>
+            <div class="dashboard-toolbar-period">
+                <div class="dashboard-toolbar-label mb-1">Date Range:</div>
+                <div class="dashboard-date-range d-flex align-items-center gap-2 flex-wrap">
+                    <input type="date"
+                           class="form-control dashboard-date-input"
+                           id="adminDateFrom"
+                           value="{{ $dateFrom }}"
+                           aria-label="Start date">
+                    <span class="dashboard-date-range__sep">to</span>
+                    <input type="date"
+                           class="form-control dashboard-date-input"
+                           id="adminDateTo"
+                           value="{{ $dateTo }}"
+                           aria-label="End date">
+                    <button type="button" class="dashboard-btn dashboard-btn--sm dashboard-btn--dark" id="adminDateApply">Apply</button>
+                    @if($hasDateFilter)
+                        <button type="button" class="dashboard-btn dashboard-btn--sm dashboard-btn--dark" id="adminDateClear">Clear</button>
+                    @endif
                 </div>
             </div>
 
             <div class="dashboard-toolbar-total">
-                Total: <span class="dashboard-total-value wavy-underline" id="adminPeriodTotal">{{ number_format($activePeriod['hours_this_period'] ?? 0, 2) }}</span>
+                Total: <span class="dashboard-total-value wavy-underline" id="adminRangeTotal">{{ number_format($activeRange['hours_in_range'] ?? 0, 2) }}</span>
             </div>
         </div>
 
@@ -48,7 +62,7 @@
             <input type="search"
                    class="form-control dashboard-search-input w-100"
                    id="adminTableSearch"
-                   placeholder="Search through shifts . . ."
+                   placeholder="Search through projects . . ."
                    autocomplete="off">
         </div>
     </div>
@@ -66,7 +80,7 @@
                     <span></span>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminShiftList">
-                    @forelse($activePeriod['shifts'] ?? [] as $row)
+                    @forelse($activeRange['shifts'] ?? [] as $row)
                     <li class="i3-data-table__row" data-search="{{ strtolower($row['employee_name'].' '.$row['project_name'].' '.$row['date_display']) }}">
                         <span class="i3-data-table__label" data-label="Employee">
                             <span class="i3-hash">#</span>
@@ -99,7 +113,7 @@
                         </span>
                     </li>
                     @empty
-                        <li class="i3-data-table__empty">No shifts for this period.</li>
+                        <li class="i3-data-table__empty">{{ $hasDateFilter ? 'No shifts in this date range.' : 'No shifts logged yet.' }}</li>
                     @endforelse
                 </ul>
             </div>
@@ -117,7 +131,7 @@
                     <span>Last Shift Date</span>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminEmployeeList">
-                    @forelse($activePeriod['employees'] ?? [] as $row)
+                    @forelse($activeRange['employees'] ?? [] as $row)
                     <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_project']) }}">
                         <span class="i3-data-table__label" data-label="Employee">
                             <span class="i3-hash">#</span>
@@ -129,7 +143,7 @@
                         <span data-label="Last Shift">{{ $row['last_shift_date'] ?? '—' }}</span>
                     </li>
                     @empty
-                        <li class="i3-data-table__empty">No employee shift data for this period.</li>
+                        <li class="i3-data-table__empty">{{ $hasDateFilter ? 'No employee shift data in this date range.' : 'No employee shift data yet.' }}</li>
                     @endforelse
                 </ul>
             </div>
@@ -147,7 +161,7 @@
                     <span>Last Shift Date</span>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminProjectList">
-                    @forelse($activePeriod['project_rows'] ?? [] as $row)
+                    @forelse($activeRange['project_rows'] ?? [] as $row)
                     <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_employee']) }}">
                         <span class="i3-data-table__label" data-label="Project">
                             <span class="i3-hash">#</span>
@@ -161,7 +175,7 @@
                         <span data-label="Last Shift">{{ $row['last_shift_date'] ?? '—' }}</span>
                     </li>
                     @empty
-                        <li class="i3-data-table__empty">No project shift data for this period.</li>
+                        <li class="i3-data-table__empty">{{ $hasDateFilter ? 'No project shift data in this date range.' : 'No project shift data yet.' }}</li>
                     @endforelse
                 </ul>
             </div>
@@ -183,12 +197,18 @@
         ],
         'chartId' => 'adminHoursChart',
         'chartTotalId' => 'adminStatsChartTotal',
-        'chartRanges' => [
-            ['range' => 'period', 'label' => 'Period', 'active' => true],
-            ['range' => 'week', 'label' => 'Week'],
-            ['range' => 'month', 'label' => 'Month'],
-            ['range' => 'year', 'label' => 'Year'],
-        ],
+        'chartRanges' => $hasDateFilter
+            ? [
+                ['range' => 'period', 'label' => 'Range', 'active' => true],
+                ['range' => 'week', 'label' => 'Week'],
+                ['range' => 'month', 'label' => 'Month'],
+                ['range' => 'year', 'label' => 'Year'],
+            ]
+            : [
+                ['range' => 'month', 'label' => 'Month', 'active' => true],
+                ['range' => 'week', 'label' => 'Week'],
+                ['range' => 'year', 'label' => 'Year'],
+            ],
         'rangeAriaLabel' => 'Admin hours chart range',
     ])
     </div>

@@ -274,7 +274,10 @@ class DashboardController extends Controller
         $isAdminViewer = $viewerIsAdmin && ! $dashboardReadOnly;
         $loadAdminDashboard = $includeAdminDashboard && $isAdminViewer && request()->query('view') === 'admin';
         $adminDashboard = $loadAdminDashboard
-            ? app(BuildAdminDashboard::class)(periodStart: request()->query('period_start'))
+            ? app(BuildAdminDashboard::class)(
+                dateFrom: request()->query('date_from'),
+                dateTo: request()->query('date_to'),
+            )
             : null;
 
         return compact(

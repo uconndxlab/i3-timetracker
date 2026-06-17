@@ -155,7 +155,8 @@
                     url.searchParams.set('view', 'admin');
                 } else {
                     url.searchParams.delete('view');
-                    url.searchParams.delete('period_start');
+                    url.searchParams.delete('date_from');
+                    url.searchParams.delete('date_to');
                 }
 
                 const next = url.pathname + url.search + url.hash;
