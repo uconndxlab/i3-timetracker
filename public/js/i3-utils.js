@@ -129,8 +129,13 @@ I3.initPeriodPicker = ({
             btn.addEventListener('click', () => {
                 menuEl.classList.add('d-none');
                 toggleEl.setAttribute('aria-expanded', 'false');
-                selectedIndex = parseInt(btn.dataset.periodIndex, 10);
-                onSelect(selectedIndex, periods[selectedIndex]);
+                const nextIndex = parseInt(btn.dataset.periodIndex, 10);
+                const allowed = onSelect?.(nextIndex, periods[nextIndex]);
+                if (allowed === false) {
+                    return;
+                }
+
+                selectedIndex = nextIndex;
                 renderMenu();
             });
         });

@@ -487,6 +487,10 @@ const renderPeriodMenu = () => {
         periods: weeklyChartData,
         activeIndex: currentWeekIndex,
         onSelect: (index) => {
+            if (!confirmLeaveUnsavedEdits()) {
+                return false;
+            }
+
             currentWeekIndex = index;
             window.dashboardWeekIndex = currentWeekIndex;
             window.dashboardSetWeekIndex?.(currentWeekIndex);
@@ -626,8 +630,63 @@ const render = () => {
     window.updateWeeklyChart?.();
 };
 
+const getDayCardEl = (dayDate) => (
+    shiftGridEl?.querySelector(`.dashboard-shift-card[data-day-date="${dayDate}"]`) || null
+);
+
+const dayHasUnsavedEdits = (dayDate) => {
+    if (!dayDate || editingDayDate !== dayDate) {
+        return false;
+    }
+
+    const card = getDayCardEl(dayDate);
+    if (!card) {
+        return false;
+    }
+
+    for (const row of card.querySelectorAll('[data-shift-id]')) {
+        const shiftId = row.dataset.shiftId;
+        const match = findShiftById(shiftId);
+        if (!match?.shift?.can_edit) {
+            continue;
+        }
+
+        const select = row.querySelector('.dashboard-shift-card__inline-select');
+        const input = row.querySelector('.dashboard-shift-card__inline-hours');
+        if (!select || !input) {
+            continue;
+        }
+
+        const hours = parseFloat(input.value);
+        if (Number.isNaN(hours)) {
+            return true;
+        }
+
+        const minutes = I3.snapMinutesToQuarter(Math.round(hours * 60));
+
+        if (String(select.value) !== String(match.shift.proj_id)) {
+            return true;
+        }
+
+        if (minutes !== Number(match.shift.duration_minutes)) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+const confirmLeaveUnsavedEdits = () => {
+    if (!editingDayDate || !dayHasUnsavedEdits(editingDayDate)) {
+        return true;
+    }
+
+    alert('Save your shift changes before leaving.');
+    return false;
+};
+
 const saveDayShifts = async (dayDate) => {
-    const card = shiftGridEl?.querySelector(`[data-day-date="${dayDate}"]`)?.closest('.dashboard-shift-card');
+    const card = getDayCardEl(dayDate);
     if (!card) {
         return;
     }
@@ -683,6 +742,22 @@ const bindShiftGridEvents = () => {
     if (!shiftGridEl) {
         return;
     }
+
+    shiftGridEl.addEventListener('hide.bs.collapse', (event) => {
+        const collapseEl = event.target;
+        if (!collapseEl?.classList.contains('dashboard-shift-card__expand')) {
+            return;
+        }
+
+        const card = collapseEl.closest('[data-day-expandable]');
+        const dayDate = card?.dataset.dayDate;
+        if (!dayHasUnsavedEdits(dayDate)) {
+            return;
+        }
+
+        event.preventDefault();
+        alert('Save your shift changes before closing.');
+    });
 
     shiftGridEl.addEventListener('shown.bs.collapse', (event) => {
         const collapseEl = event.target;
@@ -762,6 +837,10 @@ const bindShiftGridEvents = () => {
 
 sortButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
+        if (!confirmLeaveUnsavedEdits()) {
+            return;
+        }
+
         sortBy = btn.dataset.sort;
         sortButtons.forEach((b) => b.classList.toggle('active', b === btn));
         editingDayDate = null;
@@ -770,6 +849,10 @@ sortButtons.forEach((btn) => {
 });
 
 sortDirBtn?.addEventListener('click', () => {
+    if (!confirmLeaveUnsavedEdits()) {
+        return;
+    }
+
     sortDir = sortDir === 'asc' ? 'desc' : 'asc';
     sortDirIcon.className = sortDir === 'asc' ? 'bi bi-arrow-up' : 'bi bi-arrow-down';
     editingDayDate = null;
@@ -777,6 +860,11 @@ sortDirBtn?.addEventListener('click', () => {
 });
 
 projectFilterEl?.addEventListener('change', () => {
+    if (!confirmLeaveUnsavedEdits()) {
+        projectFilterEl.value = projectFilter;
+        return;
+    }
+
     projectFilter = projectFilterEl.value;
     editingDayDate = null;
     render();
