@@ -51,7 +51,7 @@
                 </button>
                 <ul class="dashboard-period-menu d-none" id="periodMenu" role="listbox"></ul>
             </div>
-            <a href="{{ route('annual') }}" class="i3-link d-inline-block mt-1">
+            <a href="{{ route('annual') }}" id="annualViewLink" class="i3-link d-inline-block mt-1">
                 <i class="bi bi-calendar3 me-1"></i>Annual View
             </a>
         </div>

@@ -870,6 +870,12 @@ projectFilterEl?.addEventListener('change', () => {
     render();
 });
 
+document.getElementById('annualViewLink')?.addEventListener('click', (event) => {
+    if (!confirmLeaveUnsavedEdits()) {
+        event.preventDefault();
+    }
+});
+
 shiftGridEl?.addEventListener('blur', (event) => {
     const input = event.target.closest('.dashboard-shift-card__inline-hours');
     if (!input) {
