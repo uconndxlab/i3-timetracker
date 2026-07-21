@@ -146,8 +146,7 @@
                                         class="i3-check admin-shift-billed-toggle {{ $row['billed'] ? 'is-checked' : '' }}"
                                         data-shift-id="{{ $row['id'] }}"
                                         aria-pressed="{{ $row['billed'] ? 'true' : 'false' }}"
-                                        @disabled($row['billed'])
-                                        aria-label="Mark shift as billed for {{ $row['employee_name'] }}">
+                                        aria-label="Toggle billed status for {{ $row['employee_name'] }}">
                                     <i class="bi bi-check-lg"></i>
                                 </button>
                             </span>
@@ -219,10 +218,10 @@
         let csrfToken = @json(csrf_token());
         const shiftList = document.getElementById('projectShiftList');
 
-        const markShiftBilled = async (shiftId) => {
+        const setShiftBilled = async (shiftId, billed) => {
             const formData = new FormData();
             formData.append('_token', csrfToken);
-            formData.append('billed', '1');
+            formData.append('billed', billed ? '1' : '0');
 
             const response = await fetch(`${shiftBaseUrl}/${shiftId}/billed`, {
                 method: 'POST',
@@ -273,18 +272,20 @@
                 return;
             }
 
-        toggleBtn.disabled = true;
-        toggleBtn.classList.add('is-checked');
-        toggleBtn.setAttribute('aria-pressed', 'true');
+            const nextBilled = !toggleBtn.classList.contains('is-checked');
+            toggleBtn.disabled = true;
+            toggleBtn.classList.toggle('is-checked', nextBilled);
+            toggleBtn.setAttribute('aria-pressed', nextBilled ? 'true' : 'false');
 
-        try {
-            await markShiftBilled(shiftId);
-        } catch (error) {
-            toggleBtn.classList.remove('is-checked');
-            toggleBtn.setAttribute('aria-pressed', 'false');
-            toggleBtn.disabled = false;
-            alert(error.message || 'Could not mark shift as billed. Please try again.');
-        }
+            try {
+                await setShiftBilled(shiftId, nextBilled);
+            } catch (error) {
+                toggleBtn.classList.toggle('is-checked', !nextBilled);
+                toggleBtn.setAttribute('aria-pressed', nextBilled ? 'false' : 'true');
+                alert(error.message || 'Could not update billed status. Please try again.');
+            } finally {
+                toggleBtn.disabled = false;
+            }
         });
     })();
     window.shiftModalConfig = {

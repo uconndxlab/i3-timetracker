@@ -51,6 +51,9 @@
                 </button>
                 <ul class="dashboard-period-menu d-none" id="periodMenu" role="listbox"></ul>
             </div>
+            <a href="{{ route('annual') }}" id="annualViewLink" class="i3-link d-inline-block mt-1">
+                <i class="bi bi-calendar3 me-1"></i>Annual View
+            </a>
         </div>
 
         <div class="dashboard-toolbar-filter">
@@ -75,6 +78,7 @@
     @include('partials.dashboard-stats', [
         'ariaLabel' => 'All-time statistics',
         'projects' => $allTimeStats['projects'] ?? [],
+        'projectHoursMode' => 'total',
         'projectsEmpty' => 'No shifts logged yet.',
         'metrics' => [
             ['label' => 'Total Shifts', 'value' => $allTimeStats['total_shifts'] ?? 0, 'decimals' => 0],
@@ -133,10 +137,11 @@
         shiftBaseUrl: @json(url('/shifts')),
         csrfToken: @json(csrf_token()),
         @if($adminDashboard ?? null)
-        weeklyPeriods: @json($adminDashboard['weekly_periods'] ?? []),
-        weekIndex: {{ $adminDashboard['current_week_index'] ?? 0 }},
+        dateFrom: @json($adminDashboard['date_from'] ?? null),
+        dateTo: @json($adminDashboard['date_to'] ?? null),
+        hasDateFilter: @json($adminDashboard['has_date_filter'] ?? false),
         hoursTimeline: @json($adminDashboard['hours_timeline'] ?? []),
-        activePeriod: @json($adminDashboard['active_period'] ?? []),
+        activeRange: @json($adminDashboard['active_range'] ?? []),
         @endif
     };
     @endif

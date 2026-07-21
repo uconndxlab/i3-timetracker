@@ -2,6 +2,8 @@
     $ariaLabel = $ariaLabel ?? 'Statistics';
     $projects = $projects ?? [];
     $projectsEmpty = $projectsEmpty ?? 'No data yet.';
+    $projectHoursMode = $projectHoursMode ?? 'billed_unbilled';
+    $showProjectTotalOnly = $projectHoursMode === 'total';
     $metrics = $metrics ?? [];
     $chartId = $chartId ?? 'dashboardHoursChart';
     $chartTotalId = $chartTotalId ?? 'dashboardChartTotal';
@@ -17,11 +19,15 @@
 <section class="dashboard-stats" aria-label="{{ $ariaLabel }}">
     <div class="dashboard-stats__grid">
         <div class="dashboard-stats__projects">
-            <div class="i3-data-table i3-data-table--3col">
+            <div class="i3-data-table {{ $showProjectTotalOnly ? 'i3-data-table--2col' : 'i3-data-table--3col' }}">
                 <div class="i3-data-table__head">
                     <span>Projects</span>
-                    <span>Billed Hrs</span>
-                    <span>Unbilled Hrs</span>
+                    @if($showProjectTotalOnly)
+                        <span>Total Hrs</span>
+                    @else
+                        <span>Billed Hrs</span>
+                        <span>Unbilled Hrs</span>
+                    @endif
                 </div>
                 @if(count($projects) > 0)
                     <ul class="i3-data-table__body i3-data-table__body--sm list-unstyled mb-0">
@@ -30,8 +36,12 @@
                                 <span class="i3-data-table__label">
                                     <span class="i3-hash">#</span> {{ $project['name'] }}
                                 </span>
-                                <span>{{ number_format($project['billed_hours'], 2) }}</span>
-                                <span>{{ number_format($project['unbilled_hours'], 2) }}</span>
+                                @if($showProjectTotalOnly)
+                                    <span>{{ number_format($project['hours'] ?? $project['total_hours'] ?? 0, 2) }}</span>
+                                @else
+                                    <span>{{ number_format($project['billed_hours'], 2) }}</span>
+                                    <span>{{ number_format($project['unbilled_hours'], 2) }}</span>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

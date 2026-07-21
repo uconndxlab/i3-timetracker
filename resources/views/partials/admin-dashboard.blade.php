@@ -1,11 +1,15 @@
 @php
+    $adminDashboard = $adminDashboard ?? [];
     $orgProjects = $adminDashboard['org_projects'] ?? [];
     $orgStats = $adminDashboard['org_stats'] ?? [];
-    $activePeriod = $adminDashboard['active_period'] ?? [];
+    $activeRange = $adminDashboard['active_range'] ?? [];
+    $hasDateFilter = $adminDashboard['has_date_filter'] ?? false;
+    $dateFrom = $adminDashboard['date_from'] ?? null;
+    $dateTo = $adminDashboard['date_to'] ?? null;
     $navbarView = $navbarView ?? 'user';
-    $adminTable = request()->query('admin_table', 'shift');
+    $adminTable = request()->query('admin_table', 'project');
     if (! in_array($adminTable, ['shift', 'employee', 'project'], true)) {
-        $adminTable = 'shift';
+        $adminTable = 'project';
     }
 @endphp
 
@@ -21,25 +25,35 @@
             <div class="dashboard-toolbar-sort">
                 <div class="dashboard-toolbar-label">View Table By:</div>
                 <div class="dashboard-segment" id="adminTableViewToggle" role="group" aria-label="View table by">
-                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'shift' ? ' active' : '' }}" data-admin-table="shift">Shift</button>
-                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'employee' ? ' active' : '' }}" data-admin-table="employee">Employee</button>
                     <button type="button" class="dashboard-segment__btn{{ $adminTable === 'project' ? ' active' : '' }}" data-admin-table="project">Project</button>
+                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'employee' ? ' active' : '' }}" data-admin-table="employee">Employee</button>
+                    <button type="button" class="dashboard-segment__btn{{ $adminTable === 'shift' ? ' active' : '' }}" data-admin-table="shift">Shift</button>
                 </div>
             </div>
 
-            <div class="dashboard-toolbar-period text-center">
-                <span class="dashboard-period-badge {{ ($activePeriod['is_current_week'] ?? false) ? '' : 'd-none' }}" id="adminCurrentPeriodBadge">Current Period</span>
-                <div class="dashboard-period-select">
-                    <button type="button" class="dashboard-period-toggle" id="adminPeriodToggle" aria-haspopup="listbox" aria-expanded="false">
-                        View Period: <span id="adminPeriodLabel">{{ $activePeriod['label'] ?? '' }}</span>
-                        <i class="bi bi-chevron-down ms-1"></i>
-                    </button>
-                    <ul class="dashboard-period-menu d-none" id="adminPeriodMenu" role="listbox"></ul>
+            <div class="dashboard-toolbar-period">
+                <div class="dashboard-toolbar-label mb-1">Date Range:</div>
+                <div class="dashboard-date-range d-flex align-items-center gap-2 flex-wrap">
+                    <input type="date"
+                           class="form-control dashboard-date-input"
+                           id="adminDateFrom"
+                           value="{{ $dateFrom }}"
+                           aria-label="Start date">
+                    <span class="dashboard-date-range__sep">to</span>
+                    <input type="date"
+                           class="form-control dashboard-date-input"
+                           id="adminDateTo"
+                           value="{{ $dateTo }}"
+                           aria-label="End date">
+                    <button type="button" class="dashboard-btn dashboard-btn--sm dashboard-btn--dark" id="adminDateApply">Apply</button>
+                    @if($hasDateFilter)
+                        <button type="button" class="dashboard-btn dashboard-btn--sm dashboard-btn--dark" id="adminDateClear">Clear</button>
+                    @endif
                 </div>
             </div>
 
             <div class="dashboard-toolbar-total">
-                Total: <span class="dashboard-total-value wavy-underline" id="adminPeriodTotal">{{ number_format($activePeriod['hours_this_period'] ?? 0, 2) }}</span>
+                Total: <span class="dashboard-total-value wavy-underline" id="adminRangeTotal">{{ number_format($activeRange['hours_in_range'] ?? 0, 2) }}</span>
             </div>
         </div>
 
@@ -48,7 +62,7 @@
             <input type="search"
                    class="form-control dashboard-search-input w-100"
                    id="adminTableSearch"
-                   placeholder="Search through shifts . . ."
+                   placeholder="Search through projects . . ."
                    autocomplete="off">
         </div>
     </div>
@@ -56,18 +70,25 @@
     <div class="i3-data-table i3-data-table--7col{{ $adminTable === 'shift' ? '' : ' d-none' }}" id="adminShiftPanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
-                <div class="i3-data-table__head">
-                    <span>Employee</span>
-                    <span>Project</span>
-                    <span>Date</span>
-                    <span>Hours</span>
-                    <span class="i3-data-table__check-col">Timecard</span>
-                    <span class="i3-data-table__check-col">Honeycrisp</span>
+                <div class="i3-data-table__head" data-admin-sort-panel="shift">
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="employee" data-sort-type="text">Employee</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="project" data-sort-type="text">Project</button>
+                    <button type="button" class="i3-data-table__sort-btn is-sorted" data-admin-sort="date" data-sort-type="date" data-sort-dir="desc">Date</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="hours" data-sort-type="number">Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn i3-data-table__check-col" data-admin-sort="entered" data-sort-type="boolean">Timecard</button>
+                    <button type="button" class="i3-data-table__sort-btn i3-data-table__check-col" data-admin-sort="billed" data-sort-type="boolean">Honeycrisp</button>
                     <span></span>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminShiftList">
-                    @forelse($activePeriod['shifts'] ?? [] as $row)
-                    <li class="i3-data-table__row" data-search="{{ strtolower($row['employee_name'].' '.$row['project_name'].' '.$row['date_display']) }}">
+                    @forelse($activeRange['shifts'] ?? [] as $row)
+                    <li class="i3-data-table__row"
+                        data-search="{{ strtolower($row['employee_name'].' '.$row['project_name'].' '.$row['date_display']) }}"
+                        data-sort-employee="{{ strtolower($row['employee_name']) }}"
+                        data-sort-project="{{ strtolower($row['project_name']) }}"
+                        data-sort-date="{{ $row['date'] }}"
+                        data-sort-hours="{{ $row['hours'] }}"
+                        data-sort-entered="{{ $row['entered'] ? '1' : '0' }}"
+                        data-sort-billed="{{ $row['billed'] ? '1' : '0' }}">
                         <span class="i3-data-table__label" data-label="Employee">
                             <span class="i3-hash">#</span>
                             <a href="{{ route('admin.users.dashboard', ['user' => $row['netid']]) }}" class="i3-link">{{ $row['employee_name'] }}</a>
@@ -85,8 +106,7 @@
                                     class="i3-check admin-shift-billed-toggle {{ $row['billed'] ? 'is-checked' : '' }}"
                                     data-shift-id="{{ $row['id'] }}"
                                     aria-pressed="{{ $row['billed'] ? 'true' : 'false' }}"
-                                    @disabled($row['billed'])
-                                    aria-label="Mark shift as billed for {{ $row['employee_name'] }}">
+                                    aria-label="Toggle billed status for {{ $row['employee_name'] }}">
                                 <i class="bi bi-check-lg"></i>
                             </button>
                         </span>
@@ -100,7 +120,7 @@
                         </span>
                     </li>
                     @empty
-                        <li class="i3-data-table__empty">No shifts for this period.</li>
+                        <li class="i3-data-table__empty">{{ $hasDateFilter ? 'No shifts in this date range.' : 'No shifts logged yet.' }}</li>
                     @endforelse
                 </ul>
             </div>
@@ -110,16 +130,22 @@
     <div class="i3-data-table i3-data-table--5col{{ $adminTable === 'employee' ? '' : ' d-none' }}" id="adminEmployeePanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
-                <div class="i3-data-table__head">
-                    <span>Employee Name</span>
-                    <span>Unbilled Hours</span>
-                    <span>Total Hours</span>
-                    <span>Top Project</span>
-                    <span>Last Shift Date</span>
+                <div class="i3-data-table__head" data-admin-sort-panel="employee">
+                    <button type="button" class="i3-data-table__sort-btn is-sorted" data-admin-sort="name" data-sort-type="text" data-sort-dir="asc">Employee Name</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="unbilled" data-sort-type="number">Unbilled Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="total" data-sort-type="number">Total Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="top_project" data-sort-type="text">Top Project</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="last_shift" data-sort-type="date">Last Shift Date</button>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminEmployeeList">
-                    @forelse($activePeriod['employees'] ?? [] as $row)
-                    <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_project']) }}">
+                    @forelse($activeRange['employees'] ?? [] as $row)
+                    <li class="i3-data-table__row"
+                        data-search="{{ strtolower($row['name'].' '.$row['top_project']) }}"
+                        data-sort-name="{{ strtolower($row['name']) }}"
+                        data-sort-unbilled="{{ $row['unbilled_hours'] }}"
+                        data-sort-total="{{ $row['total_hours'] }}"
+                        data-sort-top-project="{{ strtolower($row['top_project']) }}"
+                        data-sort-last-shift="{{ $row['last_shift_date_sort'] ?? '' }}">
                         <span class="i3-data-table__label" data-label="Employee">
                             <span class="i3-hash">#</span>
                             <a href="{{ route('admin.users.dashboard', ['user' => $row['netid']]) }}" class="i3-link">{{ $row['name'] }}</a>
@@ -130,7 +156,7 @@
                         <span data-label="Last Shift">{{ $row['last_shift_date'] ?? '—' }}</span>
                     </li>
                     @empty
-                        <li class="i3-data-table__empty">No employee shift data for this period.</li>
+                        <li class="i3-data-table__empty">{{ $hasDateFilter ? 'No employee shift data in this date range.' : 'No employee shift data yet.' }}</li>
                     @endforelse
                 </ul>
             </div>
@@ -140,29 +166,35 @@
     <div class="i3-data-table i3-data-table--5col{{ $adminTable === 'project' ? '' : ' d-none' }}" id="adminProjectPanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
-                <div class="i3-data-table__head">
-                    <span>Project Name</span>
-                    <span>Hours Last Period</span>
-                    <span>Total Hours</span>
-                    <span>Top Employee</span>
-                    <span>Last Shift Date</span>
+                <div class="i3-data-table__head" data-admin-sort-panel="project">
+                    <button type="button" class="i3-data-table__sort-btn is-sorted" data-admin-sort="name" data-sort-type="text" data-sort-dir="asc">Project Name</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="unbilled" data-sort-type="number">Unbilled Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="total" data-sort-type="number">Total Hours</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="top_employee" data-sort-type="text">Top Employee</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="last_shift" data-sort-type="date">Last Shift Date</button>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminProjectList">
-                    @forelse($activePeriod['project_rows'] ?? [] as $row)
-                    <li class="i3-data-table__row" data-search="{{ strtolower($row['name'].' '.$row['top_employee']) }}">
+                    @forelse($activeRange['project_rows'] ?? [] as $row)
+                    <li class="i3-data-table__row"
+                        data-search="{{ strtolower($row['name'].' '.$row['top_employee']) }}"
+                        data-sort-name="{{ strtolower($row['name']) }}"
+                        data-sort-unbilled="{{ $row['unbilled_hours'] }}"
+                        data-sort-total="{{ $row['total_hours'] }}"
+                        data-sort-top-employee="{{ strtolower($row['top_employee']) }}"
+                        data-sort-last-shift="{{ $row['last_shift_date_sort'] ?? '' }}">
                         <span class="i3-data-table__label" data-label="Project">
                             <span class="i3-hash">#</span>
                             <a href="{{ route('admin.projects.show', ['project' => $row['id']]) }}" class="i3-link admin-project-link">
                                 {{ $row['name'] }}
                             </a>
                         </span>
-                        <span data-label="Hrs Last Period">{{ number_format($row['hours_last_period'], 2) }}</span>
+                        <span data-label="Unbilled Hrs">{{ number_format($row['unbilled_hours'], 2) }}</span>
                         <span data-label="Total Hrs">{{ number_format($row['total_hours'], 2) }}</span>
                         <span data-label="Top Employee">{{ $row['top_employee'] }}</span>
                         <span data-label="Last Shift">{{ $row['last_shift_date'] ?? '—' }}</span>
                     </li>
                     @empty
-                        <li class="i3-data-table__empty">No project shift data for this period.</li>
+                        <li class="i3-data-table__empty">{{ $hasDateFilter ? 'No project shift data in this date range.' : 'No project shift data yet.' }}</li>
                     @endforelse
                 </ul>
             </div>
@@ -184,12 +216,18 @@
         ],
         'chartId' => 'adminHoursChart',
         'chartTotalId' => 'adminStatsChartTotal',
-        'chartRanges' => [
-            ['range' => 'period', 'label' => 'Period', 'active' => true],
-            ['range' => 'week', 'label' => 'Week'],
-            ['range' => 'month', 'label' => 'Month'],
-            ['range' => 'year', 'label' => 'Year'],
-        ],
+        'chartRanges' => $hasDateFilter
+            ? [
+                ['range' => 'period', 'label' => 'Range', 'active' => true],
+                ['range' => 'week', 'label' => 'Week'],
+                ['range' => 'month', 'label' => 'Month'],
+                ['range' => 'year', 'label' => 'Year'],
+            ]
+            : [
+                ['range' => 'month', 'label' => 'Month', 'active' => true],
+                ['range' => 'week', 'label' => 'Week'],
+                ['range' => 'year', 'label' => 'Year'],
+            ],
         'rangeAriaLabel' => 'Admin hours chart range',
     ])
     </div>

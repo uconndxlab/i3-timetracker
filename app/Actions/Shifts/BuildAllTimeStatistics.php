@@ -26,8 +26,6 @@ class BuildAllTimeStatistics
             ->select('shifts.proj_id')
             ->selectRaw('projects.name as name')
             ->selectRaw('COALESCE(SUM(shifts.duration), 0) / 60 as total_hours')
-            ->selectRaw('COALESCE(SUM(CASE WHEN shifts.billed = 1 THEN shifts.duration ELSE 0 END), 0) / 60 as billed_hours')
-            ->selectRaw('COALESCE(SUM(CASE WHEN shifts.billed = 0 THEN shifts.duration ELSE 0 END), 0) / 60 as unbilled_hours')
             ->groupBy('shifts.proj_id', 'projects.name')
             ->orderByDesc('total_hours')
             ->get()
@@ -35,8 +33,6 @@ class BuildAllTimeStatistics
                 'proj_id' => $row->proj_id,
                 'name' => $row->name,
                 'hours' => round((float) $row->total_hours, 2),
-                'billed_hours' => round((float) $row->billed_hours, 2),
-                'unbilled_hours' => round((float) $row->unbilled_hours, 2),
             ])
             ->all();
 

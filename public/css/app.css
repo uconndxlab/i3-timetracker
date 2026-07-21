@@ -442,6 +442,22 @@ body {
     min-width: 0;
 }
 
+.dashboard-date-range {
+    align-items: center;
+}
+
+.dashboard-date-range__sep {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary, #6c757d);
+}
+
+.dashboard-date-input {
+    width: auto;
+    min-width: 9.5rem;
+    max-width: 100%;
+}
+
 .dashboard-period-select {
     position: relative;
     width: fit-content;
@@ -561,7 +577,8 @@ body {
 
 .dashboard-select.form-select,
 .shift-modal__select.form-select,
-.shift-modal__date {
+.shift-modal__date,
+.dashboard-date-input {
     border: none;
     border-bottom: 1px dotted var(--select-border);
     border-radius: 0;
@@ -973,6 +990,49 @@ body {
     text-align: right;
 }
 
+.i3-data-table__sort-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    color: inherit;
+    opacity: inherit;
+    cursor: pointer;
+    text-decoration: inherit;
+    text-underline-offset: inherit;
+}
+
+.i3-data-table__sort-btn:hover,
+.i3-data-table__sort-btn.is-sorted {
+    opacity: 1;
+    color: var(--uconn-blue);
+}
+
+.i3-data-table__head .i3-data-table__sort-btn:not(:first-child):not(.i3-data-table__check-col) {
+    text-align: right;
+    justify-self: end;
+    width: 100%;
+}
+
+.i3-data-table__head .i3-data-table__sort-btn.i3-data-table__check-col {
+    text-align: center;
+    justify-self: center;
+    width: 100%;
+}
+
+.i3-data-table__sort-btn.is-sorted[data-sort-dir="asc"]::after {
+    content: ' \2191';
+}
+
+.i3-data-table__sort-btn.is-sorted[data-sort-dir="desc"]::after {
+    content: ' \2193';
+}
+
 .i3-data-table__body {
     list-style: none;
     margin: 0;
@@ -1010,6 +1070,12 @@ body {
     font-weight: 600;
 }
 
+.i3-data-table--2col {
+    --i3-cols: 1fr 4.5rem;
+    --i3-gap: 0.5rem;
+    --i3-row-py: 0.45rem;
+}
+
 .i3-data-table--3col {
     --i3-cols: 1fr 4.5rem 4.75rem;
     --i3-gap: 0.5rem;
@@ -1042,17 +1108,17 @@ body {
     min-width: 40rem;
 }
 
-:is(.i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__head,
-:is(.i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
+:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__head,
+:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
     grid-template-columns: var(--i3-cols);
     gap: var(--i3-gap);
 }
 
-:is(.i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
+:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
     padding: var(--i3-row-py) 0;
 }
 
-.i3-data-table--3col .i3-data-table__row > span:not(:first-child) {
+:is(.i3-data-table--2col, .i3-data-table--3col) .i3-data-table__row > span:not(:first-child) {
     white-space: nowrap;
 }
 

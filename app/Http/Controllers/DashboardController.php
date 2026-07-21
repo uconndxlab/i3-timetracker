@@ -38,10 +38,7 @@ class DashboardController extends Controller
 
     public function viewProjectOverview(Project $project)
     {
-        $overview = app(BuildProjectOverview::class)(
-            $project,
-            request()->query('period_start'),
-        );
+        $overview = app(BuildProjectOverview::class)($project);
 
         $logShiftProjects = Project::where('active', true)->orderBy('name')->get();
         $nextShiftNumber = Shift::count() + 1;
@@ -274,7 +271,10 @@ class DashboardController extends Controller
         $isAdminViewer = $viewerIsAdmin && ! $dashboardReadOnly;
         $loadAdminDashboard = $includeAdminDashboard && $isAdminViewer && request()->query('view') === 'admin';
         $adminDashboard = $loadAdminDashboard
-            ? app(BuildAdminDashboard::class)(periodStart: request()->query('period_start'))
+            ? app(BuildAdminDashboard::class)(
+                dateFrom: request()->query('date_from'),
+                dateTo: request()->query('date_to'),
+            )
             : null;
 
         return compact(

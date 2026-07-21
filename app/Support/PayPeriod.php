@@ -105,24 +105,16 @@ class PayPeriod
     }
 
     /**
-     * @param  array<int|string, array{start_date?: string, is_current_week?: bool}>  $weeks
+     * @param  array<int|string, array{is_current_week?: bool}>  $weeks
      */
-    public static function resolveActiveIndex(array $weeks, ?string $periodStart): int
+    public static function resolveActiveIndex(array $weeks): int
     {
         $currentWeekIndex = collect($weeks)->search(fn ($week) => $week['is_current_week'] ?? false);
         if ($currentWeekIndex === false) {
             $currentWeekIndex = max(count($weeks) - 1, 0);
         }
 
-        if (! is_string($periodStart) || $periodStart === '') {
-            return $currentWeekIndex;
-        }
-
-        $requestedIndex = collect($weeks)->search(
-            fn ($week) => ($week['start_date'] ?? '') === $periodStart
-        );
-
-        return $requestedIndex !== false ? $requestedIndex : $currentWeekIndex;
+        return $currentWeekIndex;
     }
 
     /**
