@@ -27,6 +27,97 @@
 </head>
 
 <body>
+@if(config('preview.enabled'))
+    {{-- Development Preview Banner --}}
+    <div id="previewBanner" class="alert alert-warning rounded-0 mb-0 py-2 border-0 border-bottom" role="alert" style="border-bottom-width: 1px !important;">
+        <div class="container-fluid px-3 px-md-4 d-flex align-items-center justify-content-between gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-cone-striped flex-shrink-0" aria-hidden="true"></i>
+                <span class="small">
+                    <strong>Development Preview</strong> &mdash;
+                    You are viewing the dev version of the i3 Time Tracker.
+                    To track your actual time, visit
+                    <a href="{{ config('preview.production_url') }}" class="alert-link fw-semibold">the production site</a>.
+                </span>
+            </div>
+            <button type="button" id="previewBannerClose" class="btn-close flex-shrink-0" aria-label="Dismiss preview banner"></button>
+        </div>
+    </div>
+
+    {{-- Development Preview Modal --}}
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-cone-striped text-warning fs-4" aria-hidden="true"></i>
+                        <h5 class="modal-title fw-bold" id="previewModalLabel">Development Preview</h5>
+                    </div>
+                </div>
+                <div class="modal-body pt-2">
+                    <p class="mb-3">You are currently viewing the <strong>development preview</strong> of the i3 Time Tracker. Data entered here may not be preserved.</p>
+                    <p class="mb-0">To track your actual time, please use the production site:</p>
+                    <div class="mt-3">
+                        <a href="{{ config('preview.production_url') }}" class="btn btn-warning fw-semibold w-100">
+                            <i class="bi bi-box-arrow-up-right me-2" aria-hidden="true"></i>Go to Production Site
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="previewModalDismiss">
+                        Continue on Dev Preview
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var BANNER_KEY = 'previewBannerDismissed';
+            var MODAL_KEY = 'previewModalShown';
+
+            // Banner: runs immediately — element is already in DOM above this script
+            var banner = document.getElementById('previewBanner');
+            var bannerClose = document.getElementById('previewBannerClose');
+
+            if (banner) {
+                if (sessionStorage.getItem(BANNER_KEY)) {
+                    banner.style.display = 'none';
+                }
+
+                if (bannerClose) {
+                    bannerClose.addEventListener('click', function () {
+                        banner.style.display = 'none';
+                        sessionStorage.setItem(BANNER_KEY, '1');
+                    });
+                }
+            }
+
+            // Modal: wait for DOMContentLoaded so Bootstrap JS is available
+            document.addEventListener('DOMContentLoaded', function () {
+                if (!sessionStorage.getItem(MODAL_KEY)) {
+                    sessionStorage.setItem(MODAL_KEY, '1');
+                    var modalEl = document.getElementById('previewModal');
+                    if (modalEl && window.bootstrap) {
+                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                    }
+                }
+
+                var dismissBtn = document.getElementById('previewModalDismiss');
+                if (dismissBtn) {
+                    dismissBtn.addEventListener('click', function () {
+                        var modalEl = document.getElementById('previewModal');
+                        if (modalEl && window.bootstrap) {
+                            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                        }
+                    });
+                }
+            });
+        })();
+    </script>
+@endif
+
     <nav class="navbar py-2">
         <div class="container-fluid navbar-branding px-3 px-md-4">
             <div class="navbar-branding-left d-flex align-items-center">
