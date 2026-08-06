@@ -2,44 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Services\EntraService;
 use App\Models\User;
+use App\Services\EntraService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use RuntimeException;
 
-class ExampleEntraController extends Controller
+class EntraController extends Controller
 {
-
-    protected $entraService;
-
-    public function __construct(EntraService $entraService) {
-        $this->entraService = $entraService;
+    public function __construct(
+        protected EntraService $entraService
+    ) {
     }
 
-    // Initialize the OIDC flow by redirecting to the authorization endpoint
-    public function redirect(Request $request) {
+    public function redirect()
+    {
         return $this->entraService->generateRedirect();
     }
 
-    // Handle a callback from OIDC provider.
-    public function callback(Request $request) {
+    public function callback(Request $request)
+    {
         $decoded = $this->entraService->handleCallback($request);
-        // $decoded holds email, name, and other claims from the ID token.
 
+        $netid = $decoded->NetID ?? $decoded->netid ?? null;
 
-        /**
-         * BELOW THIS IS A BASIC EXAMPLE OF USING THE AUTH VALUES
-         * You should modify how you handle user creation and login based on your application's needs.
-         */
-        $user = User::updateOrCreate(
-            [ 'netid' => $decoded->NetID ], // NetID is specific to UConn - keying by 'oid' would be more appropriate for a general OIDC implementation
-            [
-                'email' => $decoded->email,
-                'name' => $decoded->name
-            ]
-        );
+        if (! $netid) {
+            throw new RuntimeException(
+                'The Entra response did not contain a NetID.'
+            );
+        }
+
+        $user = User::where('netid', $netid)
+            ->where('active', true)
+            ->first();
+
+        if (! $user) {
+            abort(403, 'You do not have an account for this application.');
+        }
 
         Auth::login($user);
+        $request->session()->regenerate();
 
         return redirect()->intended('/');
     }
