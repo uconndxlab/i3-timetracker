@@ -567,19 +567,37 @@ const renderDayCard = (day) => {
                 ${renderEnteredCheck(day.entered, day.shifts.map((shift) => shift.id))}
            </div>`;
 
-    const innerHtml = `
-        <div class="dashboard-shift-card__inner">
-            <div class="dashboard-shift-card__summary">
-                <div class="dashboard-shift-card__body-top">
-                    <span class="dashboard-shift-card__total-label">Total:</span>
-                    ${menuHtml}
-                </div>
-                <div class="dashboard-shift-card__hours">${day.duration_display}</div>
-                ${timecardHtml}
-            </div>
-            ${innerExpandHtml}
-        </div>
-    `;
+           const innerHtml = `
+           <div class="dashboard-shift-card__inner">
+               <div class="dashboard-shift-card__summary">
+                   <div class="dashboard-shift-card__body-top">
+                       <span class="dashboard-shift-card__total-label">Total:</span>
+
+                       <div class="dashboard-shift-card__actions">
+                           ${dashboardReadOnly ? '' : `
+                               <button
+                                   type="button"
+                                   class="dashboard-shift-card__add-btn"
+                                   data-add-shift
+                                   data-day-date="${day.date}"
+                                   data-stop-card-toggle
+                                   aria-label="Add shift for ${day.date}"
+                               >
+                                   <i class="bi bi-plus-lg"></i>
+                               </button>
+                           `}
+
+                           ${menuHtml}
+                       </div>
+                   </div>
+
+                   <div class="dashboard-shift-card__hours">${day.duration_display}</div>
+                   ${timecardHtml}
+               </div>
+
+               ${innerExpandHtml}
+           </div>
+       `;
 
     return `
         <article class="dashboard-shift-card ${day.is_empty ? 'is-empty' : ''}${isEditing ? ' is-expanded' : ''}"
@@ -782,6 +800,23 @@ const bindShiftGridEvents = () => {
     });
 
     shiftGridEl.addEventListener('click', async (event) => {
+        const addShiftBtn = event.target.closest('[data-add-shift]');
+
+        if (addShiftBtn) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const dayDate = addShiftBtn.dataset.dayDate;
+
+            if (!dayDate) {
+                return;
+            }
+
+            window.openShiftModal?.(dayDate);
+
+            return;
+        }
+
         const editBtn = event.target.closest('.dashboard-shift-card__edit-btn');
         if (editBtn) {
             event.preventDefault();
