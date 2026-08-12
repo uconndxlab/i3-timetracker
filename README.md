@@ -8,7 +8,7 @@ i3 Time Tracker is a web app designed to help teams track time spent on various 
 - Mark shifts as billed or entered in external systems
 - Admin dashboard to assign users to projects, and mark shifts as billed and/or entered in external systems
 - User and project management
-- CAS authentication upon landing
+- Entra authentication upon landing
 
 ## Features in Progress
 
@@ -16,7 +16,7 @@ i3 Time Tracker is a web app designed to help teams track time spent on various 
 
 ## Requirements
 
-- PHP 8.1+
+- PHP 8.3+
 - Composer
 - SQLite (default)
 
@@ -37,7 +37,7 @@ composer install
 
 ### 3. Copy and Configure Environment
 
-(Edit `.env` and set your database and mail settings as needed)
+(Edit `.env` and set your database, mail, and Entra settings as needed)
 
 ```bash
 cp .env.example .env
