@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'entra' => [
+        'client_id' => env('ENTRA_CLIENT_ID'),
+        'tenant_id' => env('ENTRA_TENANT_ID'),
+        'client_secret' => env('ENTRA_CLIENT_SECRET'),
+        'redirect' => env('ENTRA_REDIRECT_URI'),
+    ],
 ];

@@ -4,17 +4,20 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ShiftController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\EntraController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('cas.auth')->group(function () {
+Route::get('/login', [EntraController::class, 'redirect'])
+    ->name('login');
+
+Route::get('/signin-oidc', [EntraController::class, 'callback'])
+    ->name('entra.callback');
+
+Route::middleware('entra.auth')->group(function () {
     Route::get('/', [DashboardController::class, 'landing'])->name('landing');
     Route::get('/annual', [DashboardController::class, 'annual'])->name('annual');
     Route::post('/annual/view-preference', [DashboardController::class, 'updateAnnualCalView'])->name('annual.view-preference');
     Route::get('/logout', [AdminController::class, 'logout'])->name('logout');
-
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
 
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::post('/projects/{project}/users', [AdminController::class, 'assignUsers'])->name('projects.assign-users');

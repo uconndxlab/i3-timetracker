@@ -11,12 +11,19 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
-    public function logout()
+    public function logout(Request $request)
     {
         Auth::logout();
-        session()->invalidate();
-        session()->regenerateToken();
-        $logoutUrl = cas()->logout(url('/'));
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        $logoutUrl = 'https://login.microsoftonline.com/'
+            .config('services.entra.tenant_id')
+            .'/oauth2/v2.0/logout?'
+            .http_build_query([
+                'post_logout_redirect_uri' => url('/'),
+            ]);
 
         return redirect()->away($logoutUrl);
     }
