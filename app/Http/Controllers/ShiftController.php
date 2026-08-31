@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Admin\PushHoursToHoneycrisp;
 use App\Actions\Shifts\BuildWeeklyChart;
 use App\Models\Project;
 use App\Models\Shift;
@@ -123,6 +124,21 @@ class ShiftController extends Controller
             $validatedData['billed'] = $request->boolean('billed');
         }
 
+        if (($validatedData['billed'] ?? false) && ! $shift->billed) {
+            if (isset($validatedData['duration'])) {
+                $shift->duration = $validatedData['duration'];
+            }
+
+            $honeycrispError = $this->pushShiftHours($shift);
+            if ($honeycrispError) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $honeycrispError], 422);
+                }
+
+                return redirect()->back()->with('error', $honeycrispError);
+            }
+        }
+
         $shift->update($validatedData);
         $shift->load(['project', 'user']);
 
@@ -239,6 +255,16 @@ class ShiftController extends Controller
         }
 
         $billed = $request->boolean('billed', true);
+
+        if ($billed && ! $shift->billed) {
+            $honeycrispError = $this->pushShiftHours($shift);
+            if ($honeycrispError) {
+                return $request->expectsJson()
+                    ? response()->json(['message' => $honeycrispError], 422)
+                    : redirect()->back()->with('error', $honeycrispError);
+            }
+        }
+
         $shift->update(['billed' => $billed]);
         $shift->load(['project', 'user']);
 
@@ -311,5 +337,18 @@ class ShiftController extends Controller
         }
 
         return $query->pluck('projects.id')->toArray();
+    }
+
+    private function pushShiftHours(Shift $shift): ?string
+    {
+        $shift->loadMissing('project');
+        $project = $shift->project;
+        if (! $project || trim((string) ($project->honeycrisp_project_id ?? '')) === '') {
+            return null;
+        }
+
+        $result = app(PushHoursToHoneycrisp::class)($project, collect([$shift]));
+
+        return ($result['ok'] ?? false) ? null : ($result['message'] ?? 'Honeycrisp request failed.');
     }
 }

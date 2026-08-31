@@ -2069,12 +2069,22 @@ body.join-modal-open {
     color: var(--uconn-navy);
 }
 
+.project-overview__flash--error {
+    background: rgba(185, 28, 28, 0.12);
+    color: #8a1f1f;
+}
+
 [data-bs-theme="dark"] .project-overview__flash {
     background: rgba(255, 255, 255, 0.06);
 }
 
 [data-bs-theme="dark"] .project-overview__flash--success {
     color: var(--uconn-blue);
+}
+
+[data-bs-theme="dark"] .project-overview__flash--error {
+    background: rgba(248, 113, 113, 0.16);
+    color: #fecaca;
 }
 
 .project-overview-billing {
@@ -2095,6 +2105,10 @@ body.join-modal-open {
 
 .project-overview-billing__action {
     margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .project-overview-period__row > span {

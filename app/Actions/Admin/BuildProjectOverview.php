@@ -28,6 +28,7 @@ class BuildProjectOverview
                 'id' => $project->id,
                 'name' => $project->name,
                 'active' => $project->active,
+                'honeycrisp_project_id' => $project->honeycrisp_project_id,
             ],
             'all_time' => $allTime,
             'employees' => $this->buildEmployeeRowsAllTime($project->id),

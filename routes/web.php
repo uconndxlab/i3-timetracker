@@ -23,6 +23,7 @@ Route::middleware('entra.auth')->group(function () {
         Route::post('/projects/{project}/users', [AdminController::class, 'assignUsers'])->name('projects.assign-users');
         Route::delete('/projects/{project}/users/{netid}', [AdminController::class, 'removeUser'])->name('projects.remove-user');
         Route::post('/projects/{project}/mark-remaining-billed', [AdminController::class, 'markProjectRemainingBilled'])->name('projects.mark-remaining-billed');
+        Route::post('/projects/{project}/send-honeycrisp-hours', [AdminController::class, 'sendProjectHoursToHoneycrisp'])->name('projects.send-honeycrisp-hours');
         Route::post('/projects/{project}/batch-update-shifts', [AdminController::class, 'batchUpdateShifts'])->name('projects.batch-update-shifts');
         Route::get('/projects/{project}', [DashboardController::class, 'viewProjectOverview'])->name('projects.show');
         Route::get('/users/{user:netid}', [DashboardController::class, 'viewUserLanding'])->name('users.dashboard');

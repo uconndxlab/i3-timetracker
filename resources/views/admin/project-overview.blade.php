@@ -25,6 +25,9 @@
     @if(session('success'))
         <p class="project-overview__flash project-overview__flash--success">{{ session('success') }}</p>
     @endif
+    @if(session('error'))
+        <p class="project-overview__flash project-overview__flash--error">{{ session('error') }}</p>
+    @endif
     @if(session('info'))
         <p class="project-overview__flash">{{ session('info') }}</p>
     @endif
@@ -50,12 +53,28 @@
             </div>
         </dl>
 
-        <form method="post" action="{{ route('admin.projects.mark-remaining-billed', $project['id']) }}" class="project-overview-billing__action" id="markBilledForm">
-            @csrf
-            <button type="submit" class="dashboard-btn dashboard-btn--primary dashboard-btn--sm">
-                Mark all unbilled shifts as billed
-            </button>
-        </form>
+        <div class="project-overview-billing__action">
+            @if(filled($project['honeycrisp_project_id'] ?? null))
+                <form method="post"
+                      action="{{ route('admin.projects.send-honeycrisp-hours', $project['id']) }}"
+                      id="sendHoneycrispForm"
+                      data-confirm="Send {hours} unbilled hrs to Honeycrisp for {{ $project['name'] }}?">
+                    @csrf
+                    <button type="submit" class="dashboard-btn dashboard-btn--primary dashboard-btn--sm">
+                        Send unbilled hours to Honeycrisp
+                    </button>
+                </form>
+            @endif
+            <form method="post"
+                  action="{{ route('admin.projects.mark-remaining-billed', $project['id']) }}"
+                  id="markBilledForm"
+                  data-confirm="Mark {hours} unbilled hrs as billed for {{ $project['name'] }}?">
+                @csrf
+                <button type="submit" class="dashboard-btn dashboard-btn--sm">
+                    Mark hours as billed
+                </button>
+            </form>
+        </div>
     </section>
 
     <hr class="dashboard-stats-divider">
@@ -183,7 +202,7 @@
             </button>
         </div>
         <div class="shift-modal__body">
-            <p class="mb-2">Mark <strong id="markBilledTotal"></strong> unbilled hrs as billed for <strong>{{ $project['name'] }}</strong>?</p>
+            <p class="mb-2" id="markBilledPrompt"></p>
             <ul class="list-unstyled mb-0" id="markBilledEmployeeList"></ul>
         </div>
         <div class="shift-modal__footer">
@@ -300,13 +319,20 @@
     (function () {
         const allTime = @json($allTime);
         const employees = @json($employees);
-        const form = document.getElementById('markBilledForm');
+        const forms = [
+            document.getElementById('sendHoneycrispForm'),
+            document.getElementById('markBilledForm'),
+        ].filter(Boolean);
         const modal = document.getElementById('markBilledModal');
         const backdrop = document.getElementById('markBilledBackdrop');
+        const promptEl = document.getElementById('markBilledPrompt');
+        let pendingForm = null;
 
-        function openModal() {
-            document.getElementById('markBilledTotal').textContent =
-                Number(allTime.unbilled_hours).toFixed(2);
+        function openModal(form) {
+            pendingForm = form;
+            const hours = Number(allTime.unbilled_hours).toFixed(2);
+            promptEl.innerHTML = (form.dataset.confirm || '')
+                .replace('{hours}', `<strong>${hours}</strong>`);
 
             const list = document.getElementById('markBilledEmployeeList');
             list.innerHTML = '';
@@ -325,19 +351,23 @@
         }
 
         function closeModal() {
+            pendingForm = null;
             modal.classList.add('d-none');
             backdrop.classList.add('d-none');
             document.body.classList.remove('shift-modal-open');
         }
 
-        form?.addEventListener('submit', (event) => {
-            event.preventDefault();
-            openModal();
+        forms.forEach((form) => {
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                openModal(form);
+            });
         });
 
         document.getElementById('markBilledConfirm')?.addEventListener('click', () => {
+            const form = pendingForm;
             closeModal();
-            form.submit();
+            form?.submit();
         });
 
         document.getElementById('markBilledCancel')?.addEventListener('click', closeModal);

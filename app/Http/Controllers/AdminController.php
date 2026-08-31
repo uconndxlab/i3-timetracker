@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Admin\PushHoursToHoneycrisp;
 use App\Actions\Projects\AssignUserProject;
 use App\Models\Project;
 use App\Models\Shift;
@@ -30,16 +31,38 @@ class AdminController extends Controller
 
     public function markProjectRemainingBilled(Project $project)
     {
+        $unbilledShifts = $project->shifts()->where('billed', false);
+        $shiftCount = $unbilledShifts->count();
+
+        if ($shiftCount === 0) {
+            return redirect()->back()->with('info', 'No unbilled shifts to mark.');
+        }
+
+        $unbilledShifts->update(['billed' => true]);
+
+        return redirect()->back()->with('success', "{$shiftCount} shift(s) marked as billed successfully.");
+    }
+
+    public function sendProjectHoursToHoneycrisp(Project $project)
+    {
         $unbilledShifts = $project->shifts()->where('billed', false)->get();
         $shiftCount = $unbilledShifts->count();
 
-        if ($shiftCount > 0) {
-            $project->shifts()->where('billed', false)->update(['billed' => true]);
-
-            return redirect()->back()->with('success', "{$shiftCount} shift(s) marked as billed successfully.");
+        if ($shiftCount === 0) {
+            return redirect()->back()->with('info', 'No unbilled shifts to send.');
         }
 
-        return redirect()->back()->with('info', 'No unbilled shifts to mark.');
+        $result = app(PushHoursToHoneycrisp::class)($project, $unbilledShifts);
+        if (! ($result['ok'] ?? false)) {
+            return redirect()->back()->with('error', $result['message']);
+        }
+
+        $project->shifts()
+            ->where('billed', false)
+            ->whereIn('id', $unbilledShifts->pluck('id'))
+            ->update(['billed' => true]);
+
+        return redirect()->back()->with('success', "{$shiftCount} shift(s) sent to Honeycrisp and marked as billed.");
     }
 
     public function batchUpdateShifts(Request $request, Project $project)
