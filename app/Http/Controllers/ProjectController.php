@@ -28,12 +28,14 @@ class ProjectController extends Controller
             'description' => 'nullable|string|max:1000',
             'active' => 'required|boolean',
             'assign_all_users' => 'sometimes|boolean',
+            'honeycrisp_project_id' => 'nullable|string',
         ]);
 
         $project = Project::create([
             'name' => $validatedData['name'],
             'description' => $validatedData['description'],
             'active' => $validatedData['active'],
+            'honeycrisp_project_id' => $validatedData['honeycrisp_project_id'] ?: null,
         ]);
 
         if ($request->input('assign_all_users') == '1') {

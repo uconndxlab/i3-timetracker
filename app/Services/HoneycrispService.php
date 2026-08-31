@@ -10,6 +10,16 @@ class HoneycrispService
 {
     public function products(): array
     {
+        return $this->fetchList('products');
+    }
+
+    public function projects(): array
+    {
+        return $this->fetchList('projects');
+    }
+
+    private function fetchList(string $resource): array
+    {
         $url = rtrim((string) config('services.honeycrisp.url'), '/');
         $facilityId = config('services.honeycrisp.facility_id');
         $token = config('services.honeycrisp.token');
@@ -18,8 +28,9 @@ class HoneycrispService
             return [];
         }
 
-        $cached = Cache::get('honeycrisp.products');
-        if (is_array($cached)) {
+        $cacheKey = "honeycrisp.{$resource}";
+        $cached = Cache::get($cacheKey);
+        if (is_array($cached) && false) {
             return $cached;
         }
 
@@ -27,39 +38,36 @@ class HoneycrispService
             $response = Http::withToken($token)
                 ->acceptJson()
                 ->timeout(10)
-                ->get("{$url}/api/facilities/{$facilityId}/products");
+                ->get("{$url}/api/facilities/{$facilityId}/{$resource}");
         } catch (\Throwable $e) {
-            Log::warning('Honeycrisp products fetch failed', ['message' => $e->getMessage()]);
+            Log::warning("Honeycrisp {$resource} fetch failed", ['message' => $e->getMessage()]);
 
             return [];
         }
 
         if (! $response->successful()) {
-            Log::warning('Honeycrisp products request unsuccessful', ['status' => $response->status()]);
+            Log::warning("Honeycrisp {$resource} request unsuccessful", ['status' => $response->status()]);
 
             return [];
         }
 
-        $products = $this->normalize($response->json());
-        Cache::put('honeycrisp.products', $products, 300);
+        $items = $this->normalize($response->json());
+        Cache::put($cacheKey, $items, 300);
 
-        return $products;
+        return $items;
     }
 
     private function normalize(mixed $payload): array
     {
-        $items = is_array($payload) && array_key_exists('data', $payload)
-            ? $payload['data']
-            : $payload;
+        $items = is_array($payload) ? ($payload['data'] ?? []) : [];
 
         if (! is_array($items)) {
             return [];
         }
 
-        $list = array_is_list($items) ? $items : [$items];
-        $products = [];
+        $normalized = [];
 
-        foreach ($list as $item) {
+        foreach ($items as $item) {
             if (! is_array($item)) {
                 continue;
             }
@@ -69,12 +77,12 @@ class HoneycrispService
                 continue;
             }
 
-            $products[] = [
+            $normalized[] = [
                 'id' => (string) $id,
-                'name' => (string) ($item['name'] ?? $item['label'] ?? $id),
+                'name' => (string) ($item['name'] ?? $id),
             ];
         }
 
-        return $products;
+        return $normalized;
     }
 }

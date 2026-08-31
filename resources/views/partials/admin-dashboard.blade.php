@@ -8,6 +8,8 @@
     $dateTo = $adminDashboard['date_to'] ?? null;
     $products = $adminDashboard['products'] ?? [];
     $productNames = collect($products)->pluck('name', 'id');
+    $honeycrispProjects = $adminDashboard['honeycrisp_projects'] ?? [];
+    $honeycrispProjectNames = collect($honeycrispProjects)->pluck('name', 'id');
     $navbarView = $navbarView ?? 'user';
     $adminTable = request()->query('admin_table', 'project');
     if (! in_array($adminTable, ['shift', 'employee', 'project'], true)) {
@@ -187,7 +189,7 @@
         </div>
     </div>
 
-    <div class="i3-data-table i3-data-table--5col{{ $adminTable === 'project' ? '' : ' d-none' }}" id="adminProjectPanel">
+    <div class="i3-data-table i3-data-table--6col{{ $adminTable === 'project' ? '' : ' d-none' }}" id="adminProjectPanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
                 <div class="i3-data-table__head" data-admin-sort-panel="project">
@@ -196,16 +198,24 @@
                     <button type="button" class="i3-data-table__sort-btn" data-admin-sort="total" data-sort-type="number">Total Hours</button>
                     <button type="button" class="i3-data-table__sort-btn" data-admin-sort="top_employee" data-sort-type="text">Top Employee</button>
                     <button type="button" class="i3-data-table__sort-btn" data-admin-sort="last_shift" data-sort-type="date">Last Shift Date</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="honeycrisp" data-sort-type="text">Honeycrisp</button>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminProjectList">
                     @forelse($activeRange['project_rows'] ?? [] as $row)
+                    @php
+                        $selectedHoneycrispId = (string) ($row['honeycrisp_project_id'] ?? '');
+                        $selectedHoneycrispName = $selectedHoneycrispId !== ''
+                            ? ($honeycrispProjectNames[$selectedHoneycrispId] ?? $selectedHoneycrispId)
+                            : '';
+                    @endphp
                     <li class="i3-data-table__row"
-                        data-search="{{ strtolower($row['name'].' '.$row['top_employee']) }}"
+                        data-search="{{ strtolower($row['name'].' '.$row['top_employee'].' '.$selectedHoneycrispName) }}"
                         data-sort-name="{{ strtolower($row['name']) }}"
                         data-sort-unbilled="{{ $row['unbilled_hours'] }}"
                         data-sort-total="{{ $row['total_hours'] }}"
                         data-sort-top-employee="{{ strtolower($row['top_employee']) }}"
-                        data-sort-last-shift="{{ $row['last_shift_date_sort'] ?? '' }}">
+                        data-sort-last-shift="{{ $row['last_shift_date_sort'] ?? '' }}"
+                        data-sort-honeycrisp="{{ strtolower($selectedHoneycrispName) }}">
                         <span class="i3-data-table__label" data-label="Project">
                             <span class="i3-hash">#</span>
                             <a href="{{ route('admin.projects.show', ['project' => $row['id']]) }}" class="i3-link admin-project-link">
@@ -216,6 +226,20 @@
                         <span data-label="Total Hrs">{{ number_format($row['total_hours'], 2) }}</span>
                         <span data-label="Top Employee">{{ $row['top_employee'] }}</span>
                         <span data-label="Last Shift">{{ $row['last_shift_date'] ?? '—' }}</span>
+                        <span data-label="Honeycrisp">
+                            <select class="dashboard-select form-select admin-honeycrisp-project-select"
+                                    data-project-id="{{ $row['id'] }}"
+                                    data-previous="{{ $selectedHoneycrispId }}"
+                                    aria-label="Honeycrisp project for {{ $row['name'] }}">
+                                <option value="">—</option>
+                                @foreach($honeycrispProjects as $honeycrispProject)
+                                    <option value="{{ $honeycrispProject['id'] }}" @selected($selectedHoneycrispId === (string) $honeycrispProject['id'])>{{ $honeycrispProject['name'] }}</option>
+                                @endforeach
+                                @if($selectedHoneycrispId !== '' && ! $honeycrispProjectNames->has($selectedHoneycrispId))
+                                    <option value="{{ $selectedHoneycrispId }}" selected>{{ $selectedHoneycrispId }}</option>
+                                @endif
+                            </select>
+                        </span>
                     </li>
                     @empty
                         <li class="i3-data-table__empty">{{ $hasDateFilter ? 'No project shift data in this date range.' : 'No project shift data yet.' }}</li>

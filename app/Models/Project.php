@@ -13,6 +13,7 @@ class Project extends Model
         'name',
         'description',
         'active',
+        'honeycrisp_project_id',
     ];
 
     protected $casts = [

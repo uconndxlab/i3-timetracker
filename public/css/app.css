@@ -1171,7 +1171,8 @@ body {
     width: 100%;
 }
 
-.i3-data-table--6col .admin-product-select {
+.i3-data-table--6col .admin-product-select,
+.i3-data-table--6col .admin-honeycrisp-project-select {
     width: 100%;
     min-width: 0;
     text-align: left;

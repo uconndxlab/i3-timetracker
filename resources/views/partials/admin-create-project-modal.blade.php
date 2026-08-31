@@ -38,6 +38,20 @@
                     </div>
                 </div>
 
+                <div class="shift-modal__field">
+                    <label class="shift-modal__field-label" for="createProjectHoneycrisp">Honeycrisp:</label>
+                    <div class="shift-modal__field-control">
+                        <select class="form-select shift-modal__select"
+                                id="createProjectHoneycrisp"
+                                name="honeycrisp_project_id">
+                            <option value="">—</option>
+                            @foreach($honeycrispProjects as $honeycrispProject)
+                                <option value="{{ $honeycrispProject['id'] }}">{{ $honeycrispProject['name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
                 <div class="shift-modal__footer-checks flex-column align-items-start gap-2 mt-2">
                     <label class="i3-check">
                         <input type="hidden" name="active" value="0">

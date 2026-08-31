@@ -28,6 +28,8 @@ class BuildAdminDashboard
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        $honeycrisp = app(HoneycrispService::class);
+
         return [
             'date_from' => $dateFrom,
             'date_to' => $dateTo,
@@ -40,7 +42,8 @@ class BuildAdminDashboard
             ),
             'org_stats' => $this->buildOrgStats($dateFrom, $dateTo, $hasDateFilter),
             'hours_timeline' => app(BuildHoursTimeline::class)(null),
-            'products' => app(HoneycrispService::class)->products(),
+            'products' => $honeycrisp->products(),
+            'honeycrisp_projects' => $honeycrisp->projects(),
             'projects' => $activeProjects
                 ->map(fn (Project $project) => [
                     'id' => $project->id,
@@ -57,10 +60,11 @@ class BuildAdminDashboard
 
         $userNames = User::query()->pluck('name', 'netid');
         $productIds = User::query()->pluck('honeycrisp_product_id', 'netid');
+        $honeycrispProjectIds = Project::query()->pluck('honeycrisp_project_id', 'id');
 
         if ($hasDateFilter) {
             $employees = $this->buildEmployeeRowsForRange($shifts, $userNames, $productIds);
-            $projectRows = $this->buildProjectRowsForRange($shifts);
+            $projectRows = $this->buildProjectRowsForRange($shifts, $honeycrispProjectIds);
             $days = $this->buildDailySeriesForRange($shifts, $startDate, $endDate);
         } else {
             $allTimeByUser = $this->loadAllTimeByUser();
@@ -83,6 +87,7 @@ class BuildAdminDashboard
                 $allTimeByProject,
                 $topEmployeeByProject,
                 $projectNames,
+                $honeycrispProjectIds,
             );
             $days = [];
         }
@@ -249,14 +254,16 @@ class BuildAdminDashboard
      * @param  Collection<int|string, object>  $allTimeByProject
      * @param  Collection<int|string, object>  $topEmployeeByProject
      * @param  Collection<int|string, string>  $projectNames
+     * @param  Collection<int|string, string|null>  $honeycrispProjectIds
      */
     private function buildProjectRowsAllTime(
         Collection $allTimeByProject,
         Collection $topEmployeeByProject,
         Collection $projectNames,
+        Collection $honeycrispProjectIds,
     ): array {
         return $projectNames
-            ->map(function (string $name, $projectId) use ($allTimeByProject, $topEmployeeByProject) {
+            ->map(function (string $name, $projectId) use ($allTimeByProject, $topEmployeeByProject, $honeycrispProjectIds) {
                 $allTime = $allTimeByProject->get($projectId);
                 $topEmployee = $topEmployeeByProject->get($projectId);
                 $unbilledHours = round(((int) ($allTime->unbilled_minutes ?? 0)) / 60, 2);
@@ -272,6 +279,7 @@ class BuildAdminDashboard
                         ? Carbon::parse($allTime->last_date)->format('n/j/y')
                         : null,
                     'last_shift_date_sort' => $allTime->last_date ?? '',
+                    'honeycrisp_project_id' => $honeycrispProjectIds->get($projectId),
                 ];
             })
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
@@ -279,7 +287,10 @@ class BuildAdminDashboard
             ->all();
     }
 
-    private function buildProjectRowsForRange(Collection $shifts): array
+    /**
+     * @param  Collection<int|string, string|null>  $honeycrispProjectIds
+     */
+    private function buildProjectRowsForRange(Collection $shifts, Collection $honeycrispProjectIds): array
     {
         $projectNames = Project::query()
             ->where('active', true)
@@ -289,8 +300,9 @@ class BuildAdminDashboard
         $shiftsByProject = $shifts->groupBy('proj_id');
 
         return $projectNames
-            ->map(function (string $name, $projectId) use ($shiftsByProject) {
+            ->map(function (string $name, $projectId) use ($shiftsByProject, $honeycrispProjectIds) {
                 $projectShifts = $shiftsByProject->get($projectId, collect());
+                $honeycrispProjectId = $honeycrispProjectIds->get($projectId);
 
                 if ($projectShifts->isEmpty()) {
                     return [
@@ -301,6 +313,7 @@ class BuildAdminDashboard
                         'top_employee' => '—',
                         'last_shift_date' => null,
                         'last_shift_date_sort' => '',
+                        'honeycrisp_project_id' => $honeycrispProjectId,
                     ];
                 }
 
@@ -332,6 +345,7 @@ class BuildAdminDashboard
                     'last_shift_date_sort' => $lastDate
                         ? Carbon::parse($lastDate)->format('Y-m-d')
                         : '',
+                    'honeycrisp_project_id' => $honeycrispProjectId,
                 ];
             })
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)

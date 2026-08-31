@@ -122,6 +122,19 @@ class AdminController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function updateHoneycrispProject(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'honeycrisp_project_id' => 'nullable|string',
+        ]);
+
+        $project->update([
+            'honeycrisp_project_id' => $validated['honeycrisp_project_id'] ?: null,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function toggleAdmin(User $user)
     {
         if ($user->netid === auth()->user()->netid) {

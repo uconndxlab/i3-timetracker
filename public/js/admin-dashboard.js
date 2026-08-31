@@ -26,6 +26,7 @@
     let csrfToken = config.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content || '';
     const shiftBaseUrl = config.shiftBaseUrl || '/shifts';
     const productUrlTemplate = config.productUrlTemplate || '/admin/users/__NETID__/product';
+    const honeycrispProjectUrlTemplate = config.honeycrispProjectUrlTemplate || '/admin/projects/__PROJECT__/honeycrisp';
 
     const searchPlaceholders = {
         employee: 'Search through employees . . .',
@@ -213,6 +214,34 @@
         return data;
     };
 
+    const setHoneycrispProject = async (projectId, honeycrispProjectId) => {
+        const formData = new FormData();
+        formData.append('_token', csrfToken);
+        formData.append('honeycrisp_project_id', honeycrispProjectId);
+
+        const response = await fetch(honeycrispProjectUrlTemplate.replace('__PROJECT__', encodeURIComponent(projectId)), {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data.message || `Request failed (${response.status})`);
+        }
+
+        if (data.csrf_token) {
+            csrfToken = data.csrf_token;
+        }
+
+        return data;
+    };
+
     const setProduct = async (netid, productId) => {
         const formData = new FormData();
         formData.append('_token', csrfToken);
@@ -320,6 +349,31 @@
             alert(error.message || 'Could not update billed status. Please try again.');
         }).finally(() => {
             billedBtn.disabled = false;
+        });
+    });
+
+    projectList?.addEventListener('change', (event) => {
+        const select = event.target.closest('.admin-honeycrisp-project-select');
+        if (!select || select.disabled) {
+            return;
+        }
+
+        const projectId = select.dataset.projectId;
+        if (!projectId) {
+            return;
+        }
+
+        const previous = select.dataset.previous || '';
+        const next = select.value;
+        select.disabled = true;
+
+        setHoneycrispProject(projectId, next).then(() => {
+            select.dataset.previous = next;
+        }).catch((error) => {
+            select.value = previous;
+            alert(error.message || 'Could not update Honeycrisp project. Please try again.');
+        }).finally(() => {
+            select.disabled = false;
         });
     });
 
