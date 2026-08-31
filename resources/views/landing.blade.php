@@ -135,6 +135,7 @@
         landingUrl: @json(route('landing', ['view' => 'admin'])),
         projectsStoreUrl: @json(route('projects.store')),
         shiftBaseUrl: @json(url('/shifts')),
+        productUrlTemplate: @json(route('admin.users.product', ['user' => '__NETID__'])),
         csrfToken: @json(csrf_token()),
         @if($adminDashboard ?? null)
         dateFrom: @json($adminDashboard['date_from'] ?? null),

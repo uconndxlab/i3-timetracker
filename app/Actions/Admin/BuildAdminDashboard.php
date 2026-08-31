@@ -8,6 +8,7 @@ use App\Actions\Shifts\BuildHoursTimeline;
 use App\Models\Project;
 use App\Models\Shift;
 use App\Models\User;
+use App\Services\HoneycrispService;
 use App\Support\PayPeriod;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -39,6 +40,7 @@ class BuildAdminDashboard
             ),
             'org_stats' => $this->buildOrgStats($dateFrom, $dateTo, $hasDateFilter),
             'hours_timeline' => app(BuildHoursTimeline::class)(null),
+            'products' => app(HoneycrispService::class)->products(),
             'projects' => $activeProjects
                 ->map(fn (Project $project) => [
                     'id' => $project->id,
@@ -53,8 +55,11 @@ class BuildAdminDashboard
     {
         $shifts = $this->loadShifts($startDate, $endDate);
 
+        $userNames = User::query()->pluck('name', 'netid');
+        $productIds = User::query()->pluck('honeycrisp_product_id', 'netid');
+
         if ($hasDateFilter) {
-            $employees = $this->buildEmployeeRowsForRange($shifts);
+            $employees = $this->buildEmployeeRowsForRange($shifts, $userNames, $productIds);
             $projectRows = $this->buildProjectRowsForRange($shifts);
             $days = $this->buildDailySeriesForRange($shifts, $startDate, $endDate);
         } else {
@@ -66,13 +71,13 @@ class BuildAdminDashboard
                 ->where('active', true)
                 ->orderBy('name')
                 ->pluck('name', 'id');
-            $userNames = User::query()->pluck('name', 'netid');
 
             $employees = $this->buildEmployeeRowsAllTime(
                 $allTimeByUser,
                 $topProjectByUser,
                 $projectNames,
                 $userNames,
+                $productIds,
             );
             $projectRows = $this->buildProjectRowsAllTime(
                 $allTimeByProject,
@@ -172,9 +177,10 @@ class BuildAdminDashboard
         Collection $topProjectByUser,
         Collection $projectNames,
         Collection $userNames,
+        Collection $productIds,
     ): array {
         return $allTimeByUser
-            ->map(function (object $allTime, string $netid) use ($topProjectByUser, $projectNames, $userNames) {
+            ->map(function (object $allTime, string $netid) use ($topProjectByUser, $projectNames, $userNames, $productIds) {
                 $topProject = $topProjectByUser->get($netid);
                 $unbilledHours = round(((int) ($allTime->unbilled_minutes ?? 0)) / 60, 2);
                 $totalHours = round(((int) ($allTime->total_minutes ?? 0)) / 60, 2);
@@ -189,6 +195,7 @@ class BuildAdminDashboard
                         ? Carbon::parse($allTime->last_date)->format('n/j/y')
                         : null,
                     'last_shift_date_sort' => $allTime->last_date ?? '',
+                    'honeycrisp_product_id' => $productIds->get($netid),
                 ];
             })
             ->filter(fn (array $row) => $row['unbilled_hours'] > 0 || $row['total_hours'] > 0)
@@ -197,14 +204,13 @@ class BuildAdminDashboard
             ->all();
     }
 
-    private function buildEmployeeRowsForRange(Collection $shifts): array
+    private function buildEmployeeRowsForRange(Collection $shifts, Collection $userNames, Collection $productIds): array
     {
-        $userNames = User::query()->pluck('name', 'netid');
         $projectNames = Project::query()->pluck('name', 'id');
 
         return $shifts
             ->groupBy('netid')
-            ->map(function (Collection $employeeShifts, string $netid) use ($userNames, $projectNames) {
+            ->map(function (Collection $employeeShifts, string $netid) use ($userNames, $projectNames, $productIds) {
                 $totalMinutes = $employeeShifts->sum(fn ($shift) => $shift->duration ?? 0);
                 $unbilledMinutes = $employeeShifts
                     ->filter(fn ($shift) => ! $shift->billed)
@@ -231,6 +237,7 @@ class BuildAdminDashboard
                     'last_shift_date_sort' => $lastDate
                         ? Carbon::parse($lastDate)->format('Y-m-d')
                         : '',
+                    'honeycrisp_product_id' => $productIds->get($netid),
                 ];
             })
             ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)

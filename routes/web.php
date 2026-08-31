@@ -27,6 +27,7 @@ Route::middleware('entra.auth')->group(function () {
         Route::get('/projects/{project}', [DashboardController::class, 'viewProjectOverview'])->name('projects.show');
         Route::get('/users/{user:netid}', [DashboardController::class, 'viewUserLanding'])->name('users.dashboard');
         Route::get('/users/{user:netid}/annual', [DashboardController::class, 'viewUserAnnual'])->name('users.annual');
+        Route::post('/users/{user:netid}/product', [AdminController::class, 'updateProduct'])->name('users.product');
         Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');
     });
 

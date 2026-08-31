@@ -1120,6 +1120,12 @@ body {
     --i3-row-py: 0.5rem;
 }
 
+.i3-data-table--6col {
+    --i3-cols: minmax(10rem, 1.4fr) repeat(4, minmax(5rem, 1fr)) minmax(8rem, 1.3fr);
+    --i3-gap: 0.75rem;
+    --i3-row-py: 0.5rem;
+}
+
 .i3-data-table--7col {
     --i3-cols: minmax(8rem, 1.2fr) minmax(8rem, 1.2fr) minmax(4.5rem, 0.7fr) repeat(3, minmax(4rem, 0.6fr)) minmax(3.5rem, auto);
     --i3-gap: 0.75rem;
@@ -1136,17 +1142,21 @@ body {
     min-width: 34rem;
 }
 
+.i3-data-table--6col .i3-data-table__scroll-inner {
+    min-width: 44rem;
+}
+
 .i3-data-table--7col .i3-data-table__scroll-inner {
     min-width: 40rem;
 }
 
-:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__head,
-:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
+:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--6col, .i3-data-table--7col) .i3-data-table__head,
+:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--6col, .i3-data-table--7col) .i3-data-table__row {
     grid-template-columns: var(--i3-cols);
     gap: var(--i3-gap);
 }
 
-:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
+:is(.i3-data-table--2col, .i3-data-table--3col, .i3-data-table--5col, .i3-data-table--6col, .i3-data-table--7col) .i3-data-table__row {
     padding: var(--i3-row-py) 0;
 }
 
@@ -1155,9 +1165,16 @@ body {
 }
 
 .i3-data-table--5col .i3-data-table__row > span:not(:first-child),
+.i3-data-table--6col .i3-data-table__row > span:not(:first-child):not(:last-child),
 .i3-data-table--7col .i3-data-table__row > span:nth-child(n+3):not(.i3-data-table__actions) {
     justify-self: end;
     width: 100%;
+}
+
+.i3-data-table--6col .admin-product-select {
+    width: 100%;
+    min-width: 0;
+    text-align: left;
 }
 
 .i3-data-table__actions {
@@ -1518,12 +1535,16 @@ body {
         min-width: 30rem;
     }
 
+    .i3-data-table--6col .i3-data-table__scroll-inner {
+        min-width: 40rem;
+    }
+
     .i3-data-table--7col .i3-data-table__scroll-inner {
         min-width: 36rem;
     }
 
-    :is(.i3-data-table--5col, .i3-data-table--7col) .i3-data-table__head,
-    :is(.i3-data-table--5col, .i3-data-table--7col) .i3-data-table__row {
+    :is(.i3-data-table--5col, .i3-data-table--6col, .i3-data-table--7col) .i3-data-table__head,
+    :is(.i3-data-table--5col, .i3-data-table--6col, .i3-data-table--7col) .i3-data-table__row {
         font-size: 0.72rem;
     }
 

@@ -16,6 +16,7 @@ class User extends Authenticatable
         'email',
         'active',
         'annual_cal_view',
+        'honeycrisp_product_id',
     ];
 
     protected $guarded = [

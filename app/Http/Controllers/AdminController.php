@@ -109,6 +109,19 @@ class AdminController extends Controller
             ->with('success', 'User successfully removed from project.');
     }
 
+    public function updateProduct(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'product_id' => 'nullable|string',
+        ]);
+
+        $user->update([
+            'honeycrisp_product_id' => $validated['product_id'] ?: null,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function toggleAdmin(User $user)
     {
         if ($user->netid === auth()->user()->netid) {

@@ -41,4 +41,10 @@ return [
         'client_secret' => env('ENTRA_CLIENT_SECRET'),
         'redirect' => env('ENTRA_REDIRECT_URI'),
     ],
+
+    'honeycrisp' => [
+        'url' => env('HONEYCRISP_URL'),
+        'facility_id' => env('HONEYCRISP_FACILITY_ID'),
+        'token' => env('HONEYCRISP_TOKEN'),
+    ],
 ];

@@ -6,6 +6,8 @@
     $hasDateFilter = $adminDashboard['has_date_filter'] ?? false;
     $dateFrom = $adminDashboard['date_from'] ?? null;
     $dateTo = $adminDashboard['date_to'] ?? null;
+    $products = $adminDashboard['products'] ?? [];
+    $productNames = collect($products)->pluck('name', 'id');
     $navbarView = $navbarView ?? 'user';
     $adminTable = request()->query('admin_table', 'project');
     if (! in_array($adminTable, ['shift', 'employee', 'project'], true)) {
@@ -127,7 +129,7 @@
         </div>
     </div>
 
-    <div class="i3-data-table i3-data-table--5col{{ $adminTable === 'employee' ? '' : ' d-none' }}" id="adminEmployeePanel">
+    <div class="i3-data-table i3-data-table--6col{{ $adminTable === 'employee' ? '' : ' d-none' }}" id="adminEmployeePanel">
         <div class="i3-data-table__scroll">
             <div class="i3-data-table__scroll-inner">
                 <div class="i3-data-table__head" data-admin-sort-panel="employee">
@@ -136,16 +138,24 @@
                     <button type="button" class="i3-data-table__sort-btn" data-admin-sort="total" data-sort-type="number">Total Hours</button>
                     <button type="button" class="i3-data-table__sort-btn" data-admin-sort="top_project" data-sort-type="text">Top Project</button>
                     <button type="button" class="i3-data-table__sort-btn" data-admin-sort="last_shift" data-sort-type="date">Last Shift Date</button>
+                    <button type="button" class="i3-data-table__sort-btn" data-admin-sort="product" data-sort-type="text">Product</button>
                 </div>
                 <ul class="i3-data-table__body i3-data-table__body--lg list-unstyled mb-0" id="adminEmployeeList">
                     @forelse($activeRange['employees'] ?? [] as $row)
+                    @php
+                        $selectedProductId = (string) ($row['honeycrisp_product_id'] ?? '');
+                        $selectedProductName = $selectedProductId !== ''
+                            ? ($productNames[$selectedProductId] ?? $selectedProductId)
+                            : '';
+                    @endphp
                     <li class="i3-data-table__row"
-                        data-search="{{ strtolower($row['name'].' '.$row['top_project']) }}"
+                        data-search="{{ strtolower($row['name'].' '.$row['top_project'].' '.$selectedProductName) }}"
                         data-sort-name="{{ strtolower($row['name']) }}"
                         data-sort-unbilled="{{ $row['unbilled_hours'] }}"
                         data-sort-total="{{ $row['total_hours'] }}"
                         data-sort-top-project="{{ strtolower($row['top_project']) }}"
-                        data-sort-last-shift="{{ $row['last_shift_date_sort'] ?? '' }}">
+                        data-sort-last-shift="{{ $row['last_shift_date_sort'] ?? '' }}"
+                        data-sort-product="{{ strtolower($selectedProductName) }}">
                         <span class="i3-data-table__label" data-label="Employee">
                             <span class="i3-hash">#</span>
                             <a href="{{ route('admin.users.dashboard', ['user' => $row['netid']]) }}" class="i3-link">{{ $row['name'] }}</a>
@@ -154,6 +164,20 @@
                         <span data-label="Total Hrs">{{ number_format($row['total_hours'], 2) }}</span>
                         <span data-label="Top Project"><span class="i3-hash">#</span> {{ $row['top_project'] }}</span>
                         <span data-label="Last Shift">{{ $row['last_shift_date'] ?? '—' }}</span>
+                        <span data-label="Product">
+                            <select class="dashboard-select form-select admin-product-select"
+                                    data-netid="{{ $row['netid'] }}"
+                                    data-previous="{{ $selectedProductId }}"
+                                    aria-label="Honeycrisp product for {{ $row['name'] }}">
+                                <option value="">—</option>
+                                @foreach($products as $product)
+                                    <option value="{{ $product['id'] }}" @selected($selectedProductId === (string) $product['id'])>{{ $product['name'] }}</option>
+                                @endforeach
+                                @if($selectedProductId !== '' && ! $productNames->has($selectedProductId))
+                                    <option value="{{ $selectedProductId }}" selected>{{ $selectedProductId }}</option>
+                                @endif
+                            </select>
+                        </span>
                     </li>
                     @empty
                         <li class="i3-data-table__empty">{{ $hasDateFilter ? 'No employee shift data in this date range.' : 'No employee shift data yet.' }}</li>

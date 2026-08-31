@@ -25,6 +25,7 @@
 
     let csrfToken = config.csrfToken || document.querySelector('meta[name="csrf-token"]')?.content || '';
     const shiftBaseUrl = config.shiftBaseUrl || '/shifts';
+    const productUrlTemplate = config.productUrlTemplate || '/admin/users/__NETID__/product';
 
     const searchPlaceholders = {
         employee: 'Search through employees . . .',
@@ -212,6 +213,34 @@
         return data;
     };
 
+    const setProduct = async (netid, productId) => {
+        const formData = new FormData();
+        formData.append('_token', csrfToken);
+        formData.append('product_id', productId);
+
+        const response = await fetch(productUrlTemplate.replace('__NETID__', encodeURIComponent(netid)), {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data.message || `Request failed (${response.status})`);
+        }
+
+        if (data.csrf_token) {
+            csrfToken = data.csrf_token;
+        }
+
+        return data;
+    };
+
     const applyDateFilter = () => {
         const dateFrom = dateFromInput?.value || '';
         const dateTo = dateToInput?.value || '';
@@ -291,6 +320,31 @@
             alert(error.message || 'Could not update billed status. Please try again.');
         }).finally(() => {
             billedBtn.disabled = false;
+        });
+    });
+
+    employeeList?.addEventListener('change', (event) => {
+        const select = event.target.closest('.admin-product-select');
+        if (!select || select.disabled) {
+            return;
+        }
+
+        const netid = select.dataset.netid;
+        if (!netid) {
+            return;
+        }
+
+        const previous = select.dataset.previous || '';
+        const next = select.value;
+        select.disabled = true;
+
+        setProduct(netid, next).then(() => {
+            select.dataset.previous = next;
+        }).catch((error) => {
+            select.value = previous;
+            alert(error.message || 'Could not update product. Please try again.');
+        }).finally(() => {
+            select.disabled = false;
         });
     });
 
