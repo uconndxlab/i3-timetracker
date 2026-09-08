@@ -7,6 +7,7 @@ use App\Actions\Projects\AssignUserProject;
 use App\Models\Project;
 use App\Models\Shift;
 use App\Models\User;
+use App\Services\HoneycrispService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -156,6 +157,14 @@ class AdminController extends Controller
         ]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function refreshHoneycrispLists(HoneycrispService $honeycrisp)
+    {
+        $honeycrisp->clearListCache();
+
+        return redirect()->back()
+            ->with('message', 'Honeycrisp projects and products refreshed.');
     }
 
     public function toggleAdmin(User $user)

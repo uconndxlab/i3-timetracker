@@ -1474,6 +1474,10 @@ body {
         align-items: stretch !important;
     }
 
+    .dashboard-action-form {
+        width: 100%;
+    }
+
     .dashboard-actions .dashboard-btn {
         width: 100%;
         justify-content: center;

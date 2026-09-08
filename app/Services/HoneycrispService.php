@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Log;
 
 class HoneycrispService
 {
+    private const LIST_CACHE_KEYS = [
+        'honeycrisp.products',
+        'honeycrisp.projects',
+    ];
+
     public function products(): array
     {
         return $this->fetchList('products');
@@ -17,6 +22,13 @@ class HoneycrispService
     public function projects(): array
     {
         return $this->fetchList('projects');
+    }
+
+    public function clearListCache(): void
+    {
+        foreach (self::LIST_CACHE_KEYS as $cacheKey) {
+            Cache::forget($cacheKey);
+        }
     }
 
     /**

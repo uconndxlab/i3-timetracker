@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EntraController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ShiftController;
-use App\Http\Controllers\EntraController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [EntraController::class, 'redirect'])
@@ -30,6 +30,7 @@ Route::middleware('entra.auth')->group(function () {
         Route::get('/users/{user:netid}/annual', [DashboardController::class, 'viewUserAnnual'])->name('users.annual');
         Route::post('/users/{user:netid}/product', [AdminController::class, 'updateProduct'])->name('users.product');
         Route::post('/projects/{project}/honeycrisp', [AdminController::class, 'updateHoneycrispProject'])->name('projects.honeycrisp');
+        Route::post('/honeycrisp/refresh', [AdminController::class, 'refreshHoneycrispLists'])->name('honeycrisp.refresh');
         Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');
     });
 

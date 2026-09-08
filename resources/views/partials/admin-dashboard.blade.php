@@ -18,7 +18,13 @@
 @endphp
 
 <div class="dashboard {{ $navbarView === 'admin' ? '' : 'd-none' }}" id="adminDashboard">
-    <div class="dashboard-actions d-flex flex-wrap justify-content-end gap-2 mb-3">
+    <div class="dashboard-actions d-flex flex-wrap justify-content-between gap-2 mb-3">
+        <form method="POST" action="{{ route('admin.honeycrisp.refresh') }}" class="dashboard-action-form">
+            @csrf
+            <button type="submit" class="dashboard-btn dashboard-btn--dark" title="Fetch the latest Honeycrisp projects and products">
+                <i class="bi bi-arrow-clockwise me-2"></i>Refresh Honeycrisp
+            </button>
+        </form>
         <button type="button" class="dashboard-btn dashboard-btn--primary" id="openCreateProjectModalBtn">
             <i class="bi bi-plus-lg me-2"></i>New Project
         </button>
