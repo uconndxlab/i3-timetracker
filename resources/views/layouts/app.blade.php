@@ -152,6 +152,9 @@
                     <span class="navbar-username text-nowrap d-none d-sm-inline">
                         {{ Auth::user()->name ?? 'User' }}
                     </span>
+                    <a href="https://ess.uconn.edu" class="btn btn-sm navbar-logout-btn text-nowrap">
+                        CoreCT
+                    </a>
                     <a href="{{ route('logout') }}" class="btn btn-sm navbar-logout-btn text-nowrap">
                         Logout <i class="bi bi-box-arrow-right ms-1"></i>
                     </a>
