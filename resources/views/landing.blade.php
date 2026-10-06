@@ -134,6 +134,7 @@
     window.adminDashboardConfig = {
         landingUrl: @json(route('landing', ['view' => 'admin'])),
         projectsStoreUrl: @json(route('projects.store')),
+        usersApproveUrl: @json(route('admin.users.approve')),
         shiftBaseUrl: @json(url('/shifts')),
         csrfToken: @json(csrf_token()),
         @if($adminDashboard ?? null)
@@ -155,6 +156,7 @@
 @endunless
 @if($isAdminViewer ?? false)
 <script defer src="{{ asset('js/admin-create-project-modal.js') }}"></script>
+<script defer src="{{ asset('js/admin-approve-user-modal.js') }}"></script>
 <script defer src="{{ asset('js/admin-dashboard.js') }}"></script>
 @endif
 @endpush

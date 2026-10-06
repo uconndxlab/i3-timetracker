@@ -15,6 +15,9 @@
 
 <div class="dashboard {{ $navbarView === 'admin' ? '' : 'd-none' }}" id="adminDashboard">
     <div class="dashboard-actions d-flex flex-wrap justify-content-end gap-2 mb-3">
+        <button type="button" class="dashboard-btn dashboard-btn--dark" id="openApproveUserModalBtn">
+            <i class="bi bi-person-plus me-2"></i>Approve User
+        </button>
         <button type="button" class="dashboard-btn dashboard-btn--primary" id="openCreateProjectModalBtn">
             <i class="bi bi-plus-lg me-2"></i>New Project
         </button>
@@ -202,6 +205,7 @@
     </div>
 
     @include('partials.admin-create-project-modal')
+    @include('partials.admin-approve-user-modal')
 
     <hr class="dashboard-stats-divider">
 

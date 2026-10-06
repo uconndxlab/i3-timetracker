@@ -123,4 +123,80 @@ class AdminController extends Controller
         return redirect()->route('landing', ['view' => 'admin'])
             ->with('message', "Admin privileges {$status} for {$user->name}.");
     }
+
+    public function approveUser(Request $request)
+    {
+        $validated = $request->validate([
+            'netid' => ['required', 'string', 'max:64', 'regex:/^[a-zA-Z0-9._-]+$/'],
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+        ]);
+
+        $netid = strtolower(trim($validated['netid']));
+        $email = $validated['email'] ?? ($netid.'@uconn.edu');
+        $existing = User::where('netid', $netid)->first();
+
+        if ($existing && $existing->active) {
+            $message = "User with NetID {$netid} is already approved.";
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'errors' => ['netid' => [$message]],
+                ], 422);
+            }
+
+            return redirect()->route('landing', ['view' => 'admin'])->with('error', $message);
+        }
+
+        if (
+            User::where('email', $email)
+                ->when($existing, fn ($query) => $query->where('id', '!=', $existing->id))
+                ->exists()
+        ) {
+            $message = 'That email is already in use.';
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $message,
+                    'errors' => ['email' => [$message]],
+                ], 422);
+            }
+
+            return redirect()->route('landing', ['view' => 'admin'])->with('error', $message);
+        }
+
+        if ($existing) {
+            $existing->update([
+                'name' => $validated['name'],
+                'email' => $email,
+                'active' => true,
+            ]);
+            $user = $existing;
+            $message = "Re-approved access for {$netid}.";
+        } else {
+            $user = User::create([
+                'netid' => $netid,
+                'name' => $validated['name'],
+                'email' => $email,
+                'active' => true,
+            ]);
+            $message = "Approved access for {$netid}.";
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => $message,
+                'user' => [
+                    'netid' => $user->netid,
+                    'name' => $user->name,
+                ],
+                'redirect_url' => route('landing', ['view' => 'admin']),
+                'csrf_token' => csrf_token(),
+            ]);
+        }
+
+        return redirect()->route('landing', ['view' => 'admin'])
+            ->with('success', $message);
+    }
 }

@@ -28,6 +28,7 @@ Route::middleware('entra.auth')->group(function () {
         Route::get('/users/{user:netid}', [DashboardController::class, 'viewUserLanding'])->name('users.dashboard');
         Route::get('/users/{user:netid}/annual', [DashboardController::class, 'viewUserAnnual'])->name('users.annual');
         Route::post('/users/{user}/toggle-admin', [AdminController::class, 'toggleAdmin'])->name('users.toggle-admin');
+        Route::post('/users', [AdminController::class, 'approveUser'])->name('users.approve');
     });
 
     Route::controller(ProjectController::class)->prefix('projects')->name('projects.')->group(function () {
