@@ -43,6 +43,14 @@ composer install
 cp .env.example .env
 ```
 
+For the development server, keep `APP_URL=http://localhost:8000`. Set
+`ENTRA_CLIENT_ID`, `ENTRA_TENANT_ID`, and `ENTRA_CLIENT_SECRET` for your Microsoft
+Entra application, and register `http://localhost:8000/signin-oidc` as a Web
+redirect URI in that application. `ENTRA_REDIRECT_URI` uses `${APP_URL}/signin-oidc`
+by default; omitting port `8000` sends the sign-in callback to the wrong server.
+After changing an existing `.env`, run `php artisan config:clear` and restart
+`php artisan serve`.
+
 ### 4. Generate Application Key
 
 ```bash
