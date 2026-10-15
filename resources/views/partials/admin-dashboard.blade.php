@@ -3,6 +3,7 @@
     $orgProjects = $adminDashboard['org_projects'] ?? [];
     $orgStats = $adminDashboard['org_stats'] ?? [];
     $activeRange = $adminDashboard['active_range'] ?? [];
+    $projectsById = collect($adminDashboard['projects'] ?? [])->keyBy('id');
     $hasDateFilter = $adminDashboard['has_date_filter'] ?? false;
     $dateFrom = $adminDashboard['date_from'] ?? null;
     $dateTo = $adminDashboard['date_to'] ?? null;
@@ -190,6 +191,16 @@
                             <a href="{{ route('admin.projects.show', ['project' => $row['id']]) }}" class="i3-link admin-project-link">
                                 {{ $row['name'] }}
                             </a>
+                            @php($project = $projectsById->get($row['id']))
+                            <button type="button"
+                                    class="admin-project-edit-btn"
+                                    data-project-id="{{ $row['id'] }}"
+                                    data-project-name="{{ $row['name'] }}"
+                                    data-project-description="{{ $project['description'] ?? '' }}"
+                                    data-project-active="{{ ($project['active'] ?? false) ? '1' : '0' }}"
+                                    aria-label="Edit {{ $row['name'] }}">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
+                            </button>
                         </span>
                         <span data-label="Unbilled Hrs">{{ number_format($row['unbilled_hours'], 2) }}</span>
                         <span data-label="Total Hrs">{{ number_format($row['total_hours'], 2) }}</span>
@@ -205,6 +216,7 @@
     </div>
 
     @include('partials.admin-create-project-modal')
+    @include('partials.admin-edit-project-modal')
     @include('partials.admin-approve-user-modal')
 
     <hr class="dashboard-stats-divider">

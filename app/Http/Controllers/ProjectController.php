@@ -18,6 +18,13 @@ class ProjectController extends Controller
 
         $project->update($validatedData);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Project updated successfully!',
+                'csrf_token' => csrf_token(),
+            ]);
+        }
+
         return redirect()->route('landing')->with('message', 'Project updated successfully!');
     }
 

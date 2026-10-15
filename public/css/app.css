@@ -1192,6 +1192,23 @@ body {
     word-break: break-word;
 }
 
+.admin-project-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.1rem 0.25rem;
+    border: 0;
+    border-radius: 0.25rem;
+    background: transparent;
+    color: var(--uconn-blue);
+    cursor: pointer;
+}
+
+.admin-project-edit-btn:hover,
+.admin-project-edit-btn:focus-visible {
+    background: rgba(0, 0, 0, 0.08);
+}
+
 .i3-data-table__empty {
     padding: 0.75rem 0;
     font-size: 0.8rem;

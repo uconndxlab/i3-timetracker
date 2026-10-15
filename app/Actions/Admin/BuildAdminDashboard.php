@@ -25,7 +25,7 @@ class BuildAdminDashboard
         $activeProjects = Project::query()
             ->where('active', true)
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'description', 'active']);
 
         return [
             'date_from' => $dateFrom,
@@ -43,6 +43,8 @@ class BuildAdminDashboard
                 ->map(fn (Project $project) => [
                     'id' => $project->id,
                     'name' => $project->name,
+                    'description' => $project->description,
+                    'active' => $project->active,
                 ])
                 ->values()
                 ->all(),
