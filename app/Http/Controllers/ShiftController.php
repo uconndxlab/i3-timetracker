@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\Shift;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ShiftController extends Controller
 {
@@ -15,7 +16,7 @@ class ShiftController extends Controller
         $user = auth()->user();
 
         $rules = [
-            'proj_id' => 'required|exists:projects,id',
+            'proj_id' => ['required', Rule::exists('projects', 'id')->where('active', true)],
             'date' => 'required|date',
             'duration' => $this->durationRules(),
             'entered' => 'required|boolean',
@@ -86,7 +87,7 @@ class ShiftController extends Controller
         }
 
         $validatedData = $request->validate([
-            'proj_id' => 'sometimes|required|exists:projects,id',
+            'proj_id' => ['sometimes', 'required', Rule::exists('projects', 'id')->where('active', true)],
             'date' => 'sometimes|required|date',
             'duration' => $this->durationRules(required: false),
             'entered' => 'sometimes|boolean',
