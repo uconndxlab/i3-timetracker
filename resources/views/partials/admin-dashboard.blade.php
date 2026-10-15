@@ -198,6 +198,7 @@
                                     data-project-name="{{ $row['name'] }}"
                                     data-project-description="{{ $project['description'] ?? '' }}"
                                     data-project-active="{{ ($project['active'] ?? false) ? '1' : '0' }}"
+                                    data-project-has-shifts="{{ ($project['has_shifts'] ?? true) ? '1' : '0' }}"
                                     aria-label="Edit {{ $row['name'] }}">
                                 <i class="bi bi-pencil" aria-hidden="true"></i>
                             </button>

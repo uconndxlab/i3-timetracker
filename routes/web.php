@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EntraController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ShiftController;
-use App\Http\Controllers\EntraController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [EntraController::class, 'redirect'])
@@ -33,6 +33,7 @@ Route::middleware('entra.auth')->group(function () {
 
     Route::controller(ProjectController::class)->prefix('projects')->name('projects.')->group(function () {
         Route::post('/', 'store')->name('store')->middleware('admin');
+        Route::delete('/{project}', 'destroy')->name('destroy')->middleware('admin');
         Route::post('/sync-memberships', 'syncMemberships')->name('sync-memberships');
         Route::post('/{project}/join', 'join')->name('join');
         Route::delete('/{project}/leave', 'leave')->name('leave');

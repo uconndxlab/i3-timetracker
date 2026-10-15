@@ -28,6 +28,30 @@ class ProjectController extends Controller
         return redirect()->route('landing')->with('message', 'Project updated successfully!');
     }
 
+    public function destroy(Request $request, Project $project)
+    {
+        if ($project->shifts()->exists()) {
+            $message = 'Projects with shifts cannot be deleted.';
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message], 409);
+            }
+
+            return redirect()->route('landing', ['view' => 'admin'])->with('error', $message);
+        }
+
+        $project->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Project deleted successfully!',
+                'csrf_token' => csrf_token(),
+            ]);
+        }
+
+        return redirect()->route('landing', ['view' => 'admin'])->with('message', 'Project deleted successfully!');
+    }
+
     public function store(Request $request)
     {
         $validatedData = $request->validate([

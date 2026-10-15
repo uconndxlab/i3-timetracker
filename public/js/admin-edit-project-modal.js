@@ -6,6 +6,7 @@
     const errorsEl = document.getElementById('editProjectModalErrors');
     const projectList = document.getElementById('adminProjectList');
     const updateBaseUrl = window.adminDashboardConfig?.projectsUpdateBaseUrl;
+    const deleteBaseUrl = window.adminDashboardConfig?.projectsDeleteBaseUrl;
 
     if (!modal || !form || !projectList || !updateBaseUrl) {
         return;
@@ -14,6 +15,7 @@
     const nameInput = document.getElementById('editProjectName');
     const descriptionInput = document.getElementById('editProjectDescription');
     const activeCheckbox = document.getElementById('editProjectActive');
+    const deleteBtn = document.getElementById('editProjectDeleteBtn');
     let projectId = null;
 
     const showErrors = (messages) => {
@@ -42,6 +44,7 @@
         nameInput.value = button.dataset.projectName || '';
         descriptionInput.value = button.dataset.projectDescription || '';
         activeCheckbox.checked = button.dataset.projectActive === '1';
+        deleteBtn?.classList.toggle('d-none', button.dataset.projectHasShifts !== '0');
         showErrors([]);
         backdrop?.classList.remove('d-none');
         modal.classList.remove('d-none');
@@ -61,6 +64,44 @@
             return Object.values(data.errors).flat();
         }
         return [data.message || 'Could not update project.'];
+    };
+
+    const deleteProject = async () => {
+        if (!projectId || !deleteBaseUrl || !window.confirm('Delete this project? This cannot be undone.')) {
+            return;
+        }
+
+        deleteBtn.disabled = true;
+        showErrors([]);
+
+        try {
+            const token = document.querySelector('meta[name="csrf-token"]')?.content;
+            const response = await fetch(`${deleteBaseUrl}/${encodeURIComponent(projectId)}`, {
+                method: 'DELETE',
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(token ? { 'X-CSRF-TOKEN': token } : {}),
+                },
+            });
+
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                showErrors(collectValidationErrors(data));
+                return;
+            }
+
+            if (data.csrf_token) {
+                document.querySelector('meta[name="csrf-token"]')?.setAttribute('content', data.csrf_token);
+            }
+
+            window.location.reload();
+        } catch {
+            showErrors(['Could not delete project. Please try again.']);
+        } finally {
+            deleteBtn.disabled = false;
+        }
     };
 
     form.addEventListener('submit', async (event) => {
@@ -124,6 +165,7 @@
 
     closeBtn?.addEventListener('click', closeModal);
     backdrop?.addEventListener('click', closeModal);
+    deleteBtn?.addEventListener('click', deleteProject);
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !modal.classList.contains('d-none')) {

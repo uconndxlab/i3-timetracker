@@ -49,7 +49,12 @@
             </div>
 
             <div class="shift-modal__footer">
-                <button type="submit" class="shift-modal__submit w-100">Save Changes</button>
+                <button type="submit" class="shift-modal__submit w-100" id="editProjectSaveBtn">Save Changes</button>
+                <button type="button"
+                        class="btn btn-outline-danger w-100 mt-2 d-none"
+                        id="editProjectDeleteBtn">
+                    <i class="bi bi-trash me-2" aria-hidden="true"></i>Delete Project
+                </button>
             </div>
         </form>
     </div>

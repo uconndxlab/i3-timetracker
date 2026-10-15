@@ -25,6 +25,7 @@ class BuildAdminDashboard
         $activeProjects = Project::query()
             ->where('active', true)
             ->orderBy('name')
+            ->withCount('shifts')
             ->get(['id', 'name', 'description', 'active']);
 
         return [
@@ -45,6 +46,7 @@ class BuildAdminDashboard
                     'name' => $project->name,
                     'description' => $project->description,
                     'active' => $project->active,
+                    'has_shifts' => $project->shifts_count > 0,
                 ])
                 ->values()
                 ->all(),

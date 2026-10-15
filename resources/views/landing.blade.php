@@ -135,6 +135,7 @@
         landingUrl: @json(route('landing', ['view' => 'admin'])),
         projectsStoreUrl: @json(route('projects.store')),
         projectsUpdateBaseUrl: @json(url('/projects')),
+        projectsDeleteBaseUrl: @json(url('/projects')),
         usersApproveUrl: @json(route('admin.users.approve')),
         shiftBaseUrl: @json(url('/shifts')),
         csrfToken: @json(csrf_token()),
