@@ -1,5 +1,7 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\MakeUserAdminProvider;
 use Illuminate\Support\ServiceProvider;
 
 return [
@@ -137,7 +139,9 @@ return [
     */
 
     'providers' => ServiceProvider::defaultProviders()->merge([
-        App\Providers\MakeUserAdminProvider::class,
+        App\Providers\AppServiceProvider::class,
+        AppServiceProvider::class,
+        MakeUserAdminProvider::class,
     ])->toArray(),
 
 ];

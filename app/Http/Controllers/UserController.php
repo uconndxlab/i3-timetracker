@@ -9,9 +9,9 @@ class UserController extends Controller
 {
     public function create()
     {
-        $netid = cas()->user();
+        $netid = auth()->user()?->netid;
 
-        if (User::where('netid', $netid)->exists()) {
+        if ($netid && User::where('netid', $netid)->exists()) {
             return redirect()->route('landing')->with('message', 'Your account already exists.');
         }
 
@@ -20,11 +20,7 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        if (! cas()->isAuthenticated()) {
-            cas()->authenticate();
-        }
-
-        $netid = cas()->user();
+        $netid = auth()->user()?->netid ?? $request->input('netid');
 
         if (User::where('netid', $netid)->exists()) {
             return redirect()->route('landing')->with('message', 'Your account already exists.');

@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Middleware\EntraAuthenticate;
+use App\Http\Middleware\IsAdmin;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,8 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'entra.auth' => \App\Http\Middleware\EntraAuthenticate::class,
-            'admin' => \App\Http\Middleware\IsAdmin::class,
+            'entra' => \App\Http\Middleware\EntraAuthenticate::class,
+            'entra' => EntraAuthenticate::class,
+            'entra.auth' => EntraAuthenticate::class,
+            'admin' => IsAdmin::class,
         ]);
     })
 
