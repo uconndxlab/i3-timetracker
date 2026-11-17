@@ -3,144 +3,83 @@
 namespace App\Services;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Http;
-
-use Firebase\JWT\JWT;
-use Firebase\JWT\JWK;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\User as SocialiteUser;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
- * Service for handling Microsoft Entra OpenID Connect authentication.
+ * Service for handling Microsoft Entra ID authentication via OpenID Connect (socialiteproviders/openidconnect).
  */
 class EntraService
 {
+    /**
+     * The Socialite driver name registered by socialiteproviders/openidconnect.
+     */
+    protected string $driver = 'oidc_entra';
 
     /**
-     * Initializes the OIDC flow by generating the authorization URL and returning the redirect response.
+     * Initializes the OIDC flow by redirecting to the Entra ID authorization endpoint.
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
     public function generateRedirect()
     {
-        // Requires a few config values, let's make sure they exist
-        $clientId = config('services.entra.client_id');
-        $tenantId = config('services.entra.tenant_id');
-        $redirectUri = config('services.entra.redirect');
-        $clientSecret = config('services.entra.client_secret');
-
-        if (!$clientId || !$tenantId || !$redirectUri || !$clientSecret) {
-            throw new \Exception('Entra configuration is missing. Please set client_id, tenant_id, client_secret, and redirect in config/services.php');
-        }
-
-        $state = Str::random(40);
-        $nonce = Str::random(40);
-
-        // Store state and nonce in session for later validation
-        session([
-            'oidc_state' => $state,
-            'oidc_nonce' => $nonce,
-        ]);
-
-        $queryParams = http_build_query([
-            'client_id' => $clientId,
-            'response_type' => 'code',
-            'scope' => 'openid profile email',
-            'redirect_uri' => $redirectUri,
-            'state' => $state,
-            'nonce' => $nonce,
-        ]);
-
-        return redirect()->away(
-            'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/authorize?' . $queryParams
-        );
+        return Socialite::driver($this->driver)->stateless()->redirect();
     }
 
     /**
-     * Handles the OIDC callback by validating the state, exchanging the authorization code for tokens,
-     * and validating the ID token. Returns the decoded ID token on success.
-     *
-     * @param Request $request
-     * @return object
-     * @throws \Exception
+     * Handles the callback from Entra ID via the OpenID Connect Socialite driver.
+     * Extracts claims, user details, and the UConn NetID.
      */
-    public function handleCallback(Request $request)
+    public function handleCallback(?Request $request = null): array
     {
-        if ($request->filled('error')) {
-            throw new \Exception(
-                'Entra authentication failed: ' .
-                $request->input('error_description', $request->input('error'))
-            );
-        }
+        /** @var SocialiteUser $socialiteUser */
+        $socialiteUser = Socialite::driver($this->driver)->stateless()->user();
 
-        // Validate state
-        $expectedState = $request->session()->pull('oidc_state');
+        $rawUser = $socialiteUser->getRaw() ?? [];
+        $netid = null;
 
-        if (
-            !$request->filled('state') ||
-            !$expectedState ||
-            !hash_equals($expectedState, $request->input('state'))
-        ) {
-            throw new \Exception('Invalid state');
-        }
-
-        if (!$request->filled('code')) {
-            throw new \Exception('Authorization code missing');
-        }
-
-        // Exchange the authorization code for tokens
-        $tokenResponse = Http::asForm()->post(
-            'https://login.microsoftonline.com/' . config('services.entra.tenant_id') . '/oauth2/v2.0/token',
-            [
-                'client_id' => config('services.entra.client_id'),
-                'client_secret' => config('services.entra.client_secret'),
-                'code' => $request->input('code'),
-                'redirect_uri' => config('services.entra.redirect'),
-                'grant_type' => 'authorization_code',
-            ]
-        );
-
-        if ($tokenResponse->failed()) {
-            throw new \Exception('Token exchange failed');
-        }
-
-        $tokens = $tokenResponse->json();
-
-        if (empty($tokens['id_token'])) {
-            throw new \Exception('ID token missing');
-        }
-
-        // Validate and decode the ID token
-        try {
-            $jwksResponse = Http::get(
-                'https://login.microsoftonline.com/' .
-                config('services.entra.tenant_id') .
-                '/discovery/v2.0/keys'
-            );
-
-            if ($jwksResponse->failed()) {
-                throw new \Exception('Unable to retrieve signing keys');
+        // 1. Check ID token payload if available in accessTokenResponseBody
+        if (isset($socialiteUser->accessTokenResponseBody['id_token'])) {
+            $idToken = $socialiteUser->accessTokenResponseBody['id_token'];
+            $parts = explode('.', $idToken);
+            if (isset($parts[1])) {
+                $tokenClaims = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true) ?? [];
+                $netid = $tokenClaims['NetID'] ?? $tokenClaims['netid'] ?? null;
             }
-
-            $decoded = JWT::decode(
-                $tokens['id_token'],
-                JWK::parseKeySet($jwksResponse->json(), 'RS256')
-            );
-        } catch (\Exception $e) {
-            throw new \Exception('Invalid ID token: ' . $e->getMessage());
         }
 
-        // Validate nonce
-        $expectedNonce = $request->session()->pull('oidc_nonce');
-
-        if (
-            !isset($decoded->nonce) ||
-            !$expectedNonce ||
-            !hash_equals($expectedNonce, $decoded->nonce)
-        ) {
-            throw new \Exception('Invalid nonce');
+        // 2. Check claims array directly
+        if (! $netid && is_array($rawUser)) {
+            $netid = $rawUser['NetID']
+                ?? $rawUser['netid']
+                ?? $rawUser['onPremisesSamAccountName']
+                ?? null;
         }
 
-        return $decoded;
+        // 3. Fallback: Parse NetID from preferred_username, userPrincipalName, upn, or email
+        if (! $netid) {
+            $principal = $rawUser['preferred_username']
+                ?? $rawUser['userPrincipalName']
+                ?? $rawUser['upn']
+                ?? $socialiteUser->getEmail();
+
+            if ($principal && str_contains($principal, '@')) {
+                $netid = explode('@', $principal)[0];
+            } else {
+                $netid = $principal;
+            }
+        }
+
+        $email = $socialiteUser->getEmail() ?? ($rawUser['mail'] ?? ($rawUser['userPrincipalName'] ?? null));
+        $name = $socialiteUser->getName() ?? ($rawUser['displayName'] ?? null);
+
+        return [
+            'netid' => $netid,
+            'email' => $email,
+            'name' => $name,
+            'socialite_user' => $socialiteUser,
+            'raw' => $rawUser,
+        ];
     }
-
 }

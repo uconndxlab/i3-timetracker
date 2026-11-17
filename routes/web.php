@@ -7,17 +7,16 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ShiftController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/login', [EntraController::class, 'redirect'])
-    ->name('login');
-
-Route::get('/signin-oidc', [EntraController::class, 'callback'])
-    ->name('entra.callback');
+// Entra ID Authentication routes
+Route::get('/login', [EntraController::class, 'redirect'])->name('login');
+Route::get('/entra/redirect', [EntraController::class, 'redirect'])->name('entra.redirect');
+Route::get('/signin-oidc', [EntraController::class, 'callback'])->name('entra.callback');
+Route::get('/logout', [EntraController::class, 'logout'])->name('logout');
 
 Route::middleware('entra.auth')->group(function () {
     Route::get('/', [DashboardController::class, 'landing'])->name('landing');
     Route::get('/annual', [DashboardController::class, 'annual'])->name('annual');
     Route::post('/annual/view-preference', [DashboardController::class, 'updateAnnualCalView'])->name('annual.view-preference');
-    Route::get('/logout', [AdminController::class, 'logout'])->name('logout');
 
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
         Route::post('/projects/{project}/users', [AdminController::class, 'assignUsers'])->name('projects.assign-users');

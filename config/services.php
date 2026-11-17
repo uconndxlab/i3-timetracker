@@ -35,10 +35,18 @@ return [
         ],
     ],
 
+    'azure' => [
+        'client_id' => env('AZURE_CLIENT_ID', env('ENTRA_CLIENT_ID')),
+        'client_secret' => env('AZURE_CLIENT_SECRET', env('ENTRA_CLIENT_SECRET')),
+        'redirect' => env('AZURE_REDIRECT_URI', env('ENTRA_REDIRECT_URI')),
+        'tenant' => env('AZURE_TENANT_ID', env('ENTRA_TENANT_ID', 'common')),
+        'proxy' => env('PROXY'),
+    ],
+
     'entra' => [
-        'client_id' => env('ENTRA_CLIENT_ID'),
-        'tenant_id' => env('ENTRA_TENANT_ID'),
-        'client_secret' => env('ENTRA_CLIENT_SECRET'),
-        'redirect' => env('ENTRA_REDIRECT_URI'),
+        'client_id' => env('ENTRA_CLIENT_ID', env('AZURE_CLIENT_ID')),
+        'tenant_id' => env('ENTRA_TENANT_ID', env('AZURE_TENANT_ID', 'common')),
+        'client_secret' => env('ENTRA_CLIENT_SECRET', env('AZURE_CLIENT_SECRET')),
+        'redirect' => env('ENTRA_REDIRECT_URI', env('AZURE_REDIRECT_URI')),
     ],
 ];
