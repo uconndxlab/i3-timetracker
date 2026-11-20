@@ -190,6 +190,9 @@
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
+        if (submitBtn?.disabled) {
+            return;
+        }
         showErrors([]);
 
         const durationMinutes = getDurationMinutes();
@@ -207,6 +210,10 @@
         if (isEditMode()) {
             url = `${config.shiftBaseUrl || '/shifts'}/${activeShift.id}`;
             formData.append('_method', 'PUT');
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
         }
 
         try {
@@ -250,6 +257,10 @@
             window.location.reload();
         } catch {
             showErrors(['Could not save shift. Please try again.']);
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
         }
     });
 
